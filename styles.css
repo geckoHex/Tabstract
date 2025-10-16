@@ -169,12 +169,16 @@ body {
     color: var(--fluent-text-primary);
     min-width: 100px;
     box-shadow: var(--fluent-shadow);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .quick-link:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--fluent-shadow-hover);
+    background: rgba(0, 120, 212, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+    .quick-link:hover {
+        background: rgba(76, 194, 255, 0.15);
+    }
 }
 
 .link-icon {
@@ -196,39 +200,6 @@ body {
     font-size: 13px;
     font-weight: 500;
     color: var(--fluent-text-secondary);
-}
-
-.delete-link-btn {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    width: 24px;
-    height: 24px;
-    border: none;
-    background: rgba(0, 0, 0, 0.05);
-    border-radius: 4px;
-    cursor: pointer;
-    opacity: 0;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--fluent-text-secondary);
-}
-
-@media (prefers-color-scheme: dark) {
-    .delete-link-btn {
-        background: rgba(255, 255, 255, 0.1);
-    }
-}
-
-.quick-link:hover .delete-link-btn {
-    opacity: 1;
-}
-
-.delete-link-btn:hover {
-    background: rgba(255, 0, 0, 0.1);
-    color: #c42b1c;
 }
 
 .add-link-btn {

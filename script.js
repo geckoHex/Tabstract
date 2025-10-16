@@ -77,22 +77,8 @@ function loadQuickLinks() {
                 <img src="public/icon-options/${link.icon}" alt="${link.name}">
             </div>
             <span>${link.name}</span>
-            <button class="delete-link-btn" data-index="${index}" title="Delete">
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M6 4.94L9.53 1.41L10.59 2.47L7.06 6L10.59 9.53L9.53 10.59L6 7.06L2.47 10.59L1.41 9.53L4.94 6L1.41 2.47L2.47 1.41L6 4.94Z" fill="currentColor"/>
-                </svg>
-            </button>
         `;
         quickLinksContainer.appendChild(linkElement);
-    });
-    
-    // Add delete button event listeners
-    document.querySelectorAll('.delete-link-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            deleteQuickLink(parseInt(btn.dataset.index));
-        });
     });
 }
 
