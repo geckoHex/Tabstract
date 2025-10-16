@@ -73,7 +73,9 @@ function loadQuickLinks() {
         linkElement.className = 'quick-link';
         linkElement.target = '_blank';
         linkElement.innerHTML = `
-            <div class="link-icon">${link.icon}</div>
+            <div class="link-icon">
+                <img src="public/icon-options/${link.icon}" alt="${link.name}">
+            </div>
             <span>${link.name}</span>
             <button class="delete-link-btn" data-index="${index}" title="Delete">
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -102,7 +104,7 @@ function saveQuickLink(name, url, icon) {
         url = 'https://' + url;
     }
     
-    links.push({ name, url, icon: icon || '🔗' });
+    links.push({ name, url, icon: icon || 'star.svg' });
     localStorage.setItem('quickLinks', JSON.stringify(links));
     loadQuickLinks();
 }
@@ -121,11 +123,25 @@ function setupQuickLinksUI() {
     const saveBtn = document.getElementById('saveBtn');
     const linkName = document.getElementById('linkName');
     const linkUrl = document.getElementById('linkUrl');
-    const linkIcon = document.getElementById('linkIcon');
+    const iconSelector = document.getElementById('iconSelector');
+    let selectedIcon = 'star.svg'; // Default icon
+    
+    // Icon selection
+    iconSelector.querySelectorAll('.icon-option').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            iconSelector.querySelectorAll('.icon-option').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            selectedIcon = btn.dataset.icon;
+        });
+    });
     
     // Open modal
     addLinkBtn.addEventListener('click', () => {
         modal.classList.add('show');
+        // Select first icon by default
+        iconSelector.querySelector('.icon-option').classList.add('selected');
+        selectedIcon = 'star.svg';
         linkName.focus();
     });
     
@@ -134,7 +150,8 @@ function setupQuickLinksUI() {
         modal.classList.remove('show');
         linkName.value = '';
         linkUrl.value = '';
-        linkIcon.value = '';
+        iconSelector.querySelectorAll('.icon-option').forEach(b => b.classList.remove('selected'));
+        selectedIcon = 'star.svg';
     }
     
     cancelBtn.addEventListener('click', closeModal);
@@ -157,10 +174,9 @@ function setupQuickLinksUI() {
     saveBtn.addEventListener('click', () => {
         const name = linkName.value.trim();
         const url = linkUrl.value.trim();
-        const icon = linkIcon.value.trim();
         
-        if (name && url) {
-            saveQuickLink(name, url, icon);
+        if (name && url && selectedIcon) {
+            saveQuickLink(name, url, selectedIcon);
             closeModal();
         } else {
             // Simple validation feedback
@@ -175,7 +191,7 @@ function setupQuickLinksUI() {
     });
     
     // Allow Enter key to save
-    [linkName, linkUrl, linkIcon].forEach(input => {
+    [linkName, linkUrl].forEach(input => {
         input.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 saveBtn.click();
