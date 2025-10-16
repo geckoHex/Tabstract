@@ -32,24 +32,39 @@
                 </div>
             </div>
 
-            <!-- Quick Links (Optional) -->
-            <div class="quick-links" id="quickLinks">
-                <a href="https://www.google.com" class="quick-link" target="_blank">
-                    <div class="link-icon">📧</div>
-                    <span>Gmail</span>
-                </a>
-                <a href="https://www.youtube.com" class="quick-link" target="_blank">
-                    <div class="link-icon">▶️</div>
-                    <span>YouTube</span>
-                </a>
-                <a href="https://github.com" class="quick-link" target="_blank">
-                    <div class="link-icon">💻</div>
-                    <span>GitHub</span>
-                </a>
-                <a href="https://twitter.com" class="quick-link" target="_blank">
-                    <div class="link-icon">🐦</div>
-                    <span>Twitter</span>
-                </a>
+            <!-- Quick Links -->
+            <div class="quick-links-section">
+                <div class="quick-links" id="quickLinks">
+                    <!-- Custom links will be added here -->
+                </div>
+                <button class="add-link-btn" id="addLinkBtn" title="Add Quick Link">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 4C10.2761 4 10.5 4.22386 10.5 4.5V9.5H15.5C15.7761 9.5 16 9.72386 16 10C16 10.2761 15.7761 10.5 15.5 10.5H10.5V15.5C10.5 15.7761 10.2761 16 10 16C9.72386 16 9.5 15.7761 9.5 15.5V10.5H4.5C4.22386 10.5 4 10.2761 4 10C4 9.72386 4.22386 9.5 4.5 9.5H9.5V4.5C9.5 4.22386 9.72386 4 10 4Z" fill="currentColor"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Add Link Modal -->
+            <div class="modal" id="addLinkModal">
+                <div class="modal-content">
+                    <h2>Add Quick Link</h2>
+                    <div class="form-group">
+                        <label for="linkName">Name</label>
+                        <input type="text" id="linkName" class="form-input" placeholder="e.g., Gmail" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="linkUrl">URL</label>
+                        <input type="text" id="linkUrl" class="form-input" placeholder="e.g., https://gmail.com" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="linkIcon">Icon (emoji)</label>
+                        <input type="text" id="linkIcon" class="form-input" placeholder="e.g., 📧" autocomplete="off" maxlength="4">
+                    </div>
+                    <div class="modal-actions">
+                        <button class="btn btn-secondary" id="cancelBtn">Cancel</button>
+                        <button class="btn btn-primary" id="saveBtn">Save</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

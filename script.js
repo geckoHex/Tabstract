@@ -48,9 +48,139 @@ function setupSearch() {
         // Ignore if already focused or if special keys are pressed
         if (document.activeElement === searchInput) return;
         if (e.ctrlKey || e.metaKey || e.altKey) return;
+        
+        // Ignore if modal is open or user is typing in an input field
+        const modal = document.getElementById('addLinkModal');
+        if (modal && modal.classList.contains('show')) return;
+        if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
+        
         if (e.key.length === 1) {
             searchInput.focus();
         }
+    });
+}
+
+// Quick Links Management
+function loadQuickLinks() {
+    const quickLinksContainer = document.getElementById('quickLinks');
+    const links = JSON.parse(localStorage.getItem('quickLinks') || '[]');
+    
+    quickLinksContainer.innerHTML = '';
+    
+    links.forEach((link, index) => {
+        const linkElement = document.createElement('a');
+        linkElement.href = link.url;
+        linkElement.className = 'quick-link';
+        linkElement.target = '_blank';
+        linkElement.innerHTML = `
+            <div class="link-icon">${link.icon}</div>
+            <span>${link.name}</span>
+            <button class="delete-link-btn" data-index="${index}" title="Delete">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 4.94L9.53 1.41L10.59 2.47L7.06 6L10.59 9.53L9.53 10.59L6 7.06L2.47 10.59L1.41 9.53L4.94 6L1.41 2.47L2.47 1.41L6 4.94Z" fill="currentColor"/>
+                </svg>
+            </button>
+        `;
+        quickLinksContainer.appendChild(linkElement);
+    });
+    
+    // Add delete button event listeners
+    document.querySelectorAll('.delete-link-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            deleteQuickLink(parseInt(btn.dataset.index));
+        });
+    });
+}
+
+function saveQuickLink(name, url, icon) {
+    const links = JSON.parse(localStorage.getItem('quickLinks') || '[]');
+    
+    // Ensure URL has protocol
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = 'https://' + url;
+    }
+    
+    links.push({ name, url, icon: icon || '🔗' });
+    localStorage.setItem('quickLinks', JSON.stringify(links));
+    loadQuickLinks();
+}
+
+function deleteQuickLink(index) {
+    const links = JSON.parse(localStorage.getItem('quickLinks') || '[]');
+    links.splice(index, 1);
+    localStorage.setItem('quickLinks', JSON.stringify(links));
+    loadQuickLinks();
+}
+
+function setupQuickLinksUI() {
+    const addLinkBtn = document.getElementById('addLinkBtn');
+    const modal = document.getElementById('addLinkModal');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const saveBtn = document.getElementById('saveBtn');
+    const linkName = document.getElementById('linkName');
+    const linkUrl = document.getElementById('linkUrl');
+    const linkIcon = document.getElementById('linkIcon');
+    
+    // Open modal
+    addLinkBtn.addEventListener('click', () => {
+        modal.classList.add('show');
+        linkName.focus();
+    });
+    
+    // Close modal
+    function closeModal() {
+        modal.classList.remove('show');
+        linkName.value = '';
+        linkUrl.value = '';
+        linkIcon.value = '';
+    }
+    
+    cancelBtn.addEventListener('click', closeModal);
+    
+    // Close modal when clicking outside
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+    
+    // Close modal on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('show')) {
+            closeModal();
+        }
+    });
+    
+    // Save link
+    saveBtn.addEventListener('click', () => {
+        const name = linkName.value.trim();
+        const url = linkUrl.value.trim();
+        const icon = linkIcon.value.trim();
+        
+        if (name && url) {
+            saveQuickLink(name, url, icon);
+            closeModal();
+        } else {
+            // Simple validation feedback
+            if (!name) linkName.style.borderColor = 'red';
+            if (!url) linkUrl.style.borderColor = 'red';
+            
+            setTimeout(() => {
+                linkName.style.borderColor = '';
+                linkUrl.style.borderColor = '';
+            }, 2000);
+        }
+    });
+    
+    // Allow Enter key to save
+    [linkName, linkUrl, linkIcon].forEach(input => {
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                saveBtn.click();
+            }
+        });
     });
 }
 
@@ -59,6 +189,8 @@ document.addEventListener('DOMContentLoaded', () => {
     updateTime();
     setInterval(updateTime, 1000); // Update every second
     setupSearch();
+    loadQuickLinks();
+    setupQuickLinksUI();
     
     // Focus search input on load
     setTimeout(() => {
