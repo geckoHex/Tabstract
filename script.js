@@ -64,10 +64,42 @@ function setupSearch() {
 let isEditMode = false;
 let deleteIndex = null;
 
+// Settings State
+const DEFAULT_SETTINGS = {
+    darkMode: 'auto', // 'auto', 'light', or 'dark'
+    openInNewTab: false
+};
+
+// Load settings from localStorage
+function loadSettings() {
+    const savedSettings = localStorage.getItem('settings');
+    return savedSettings ? JSON.parse(savedSettings) : DEFAULT_SETTINGS;
+}
+
+// Save settings to localStorage
+function saveSettings(settings) {
+    localStorage.setItem('settings', JSON.stringify(settings));
+}
+
+// Apply dark mode setting
+function applyDarkMode() {
+    const settings = loadSettings();
+    const html = document.documentElement;
+    
+    if (settings.darkMode === 'dark') {
+        html.setAttribute('data-theme', 'dark');
+    } else if (settings.darkMode === 'light') {
+        html.setAttribute('data-theme', 'light');
+    } else {
+        html.removeAttribute('data-theme');
+    }
+}
+
 // Quick Links Management
 function loadQuickLinks() {
     const quickLinksContainer = document.getElementById('quickLinks');
     const links = JSON.parse(localStorage.getItem('quickLinks') || '[]');
+    const settings = loadSettings();
     
     quickLinksContainer.innerHTML = '';
     
@@ -75,6 +107,13 @@ function loadQuickLinks() {
         const linkElement = document.createElement('a');
         linkElement.href = link.url;
         linkElement.className = 'quick-link';
+        
+        // Apply target setting
+        if (settings.openInNewTab) {
+            linkElement.target = '_blank';
+            linkElement.rel = 'noopener noreferrer';
+        }
+        
         linkElement.innerHTML = `
             <button class="delete-link-btn" data-index="${index}" title="Delete">
                 <img src="public/ext-icons/trash.svg" alt="Delete" width="14" height="14">
@@ -264,8 +303,69 @@ function setupEditMode() {
     });
 }
 
+// Settings Modal
+function setupSettings() {
+    const settingsBtn = document.getElementById('settingsBtn');
+    const settingsModal = document.getElementById('settingsModal');
+    const settingsCloseBtn = document.getElementById('settingsCloseBtn');
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const openInNewTabToggle = document.getElementById('openInNewTabToggle');
+    
+    // Load current settings
+    const settings = loadSettings();
+    
+    // Set initial toggle states
+    darkModeToggle.checked = settings.darkMode === 'dark';
+    openInNewTabToggle.checked = settings.openInNewTab;
+    
+    // Open settings modal
+    settingsBtn.addEventListener('click', () => {
+        settingsModal.classList.add('show');
+    });
+    
+    // Close settings modal
+    function closeSettings() {
+        settingsModal.classList.remove('show');
+    }
+    
+    settingsCloseBtn.addEventListener('click', closeSettings);
+    
+    // Close on background click
+    settingsModal.addEventListener('click', (e) => {
+        if (e.target === settingsModal) {
+            closeSettings();
+        }
+    });
+    
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && settingsModal.classList.contains('show')) {
+            closeSettings();
+        }
+    });
+    
+    // Dark mode toggle
+    darkModeToggle.addEventListener('change', (e) => {
+        const settings = loadSettings();
+        settings.darkMode = e.target.checked ? 'dark' : 'light';
+        saveSettings(settings);
+        applyDarkMode();
+    });
+    
+    // Open in new tab toggle
+    openInNewTabToggle.addEventListener('change', (e) => {
+        const settings = loadSettings();
+        settings.openInNewTab = e.target.checked;
+        saveSettings(settings);
+        loadQuickLinks(); // Reload links to apply new target setting
+    });
+}
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+    // Apply dark mode on load
+    applyDarkMode();
+    
     updateTime();
     setInterval(updateTime, 1000); // Update every second
     setupSearch();
@@ -273,6 +373,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupQuickLinksUI();
     setupDeleteConfirmation();
     setupEditMode();
+    setupSettings();
     
     // Focus search input on load
     setTimeout(() => {

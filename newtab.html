@@ -12,6 +12,11 @@
         <img src="public/ext-icons/pencil.svg" alt="Edit" width="20" height="20">
     </button>
 
+    <!-- Settings Button -->
+    <button class="settings-btn" id="settingsBtn" title="Settings">
+        <img src="public/ext-icons/gear.svg" alt="Settings" width="20" height="20">
+    </button>
+
     <div class="container">
         <div class="content">
             <!-- Time Display -->
@@ -109,6 +114,41 @@
                     <div class="modal-actions">
                         <button class="btn btn-secondary" id="deleteCancelBtn">Cancel</button>
                         <button class="btn btn-danger" id="deleteConfirmBtn">Delete</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Settings Modal -->
+            <div class="modal" id="settingsModal">
+                <div class="modal-content">
+                    <h2>Settings</h2>
+                    
+                    <div class="settings-group">
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <label for="darkModeToggle" class="setting-label">Dark Mode</label>
+                                <p class="setting-description">Toggle between light and dark theme</p>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="darkModeToggle">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <label for="openInNewTabToggle" class="setting-label">Open Links in New Tab</label>
+                                <p class="setting-description">Open quick links in a new tab instead of current tab</p>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="openInNewTabToggle">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button class="btn btn-primary" id="settingsCloseBtn">Done</button>
                     </div>
                 </div>
             </div>
