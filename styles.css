@@ -62,11 +62,47 @@ body {
     position: relative;
 }
 
+/* Settings Button */
+.settings-btn {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    width: 48px;
+    height: 48px;
+    border-radius: 24px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--fluent-text-secondary);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 100;
+}
+
+.settings-btn img {
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+
+.settings-btn:hover {
+    transform: scale(1.1);
+}
+
+.settings-btn:hover img {
+    opacity: 1;
+}
+
+.settings-btn:active {
+    transform: scale(1.05);
+}
+
 /* Edit Mode Button */
 .edit-mode-btn {
     position: fixed;
     top: 24px;
-    right: 24px;
+    right: 80px;
     width: 48px;
     height: 48px;
     border-radius: 24px;
@@ -101,42 +137,6 @@ body {
 .edit-mode-btn.active img {
     opacity: 1;
     filter: brightness(0) saturate(100%) invert(0.4) sepia(1) saturate(10) hue-rotate(180deg);
-}
-
-/* Settings Button */
-.settings-btn {
-    position: fixed;
-    top: 24px;
-    right: 80px;
-    width: 48px;
-    height: 48px;
-    border-radius: 24px;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--fluent-text-secondary);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 100;
-}
-
-.settings-btn img {
-    opacity: 0.6;
-    transition: opacity 0.2s ease;
-}
-
-.settings-btn:hover {
-    transform: scale(1.1);
-}
-
-.settings-btn:hover img {
-    opacity: 1;
-}
-
-.settings-btn:active {
-    transform: scale(1.05);
 }
 
 
