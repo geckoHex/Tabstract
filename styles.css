@@ -95,7 +95,7 @@ body {
 }
 
 .settings-btn:hover {
-    transform: scale(1.1);
+    background: rgba(0, 0, 0, 0.05);
 }
 
 .settings-btn:hover img {
@@ -131,7 +131,7 @@ body {
 }
 
 .edit-mode-btn:hover {
-    transform: scale(1.1);
+    background: rgba(0, 0, 0, 0.05);
 }
 
 .edit-mode-btn:hover img {
@@ -295,7 +295,6 @@ body {
 
 .delete-link-btn:hover {
     background: #a82126;
-    transform: scale(1.1);
 }
 
 .delete-link-btn:active {
@@ -360,7 +359,6 @@ body {
 .add-link-btn:hover {
     background: rgba(0, 120, 212, 0.1);
     border-color: var(--fluent-accent);
-    transform: scale(1.05);
 }
 
 .add-link-btn:hover img {
@@ -782,7 +780,6 @@ body {
 }
 
 .color-swatch:hover {
-    transform: scale(1.05);
     box-shadow: var(--fluent-shadow-hover);
 }
 
