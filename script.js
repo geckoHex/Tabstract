@@ -88,6 +88,9 @@ function loadQuickLinks() {
     const links = JSON.parse(localStorage.getItem('quickLinks') || '[]');
     const settings = loadSettings();
     
+    // Store reference to add button before clearing
+    const addLinkBtn = document.getElementById('addLinkBtn');
+    
     quickLinksContainer.innerHTML = '';
     
     links.forEach((link, index) => {
@@ -119,6 +122,11 @@ function loadQuickLinks() {
             showContextMenu(e.pageX, e.pageY, index);
         });
     });
+    
+    // Re-append the add button at the end
+    if (addLinkBtn) {
+        quickLinksContainer.appendChild(addLinkBtn);
+    }
     
     // Add event listeners to delete buttons
     document.querySelectorAll('.delete-link-btn').forEach(btn => {
