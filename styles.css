@@ -41,6 +41,48 @@ body {
     overflow: hidden;
     width: 100vw;
     height: 100vh;
+    position: relative;
+}
+
+/* Edit Mode Button */
+.edit-mode-btn {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    width: 48px;
+    height: 48px;
+    border-radius: 24px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--fluent-text-secondary);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 100;
+}
+
+.edit-mode-btn img {
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+
+.edit-mode-btn:hover {
+    transform: scale(1.1);
+}
+
+.edit-mode-btn:hover img {
+    opacity: 1;
+}
+
+.edit-mode-btn:active {
+    transform: scale(1.05);
+}
+
+.edit-mode-btn.active img {
+    opacity: 1;
+    filter: brightness(0) saturate(100%) invert(0.4) sepia(1) saturate(10) hue-rotate(180deg);
 }
 
 .container {
@@ -175,6 +217,43 @@ body {
     background: rgba(0, 120, 212, 0.1);
 }
 
+/* Delete Button */
+.delete-link-btn {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 12px;
+    border: 1px solid var(--fluent-border);
+    background: #d13438;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 10;
+    box-shadow: var(--fluent-shadow);
+}
+
+.delete-link-btn img {
+    filter: brightness(0) saturate(100%) invert(1);
+}
+
+.delete-link-btn:hover {
+    background: #a82126;
+    transform: scale(1.1);
+}
+
+.delete-link-btn:active {
+    transform: scale(1.05);
+}
+
+.edit-mode .delete-link-btn {
+    display: flex;
+}
+
 @media (prefers-color-scheme: dark) {
     .quick-link:hover {
         background: rgba(76, 194, 255, 0.15);
@@ -219,11 +298,25 @@ body {
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.add-link-btn img {
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+
+.add-link-btn.hidden {
+    display: none;
+}
+
 .add-link-btn:hover {
     background: var(--fluent-accent);
     color: white;
     transform: scale(1.1);
     box-shadow: var(--fluent-shadow-hover);
+}
+
+.add-link-btn:hover img {
+    opacity: 1;
+    filter: brightness(0) saturate(100%) invert(1);
 }
 
 .add-link-btn:active {
@@ -388,8 +481,28 @@ body {
     background: var(--fluent-bg-tertiary);
 }
 
+.btn-danger {
+    background: #d13438;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #a82126;
+}
+
 .btn:active {
     transform: scale(0.98);
+}
+
+.modal-small {
+    max-width: 360px;
+}
+
+.modal-description {
+    font-size: 14px;
+    color: var(--fluent-text-secondary);
+    margin-bottom: 24px;
+    line-height: 1.5;
 }
 
 /* Icon Selector */

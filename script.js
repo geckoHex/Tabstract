@@ -60,6 +60,10 @@ function setupSearch() {
     });
 }
 
+// Edit Mode State
+let isEditMode = false;
+let deleteIndex = null;
+
 // Quick Links Management
 function loadQuickLinks() {
     const quickLinksContainer = document.getElementById('quickLinks');
@@ -73,12 +77,25 @@ function loadQuickLinks() {
         linkElement.className = 'quick-link';
         linkElement.target = '_blank';
         linkElement.innerHTML = `
+            <button class="delete-link-btn" data-index="${index}" title="Delete">
+                <img src="public/ext-icons/trash.svg" alt="Delete" width="14" height="14">
+            </button>
             <div class="link-icon">
                 <img src="public/icon-options/${link.icon}" alt="${link.name}">
             </div>
             <span>${link.name}</span>
         `;
         quickLinksContainer.appendChild(linkElement);
+    });
+    
+    // Add event listeners to delete buttons
+    document.querySelectorAll('.delete-link-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const index = parseInt(btn.dataset.index);
+            showDeleteConfirmation(index);
+        });
     });
 }
 
@@ -186,6 +203,68 @@ function setupQuickLinksUI() {
     });
 }
 
+// Delete Confirmation Modal
+function showDeleteConfirmation(index) {
+    deleteIndex = index;
+    const modal = document.getElementById('deleteConfirmModal');
+    modal.classList.add('show');
+}
+
+function setupDeleteConfirmation() {
+    const modal = document.getElementById('deleteConfirmModal');
+    const cancelBtn = document.getElementById('deleteCancelBtn');
+    const confirmBtn = document.getElementById('deleteConfirmBtn');
+    
+    function closeModal() {
+        modal.classList.remove('show');
+        deleteIndex = null;
+    }
+    
+    cancelBtn.addEventListener('click', closeModal);
+    
+    confirmBtn.addEventListener('click', () => {
+        if (deleteIndex !== null) {
+            deleteQuickLink(deleteIndex);
+            closeModal();
+        }
+    });
+    
+    // Close on background click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+    
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('show')) {
+            closeModal();
+        }
+    });
+}
+
+// Edit Mode Toggle
+function setupEditMode() {
+    const editModeBtn = document.getElementById('editModeBtn');
+    const addLinkBtn = document.getElementById('addLinkBtn');
+    const quickLinksSection = document.querySelector('.quick-links-section');
+    
+    editModeBtn.addEventListener('click', () => {
+        isEditMode = !isEditMode;
+        
+        if (isEditMode) {
+            editModeBtn.classList.add('active');
+            addLinkBtn.classList.remove('hidden');
+            quickLinksSection.classList.add('edit-mode');
+        } else {
+            editModeBtn.classList.remove('active');
+            addLinkBtn.classList.add('hidden');
+            quickLinksSection.classList.remove('edit-mode');
+        }
+    });
+}
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     updateTime();
@@ -193,6 +272,8 @@ document.addEventListener('DOMContentLoaded', () => {
     setupSearch();
     loadQuickLinks();
     setupQuickLinksUI();
+    setupDeleteConfirmation();
+    setupEditMode();
     
     // Focus search input on load
     setTimeout(() => {
