@@ -75,7 +75,6 @@ function loadQuickLinks() {
         const linkElement = document.createElement('a');
         linkElement.href = link.url;
         linkElement.className = 'quick-link';
-        linkElement.target = '_blank';
         linkElement.innerHTML = `
             <button class="delete-link-btn" data-index="${index}" title="Delete">
                 <img src="public/ext-icons/trash.svg" alt="Delete" width="14" height="14">
