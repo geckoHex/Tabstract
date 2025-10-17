@@ -349,6 +349,7 @@ function setupSettings() {
     const settingsCloseBtn = document.getElementById('settingsCloseBtn');
     const openInNewTabToggle = document.getElementById('openInNewTabToggle');
     const colorPicker = document.getElementById('colorPicker');
+    const resetSettingsBtn = document.getElementById('resetSettingsBtn');
     
     // Load current settings
     const settings = loadSettings();
@@ -405,6 +406,11 @@ function setupSettings() {
             applyBackgroundColor(color);
         });
     });
+    
+    // Reset settings button
+    resetSettingsBtn.addEventListener('click', () => {
+        showResetConfirmation();
+    });
 }
 
 // Helper function to update color swatch selection UI
@@ -429,6 +435,125 @@ function applyBackgroundColor(colorName) {
     };
     
     document.body.style.backgroundColor = colorMap[colorName] || colorMap['clay'];
+}
+
+// Reset Settings Confirmation Modal
+function showResetConfirmation() {
+    const resetConfirmModal = document.getElementById('resetConfirmModal');
+    const settingsModal = document.getElementById('settingsModal');
+    settingsModal.classList.remove('show');
+    resetConfirmModal.classList.add('show');
+}
+
+function setupResetConfirmation() {
+    const resetConfirmModal = document.getElementById('resetConfirmModal');
+    const resetCancelBtn = document.getElementById('resetCancelBtn');
+    const resetConfirmBtn = document.getElementById('resetConfirmBtn');
+    const settingsModal = document.getElementById('settingsModal');
+    
+    let pressTimer = null;
+    let isPressed = false;
+    let pressProgress = 0;
+    const PRESS_DURATION = 3000; // 3 seconds
+    const PROGRESS_UPDATE_INTERVAL = 50; // Update progress every 50ms
+    
+    function closeResetModal() {
+        resetConfirmModal.classList.remove('show');
+        settingsModal.classList.add('show');
+        // Clean up any ongoing press
+        if (pressTimer) {
+            clearInterval(pressTimer);
+            pressTimer = null;
+        }
+        isPressed = false;
+        pressProgress = 0;
+        resetConfirmBtn.classList.remove('pressing');
+        updateProgressBar();
+    }
+    
+    function updateProgressBar() {
+        const progressBar = resetConfirmBtn.querySelector('.btn-progress');
+        progressBar.style.width = pressProgress + '%';
+    }
+    
+    function performReset() {
+        // Clear all localStorage data
+        localStorage.removeItem('quickLinks');
+        localStorage.removeItem('settings');
+        
+        // Close modals
+        resetConfirmModal.classList.remove('show');
+        settingsModal.classList.remove('show');
+        
+        // Reset button state
+        resetConfirmBtn.classList.remove('pressing');
+        pressProgress = 0;
+        updateProgressBar();
+        
+        // Reload the page to apply default settings
+        location.reload();
+    }
+    
+    // Handle mouse down / touch start
+    function handlePressStart(e) {
+        if (isPressed) return;
+        
+        isPressed = true;
+        pressProgress = 0;
+        resetConfirmBtn.classList.add('pressing');
+        
+        pressTimer = setInterval(() => {
+            pressProgress += (PROGRESS_UPDATE_INTERVAL / PRESS_DURATION) * 100;
+            
+            if (pressProgress >= 100) {
+                clearInterval(pressTimer);
+                pressTimer = null;
+                performReset();
+            } else {
+                updateProgressBar();
+            }
+        }, PROGRESS_UPDATE_INTERVAL);
+    }
+    
+    function handlePressEnd(e) {
+        if (!isPressed) return;
+        
+        // If pressed for less than full duration, cancel
+        if (pressProgress < 100 && pressTimer) {
+            clearInterval(pressTimer);
+            pressTimer = null;
+            isPressed = false;
+            resetConfirmBtn.classList.remove('pressing');
+            pressProgress = 0;
+            updateProgressBar();
+        }
+    }
+    
+    resetCancelBtn.addEventListener('click', closeResetModal);
+    
+    // Mouse events
+    resetConfirmBtn.addEventListener('mousedown', handlePressStart);
+    resetConfirmBtn.addEventListener('mouseup', handlePressEnd);
+    resetConfirmBtn.addEventListener('mouseleave', handlePressEnd);
+    
+    // Touch events
+    resetConfirmBtn.addEventListener('touchstart', handlePressStart);
+    resetConfirmBtn.addEventListener('touchend', handlePressEnd);
+    resetConfirmBtn.addEventListener('touchcancel', handlePressEnd);
+    
+    // Close on background click
+    resetConfirmModal.addEventListener('click', (e) => {
+        if (e.target === resetConfirmModal) {
+            closeResetModal();
+        }
+    });
+    
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && resetConfirmModal.classList.contains('show')) {
+            closeResetModal();
+        }
+    });
 }
 
 // Context Menu
@@ -514,6 +639,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadQuickLinks();
     setupQuickLinksUI();
     setupDeleteConfirmation();
+    setupResetConfirmation();
     setupEditMode();
     setupSettings();
     setupContextMenu();

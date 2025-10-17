@@ -530,8 +530,48 @@ body {
     background: #a82126;
 }
 
+.btn-danger-outline {
+    background: transparent;
+    color: #d13438;
+    border: 1px solid #d13438;
+}
+
+.btn-danger-outline:hover {
+    background: rgba(209, 52, 56, 0.1);
+    border-color: #a82126;
+    color: #a82126;
+}
+
 .btn:active {
     transform: scale(0.98);
+}
+
+/* Long Press Button */
+.btn-long-press {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.btn-long-press .btn-text {
+    position: relative;
+    z-index: 2;
+}
+
+.btn-long-press .btn-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.2);
+    transition: width 0.05s linear;
+    z-index: 1;
+    border-radius: 4px;
+}
+
+.btn-long-press.pressing .btn-progress {
+    animation: none;
 }
 
 .modal-small {

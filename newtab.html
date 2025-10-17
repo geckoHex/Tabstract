@@ -118,6 +118,21 @@
                 </div>
             </div>
             
+            <!-- Reset Settings Confirmation Modal -->
+            <div class="modal" id="resetConfirmModal">
+                <div class="modal-content modal-small">
+                    <h2>Reset to Default Settings?</h2>
+                    <p class="modal-description">This will erase all saved quick links and reset all settings to their defaults. This action cannot be undone.</p>
+                    <div class="modal-actions">
+                        <button class="btn btn-secondary" id="resetCancelBtn">Cancel</button>
+                        <button class="btn btn-danger btn-long-press" id="resetConfirmBtn">
+                            <span class="btn-text">Hold to Reset</span>
+                            <span class="btn-progress"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
             <!-- Settings Modal -->
             <div class="modal" id="settingsModal">
                 <div class="modal-content">
@@ -147,6 +162,10 @@
                             <div class="color-swatch" data-color="peach" style="background-color: #ffd9b3;" title="Peach"></div>
                             <div class="color-swatch" data-color="blueberry" style="background-color: #b3d9ff;" title="Blueberry"></div>
                         </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <button class="btn btn-danger-outline" id="resetSettingsBtn">Reset to Default Settings</button>
                     </div>
                     
                     <div class="modal-actions">
