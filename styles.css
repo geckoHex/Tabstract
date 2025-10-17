@@ -14,32 +14,6 @@
     --fluent-accent-hover: #106ebe;
 }
 
-/* Dark theme variables - auto (system preference) */
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-        --fluent-bg-primary: #1f1f1f;
-        --fluent-bg-secondary: rgba(45, 45, 45, 0.7);
-        --fluent-bg-tertiary: rgba(45, 45, 45, 0.5);
-        --fluent-text-primary: #ffffff;
-        --fluent-text-secondary: #d0d0d0;
-        --fluent-border: rgba(255, 255, 255, 0.08);
-        --fluent-accent: #4cc2ff;
-        --fluent-accent-hover: #6ccfff;
-    }
-}
-
-/* Dark theme variables - manual override */
-:root[data-theme="dark"] {
-    --fluent-bg-primary: #1f1f1f;
-    --fluent-bg-secondary: rgba(45, 45, 45, 0.7);
-    --fluent-bg-tertiary: rgba(45, 45, 45, 0.5);
-    --fluent-text-primary: #ffffff;
-    --fluent-text-secondary: #d0d0d0;
-    --fluent-border: rgba(255, 255, 255, 0.08);
-    --fluent-accent: #4cc2ff;
-    --fluent-accent-hover: #6ccfff;
-}
-
 
 * {
     margin: 0;
@@ -197,13 +171,6 @@ body {
     background: rgba(255, 255, 255, 0.9);
 }
 
-:root[data-theme="dark"] .search-box:focus-within,
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .search-box:focus-within {
-        background: rgba(45, 45, 45, 0.9);
-    }
-}
-
 .search-icon {
     color: var(--fluent-text-secondary);
     flex-shrink: 0;
@@ -268,13 +235,6 @@ body {
     background: rgba(0, 120, 212, 0.1);
 }
 
-:root[data-theme="dark"] .quick-link:hover,
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .quick-link:hover {
-        background: rgba(76, 194, 255, 0.15);
-    }
-}
-
 .delete-link-btn {
     position: absolute;
     top: -8px;
@@ -309,12 +269,6 @@ body {
 
 .edit-mode .delete-link-btn {
     display: flex;
-}
-
-@media (prefers-color-scheme: dark) {
-    .quick-link:hover {
-        background: rgba(76, 194, 255, 0.15);
-    }
 }
 
 .link-icon {
@@ -495,13 +449,6 @@ body {
     background: rgba(255, 255, 255, 0.9);
 }
 
-:root[data-theme="dark"] .form-input:focus,
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .form-input:focus {
-        background: rgba(45, 45, 45, 0.9);
-    }
-}
-
 .modal-actions {
     display: flex;
     gap: 12px;
@@ -590,13 +537,6 @@ body {
     filter: brightness(0) saturate(100%);
     opacity: 0.6;
     transition: all 0.2s ease;
-}
-
-:root[data-theme="dark"] .icon-option img,
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .icon-option img {
-        filter: brightness(0) saturate(100%) invert(1);
-    }
 }
 
 .icon-option:hover {
@@ -713,32 +653,5 @@ body {
 
 .toggle-switch input:focus + .toggle-slider {
     box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.2);
-}
-
-:root[data-theme="dark"] .toggle-slider,
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .toggle-slider {
-        background-color: rgba(255, 255, 255, 0.15);
-    }
-    
-    :root:not([data-theme="light"]) .toggle-slider:before {
-        background-color: #ffffff;
-    }
-    
-    :root:not([data-theme="light"]) .toggle-switch input:checked + .toggle-slider {
-        background-color: var(--fluent-accent);
-    }
-}
-
-:root[data-theme="dark"] .toggle-slider {
-    background-color: rgba(255, 255, 255, 0.15);
-}
-
-:root[data-theme="dark"] .toggle-slider:before {
-    background-color: #ffffff;
-}
-
-:root[data-theme="dark"] .toggle-switch input:checked + .toggle-slider {
-    background-color: var(--fluent-accent);
 }
 

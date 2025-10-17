@@ -66,7 +66,6 @@ let deleteIndex = null;
 
 // Settings State
 const DEFAULT_SETTINGS = {
-    darkMode: 'auto', // 'auto', 'light', or 'dark'
     openInNewTab: false
 };
 
@@ -79,20 +78,6 @@ function loadSettings() {
 // Save settings to localStorage
 function saveSettings(settings) {
     localStorage.setItem('settings', JSON.stringify(settings));
-}
-
-// Apply dark mode setting
-function applyDarkMode() {
-    const settings = loadSettings();
-    const html = document.documentElement;
-    
-    if (settings.darkMode === 'dark') {
-        html.setAttribute('data-theme', 'dark');
-    } else if (settings.darkMode === 'light') {
-        html.setAttribute('data-theme', 'light');
-    } else {
-        html.removeAttribute('data-theme');
-    }
 }
 
 // Quick Links Management
@@ -308,14 +293,12 @@ function setupSettings() {
     const settingsBtn = document.getElementById('settingsBtn');
     const settingsModal = document.getElementById('settingsModal');
     const settingsCloseBtn = document.getElementById('settingsCloseBtn');
-    const darkModeToggle = document.getElementById('darkModeToggle');
     const openInNewTabToggle = document.getElementById('openInNewTabToggle');
     
     // Load current settings
     const settings = loadSettings();
     
     // Set initial toggle states
-    darkModeToggle.checked = settings.darkMode === 'dark';
     openInNewTabToggle.checked = settings.openInNewTab;
     
     // Open settings modal
@@ -344,14 +327,6 @@ function setupSettings() {
         }
     });
     
-    // Dark mode toggle
-    darkModeToggle.addEventListener('change', (e) => {
-        const settings = loadSettings();
-        settings.darkMode = e.target.checked ? 'dark' : 'light';
-        saveSettings(settings);
-        applyDarkMode();
-    });
-    
     // Open in new tab toggle
     openInNewTabToggle.addEventListener('change', (e) => {
         const settings = loadSettings();
@@ -363,9 +338,6 @@ function setupSettings() {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    // Apply dark mode on load
-    applyDarkMode();
-    
     updateTime();
     setInterval(updateTime, 1000); // Update every second
     setupSearch();
