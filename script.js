@@ -68,7 +68,8 @@ let contextMenuTargetIndex = null;
 
 // Settings State
 const DEFAULT_SETTINGS = {
-    openInNewTab: false
+    openInNewTab: false,
+    backgroundColor: 'clay'
 };
 
 // Load settings from localStorage
@@ -347,12 +348,16 @@ function setupSettings() {
     const settingsModal = document.getElementById('settingsModal');
     const settingsCloseBtn = document.getElementById('settingsCloseBtn');
     const openInNewTabToggle = document.getElementById('openInNewTabToggle');
+    const colorPicker = document.getElementById('colorPicker');
     
     // Load current settings
     const settings = loadSettings();
     
     // Set initial toggle states
     openInNewTabToggle.checked = settings.openInNewTab;
+    
+    // Set initial color swatch selection
+    updateColorSwatchSelection(settings.backgroundColor);
     
     // Open settings modal
     settingsBtn.addEventListener('click', () => {
@@ -387,6 +392,43 @@ function setupSettings() {
         saveSettings(settings);
         loadQuickLinks(); // Reload links to apply new target setting
     });
+    
+    // Color swatch selection
+    colorPicker.querySelectorAll('.color-swatch').forEach(swatch => {
+        swatch.addEventListener('click', (e) => {
+            e.preventDefault();
+            const color = swatch.dataset.color;
+            const settings = loadSettings();
+            settings.backgroundColor = color;
+            saveSettings(settings);
+            updateColorSwatchSelection(color);
+            applyBackgroundColor(color);
+        });
+    });
+}
+
+// Helper function to update color swatch selection UI
+function updateColorSwatchSelection(colorName) {
+    const colorPicker = document.getElementById('colorPicker');
+    colorPicker.querySelectorAll('.color-swatch').forEach(swatch => {
+        if (swatch.dataset.color === colorName) {
+            swatch.classList.add('selected');
+        } else {
+            swatch.classList.remove('selected');
+        }
+    });
+}
+
+// Helper function to apply background color
+function applyBackgroundColor(colorName) {
+    const colorMap = {
+        'clay': '#d3d3d3',
+        'kiwi': '#b8e6b8',
+        'peach': '#ffd9b3',
+        'blueberry': '#b3d9ff'
+    };
+    
+    document.body.style.backgroundColor = colorMap[colorName] || colorMap['clay'];
 }
 
 // Context Menu
@@ -462,6 +504,10 @@ function setupContextMenu() {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+    // Apply saved background color
+    const settings = loadSettings();
+    applyBackgroundColor(settings.backgroundColor);
+    
     updateTime();
     setInterval(updateTime, 1000); // Update every second
     setupSearch();

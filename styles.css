@@ -14,6 +14,14 @@
     --fluent-accent-hover: #106ebe;
 }
 
+/* Background Color Presets */
+:root {
+    --bg-color-clay: #d3d3d3;
+    --bg-color-kiwi: #b8e6b8;
+    --bg-color-peach: #ffd9b3;
+    --bg-color-blueberry: #b3d9ff;
+}
+
 
 * {
     margin: 0;
@@ -753,5 +761,46 @@ body {
     height: 1px;
     background: var(--fluent-border);
     margin: 4px 0;
+}
+
+/* Color Picker */
+.color-picker {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+.color-swatch {
+    width: 100%;
+    aspect-ratio: 1;
+    border: 3px solid var(--fluent-border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    box-shadow: var(--fluent-shadow);
+}
+
+.color-swatch:hover {
+    transform: scale(1.05);
+    box-shadow: var(--fluent-shadow-hover);
+}
+
+.color-swatch.selected {
+    border-color: var(--fluent-accent);
+    border-width: 3px;
+    box-shadow: 0 0 0 2px white, 0 0 0 4px var(--fluent-accent);
+}
+
+.color-swatch.selected::after {
+    content: "✓";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--fluent-accent);
+    font-size: 24px;
+    font-weight: bold;
+    text-shadow: 0 0 3px rgba(255, 255, 255, 0.8);
 }
 
