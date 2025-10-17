@@ -63,6 +63,8 @@ function setupSearch() {
 // Edit Mode State
 let isEditMode = false;
 let deleteIndex = null;
+let editIndex = null;
+let contextMenuTargetIndex = null;
 
 // Settings State
 const DEFAULT_SETTINGS = {
@@ -92,6 +94,7 @@ function loadQuickLinks() {
         const linkElement = document.createElement('a');
         linkElement.href = link.url;
         linkElement.className = 'quick-link';
+        linkElement.dataset.index = index;
         
         // Apply target setting
         if (settings.openInNewTab) {
@@ -109,6 +112,12 @@ function loadQuickLinks() {
             <span>${link.name}</span>
         `;
         quickLinksContainer.appendChild(linkElement);
+        
+        // Add context menu event listener
+        linkElement.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            showContextMenu(e.pageX, e.pageY, index);
+        });
     });
     
     // Add event listeners to delete buttons
@@ -122,7 +131,7 @@ function loadQuickLinks() {
     });
 }
 
-function saveQuickLink(name, url, icon) {
+function saveQuickLink(name, url, icon, index = null) {
     const links = JSON.parse(localStorage.getItem('quickLinks') || '[]');
     
     // Ensure URL has protocol
@@ -130,7 +139,14 @@ function saveQuickLink(name, url, icon) {
         url = 'https://' + url;
     }
     
-    links.push({ name, url, icon: icon || 'star.svg' });
+    if (index !== null && index >= 0 && index < links.length) {
+        // Edit existing link
+        links[index] = { name, url, icon: icon || 'star.svg' };
+    } else {
+        // Add new link
+        links.push({ name, url, icon: icon || 'star.svg' });
+    }
+    
     localStorage.setItem('quickLinks', JSON.stringify(links));
     loadQuickLinks();
 }
@@ -162,13 +178,41 @@ function setupQuickLinksUI() {
         });
     });
     
-    // Open modal
-    addLinkBtn.addEventListener('click', () => {
+    // Open modal for adding/editing
+    window.openLinkModal = function(index = null) {
+        editIndex = index;
+        
+        if (index !== null) {
+            // Edit mode - populate with existing data
+            const links = JSON.parse(localStorage.getItem('quickLinks') || '[]');
+            const link = links[index];
+            if (link) {
+                linkName.value = link.name;
+                linkUrl.value = link.url;
+                selectedIcon = link.icon;
+                
+                // Select the corresponding icon
+                iconSelector.querySelectorAll('.icon-option').forEach(btn => {
+                    btn.classList.remove('selected');
+                    if (btn.dataset.icon === link.icon) {
+                        btn.classList.add('selected');
+                    }
+                });
+            }
+        } else {
+            // Add mode - reset fields
+            linkName.value = '';
+            linkUrl.value = '';
+            selectedIcon = 'star.svg';
+            iconSelector.querySelector('.icon-option').classList.add('selected');
+        }
+        
         modal.classList.add('show');
-        // Select first icon by default
-        iconSelector.querySelector('.icon-option').classList.add('selected');
-        selectedIcon = 'star.svg';
         linkName.focus();
+    };
+    
+    addLinkBtn.addEventListener('click', () => {
+        openLinkModal();
     });
     
     // Close modal
@@ -178,6 +222,7 @@ function setupQuickLinksUI() {
         linkUrl.value = '';
         iconSelector.querySelectorAll('.icon-option').forEach(b => b.classList.remove('selected'));
         selectedIcon = 'star.svg';
+        editIndex = null;
     }
     
     cancelBtn.addEventListener('click', closeModal);
@@ -202,7 +247,7 @@ function setupQuickLinksUI() {
         const url = linkUrl.value.trim();
         
         if (name && url && selectedIcon) {
-            saveQuickLink(name, url, selectedIcon);
+            saveQuickLink(name, url, selectedIcon, editIndex);
             closeModal();
         } else {
             // Simple validation feedback
@@ -336,6 +381,77 @@ function setupSettings() {
     });
 }
 
+// Context Menu
+function showContextMenu(x, y, index) {
+    const contextMenu = document.getElementById('contextMenu');
+    contextMenuTargetIndex = index;
+    
+    // Position the menu
+    contextMenu.style.left = x + 'px';
+    contextMenu.style.top = y + 'px';
+    contextMenu.classList.add('show');
+    
+    // Adjust position if menu goes off screen
+    setTimeout(() => {
+        const rect = contextMenu.getBoundingClientRect();
+        if (rect.right > window.innerWidth) {
+            contextMenu.style.left = (x - rect.width) + 'px';
+        }
+        if (rect.bottom > window.innerHeight) {
+            contextMenu.style.top = (y - rect.height) + 'px';
+        }
+    }, 0);
+}
+
+function hideContextMenu() {
+    const contextMenu = document.getElementById('contextMenu');
+    contextMenu.classList.remove('show');
+    contextMenuTargetIndex = null;
+}
+
+function setupContextMenu() {
+    const contextEditBtn = document.getElementById('contextEditLink');
+    const contextDeleteBtn = document.getElementById('contextDeleteLink');
+    const contextAddBtn = document.getElementById('contextAddLink');
+    
+    // Edit link
+    contextEditBtn.addEventListener('click', () => {
+        if (contextMenuTargetIndex !== null) {
+            openLinkModal(contextMenuTargetIndex);
+            hideContextMenu();
+        }
+    });
+    
+    // Delete link
+    contextDeleteBtn.addEventListener('click', () => {
+        if (contextMenuTargetIndex !== null) {
+            showDeleteConfirmation(contextMenuTargetIndex);
+            hideContextMenu();
+        }
+    });
+    
+    // Add new link
+    contextAddBtn.addEventListener('click', () => {
+        openLinkModal();
+        hideContextMenu();
+    });
+    
+    // Hide context menu when clicking elsewhere
+    document.addEventListener('click', (e) => {
+        const contextMenu = document.getElementById('contextMenu');
+        if (!contextMenu.contains(e.target)) {
+            hideContextMenu();
+        }
+    });
+    
+    // Hide context menu on escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            hideContextMenu();
+        }
+    });
+}
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     updateTime();
@@ -346,6 +462,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupDeleteConfirmation();
     setupEditMode();
     setupSettings();
+    setupContextMenu();
     
     // Focus search input on load
     setTimeout(() => {
