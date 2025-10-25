@@ -731,8 +731,10 @@ function editQuickLink(link) {
     const faviconPreview = document.getElementById('faviconPreview');
     faviconPreview.src = link.favicon;
     faviconSlot.classList.remove('loading');
-    faviconSlot.classList.add('active');
-    selectedIcon = link.favicon;
+    faviconSlot.classList.add('has-favicon');
+    
+    // Auto-select the favicon
+    selectIcon(faviconSlot, link.favicon);
     
     // Update form submission to edit instead of add
     const linkForm = document.getElementById('linkForm');
