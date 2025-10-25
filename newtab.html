@@ -5,192 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>New Tab</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="icon" href="/public/ext-icons/magnifying-glass.svg" type="image/svg+xml" />
 </head>
 <body>
-    <!-- Settings Button -->
-    <button class="settings-btn" id="settingsBtn" title="Settings">
-        <img src="public/ext-icons/gear.svg" alt="Settings" width="20" height="20">
-    </button>
-
-    <!-- Edit Mode Toggle Button -->
-    <button class="edit-mode-btn" id="editModeBtn" title="Edit Links">
-        <img src="public/ext-icons/pencil.svg" alt="Edit" width="20" height="20">
-    </button>
-
     <div class="container">
-        <div class="content">
-            <!-- Time Display -->
-            <div class="time-display" id="timeDisplay">
-                <div class="time" id="time">12:00</div>
-                <div class="date" id="date">Thursday, October 16, 2025</div>
-            </div>
-
-            <!-- Search Bar -->
-            <div class="search-container">
-                <div class="search-box">
-                    <img src="public/ext-icons/google-logo.svg" alt="Search Google" width="20" height="20">
-                    <input 
-                        type="text" 
-                        class="search-input" 
+        <div class="search-container">
+            <form id="searchForm" class="search-form">
+                <div class="search-input-wrapper">
+                    <button type="submit" class="search-button">
+                        <img src="public/icons/magnifying-glass.svg" alt="Search" class="search-icon" />
+                    </button>
+                    <input
+                        type="text"
                         id="searchInput"
-                        placeholder="Search Google"
+                        class="search-input"
+                        placeholder="Search the web..."
                         autocomplete="off"
-                        spellcheck="false"
                     />
                 </div>
-            </div>
-
-            <!-- Quick Links -->
-            <div class="quick-links-section">
-                <div class="quick-links" id="quickLinks">
-                    <!-- Custom links will be added here -->
-                    <button class="add-link-btn hidden" id="addLinkBtn" title="Add Quick Link">
-                        <img src="public/ext-icons/file-plus.svg" alt="Add" width="20" height="20">
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Add Link Modal -->
-            <div class="modal" id="addLinkModal">
-                <div class="modal-content">
-                    <h2>Add Quick Link</h2>
-                    <div class="form-group">
-                        <label for="linkName">Name</label>
-                        <input type="text" id="linkName" class="form-input" placeholder="e.g., Gmail" autocomplete="off">
-                    </div>
-                    <div class="form-group">
-                        <label for="linkUrl">URL</label>
-                        <input type="text" id="linkUrl" class="form-input" placeholder="e.g., https://gmail.com" autocomplete="off">
-                    </div>
-                    <div class="form-group">
-                        <label>Icon</label>
-                        <div class="icon-selector" id="iconSelector">
-                            <button type="button" class="icon-option" data-icon="book-open-text.svg">
-                                <img src="public/icon-options/book-open-text.svg" alt="Book">
-                            </button>
-                            <button type="button" class="icon-option" data-icon="code.svg">
-                                <img src="public/icon-options/code.svg" alt="Code">
-                            </button>
-                            <button type="button" class="icon-option" data-icon="confetti.svg">
-                                <img src="public/icon-options/confetti.svg" alt="Confetti">
-                            </button>
-                            <button type="button" class="icon-option" data-icon="game-controller.svg">
-                                <img src="public/icon-options/game-controller.svg" alt="Game">
-                            </button>
-                            <button type="button" class="icon-option" data-icon="headphones.svg">
-                                <img src="public/icon-options/headphones.svg" alt="Headphones">
-                            </button>
-                            <button type="button" class="icon-option" data-icon="heart.svg">
-                                <img src="public/icon-options/heart.svg" alt="Heart">
-                            </button>
-                            <button type="button" class="icon-option" data-icon="laptop.svg">
-                                <img src="public/icon-options/laptop.svg" alt="Laptop">
-                            </button>
-                            <button type="button" class="icon-option" data-icon="math-operations.svg">
-                                <img src="public/icon-options/math-operations.svg" alt="Math">
-                            </button>
-                            <button type="button" class="icon-option" data-icon="star.svg">
-                                <img src="public/icon-options/star.svg" alt="Star">
-                            </button>
-                            <button type="button" class="icon-option" data-icon="pizza.svg">
-                                <img src="public/icon-options/pizza.svg" alt="Pizza">
-                            </button>
-                        </div>
-                    </div>
-                    <div class="modal-actions">
-                        <button class="btn btn-secondary" id="cancelBtn">Cancel</button>
-                        <button class="btn btn-primary" id="saveBtn">Save</button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Delete Confirmation Modal -->
-            <div class="modal" id="deleteConfirmModal">
-                <div class="modal-content modal-small">
-                    <h2>Delete Link?</h2>
-                    <p class="modal-description">Are you sure you want to delete this quick link? This action cannot be undone.</p>
-                    <div class="modal-actions">
-                        <button class="btn btn-secondary" id="deleteCancelBtn">Cancel</button>
-                        <button class="btn btn-danger" id="deleteConfirmBtn">Delete</button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Reset Settings Confirmation Modal -->
-            <div class="modal" id="resetConfirmModal">
-                <div class="modal-content modal-small">
-                    <h2>Reset to Default Settings?</h2>
-                    <p class="modal-description">This will erase all saved quick links and reset all settings to their defaults. This action cannot be undone.</p>
-                    <div class="modal-actions">
-                        <button class="btn btn-secondary" id="resetCancelBtn">Cancel</button>
-                        <button class="btn btn-danger btn-long-press" id="resetConfirmBtn">
-                            <span class="btn-text">Hold to Reset</span>
-                            <span class="btn-progress"></span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Settings Modal -->
-            <div class="modal" id="settingsModal">
-                <div class="modal-content">
-                    <h2>Settings</h2>
-                    
-                    <div class="settings-group">
-                        <div class="setting-item">
-                            <div class="setting-info">
-                                <label for="openInNewTabToggle" class="setting-label">Open Links in New Tab</label>
-                                <p class="setting-description">Open quick links in a new tab instead of current tab</p>
-                            </div>
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="openInNewTabToggle">
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="settings-group">
-                        <div class="setting-info">
-                            <label class="setting-label">Background Color</label>
-                            <p class="setting-description">Choose a background color for the new tab page</p>
-                        </div>
-                        <div class="color-picker" id="colorPicker">
-                            <div class="color-swatch" data-color="clay" style="background-color: #d3d3d3;" title="Clay"></div>
-                            <div class="color-swatch" data-color="kiwi" style="background-color: #b8e6b8;" title="Kiwi"></div>
-                            <div class="color-swatch" data-color="peach" style="background-color: #ffd9b3;" title="Peach"></div>
-                            <div class="color-swatch" data-color="blueberry" style="background-color: #b3d9ff;" title="Blueberry"></div>
-                        </div>
-                    </div>
-
-                    <div class="settings-group">
-                        <button class="btn btn-danger-outline" id="resetSettingsBtn">Reset to Default Settings</button>
-                    </div>
-                    
-                    <div class="modal-actions">
-                        <button class="btn btn-primary" id="settingsCloseBtn">Done</button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Context Menu -->
-            <div class="context-menu" id="contextMenu">
-                <button class="context-menu-item" id="contextEditLink">
-                    <img src="public/ext-icons/pencil.svg" alt="Edit" width="16" height="16">
-                    <span>Edit Link</span>
-                </button>
-                <button class="context-menu-item" id="contextDeleteLink">
-                    <img src="public/ext-icons/trash.svg" alt="Delete" width="16" height="16">
-                    <span>Delete Link</span>
-                </button>
-                <div class="context-menu-divider"></div>
-                <button class="context-menu-item" id="contextAddLink">
-                    <img src="public/ext-icons/file-plus.svg" alt="Add" width="16" height="16">
-                    <span>Add New Link</span>
-                </button>
-            </div>
+            </form>
         </div>
     </div>
+
     <script src="script.js"></script>
 </body>
 </html>
