@@ -248,7 +248,6 @@ body {
 
 .quick-link:hover {
     background: var(--bg-hover);
-    transform: translateY(-2px);
 }
 
 .quick-link-favicon {
