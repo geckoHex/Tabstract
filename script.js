@@ -401,22 +401,35 @@ function openModal(modalId) {
     
     // Special handling for link modal
     if (modalId === 'linkModal') {
-        document.getElementById('linkTitle').focus();
+        const linkForm = document.getElementById('linkForm');
         
-        // Reset icon selection
-        selectedIcon = null;
-        fetchedFavicon = null;
-        document.querySelectorAll('.icon-option').forEach(opt => {
-            opt.classList.remove('selected');
-        });
-        
-        // Reset favicon slot to loading state
-        const faviconSlot = document.getElementById('faviconSlot');
-        if (faviconSlot) {
-            faviconSlot.classList.remove('has-favicon');
-            faviconSlot.classList.add('loading');
-            document.getElementById('faviconPreview').src = '';
+        // Reset form if not editing
+        if (!linkForm.dataset.editingId) {
+            linkForm.reset();
+            
+            // Reset modal title and button text
+            const modalTitle = document.querySelector('#linkModal .modal-header h3');
+            const submitBtn = linkForm.querySelector('button[type="submit"]');
+            modalTitle.textContent = 'Add New Link';
+            submitBtn.textContent = 'Add Link';
+            
+            // Reset icon selection
+            selectedIcon = null;
+            fetchedFavicon = null;
+            document.querySelectorAll('.icon-option').forEach(opt => {
+                opt.classList.remove('selected', 'active');
+            });
+            
+            // Reset favicon slot to loading state
+            const faviconSlot = document.getElementById('faviconSlot');
+            if (faviconSlot) {
+                faviconSlot.classList.remove('has-favicon');
+                faviconSlot.classList.add('loading');
+                document.getElementById('faviconPreview').src = '';
+            }
         }
+        
+        document.getElementById('linkTitle').focus();
     }
 }
 
@@ -432,13 +445,21 @@ function closeModal(modalId) {
         const linkForm = document.getElementById('linkForm');
         if (linkForm) {
             linkForm.reset();
+            // Clear editing state
+            delete linkForm.dataset.editingId;
         }
+        
+        // Reset modal title and button text
+        const modalTitle = document.querySelector('#linkModal .modal-header h3');
+        const submitBtn = linkForm.querySelector('button[type="submit"]');
+        if (modalTitle) modalTitle.textContent = 'Add New Link';
+        if (submitBtn) submitBtn.textContent = 'Add Link';
         
         // Reset icon selection
         selectedIcon = null;
         fetchedFavicon = null;
         document.querySelectorAll('.icon-option').forEach(opt => {
-            opt.classList.remove('selected');
+            opt.classList.remove('selected', 'active');
         });
         
         const faviconSlot = document.getElementById('faviconSlot');
@@ -456,6 +477,8 @@ function closeModal(modalId) {
 async function addQuickLink() {
     const title = document.getElementById('linkTitle').value.trim();
     const url = document.getElementById('linkUrl').value.trim();
+    const linkForm = document.getElementById('linkForm');
+    const editingId = linkForm.dataset.editingId;
 
     if (!title || !url) return;
 
@@ -468,7 +491,7 @@ async function addQuickLink() {
     // Show loading state
     const submitBtn = document.querySelector('#linkForm button[type="submit"]');
     const originalText = submitBtn.textContent;
-    submitBtn.textContent = 'Adding...';
+    submitBtn.textContent = editingId ? 'Updating...' : 'Adding...';
     submitBtn.disabled = true;
 
     // If no icon selected, fetch favicon as fallback
@@ -477,17 +500,31 @@ async function addQuickLink() {
         iconToUse = await getFavicon(normalizedUrl);
     }
 
-    // Create link object
-    const link = {
-        id: Date.now().toString(),
-        title,
-        url: normalizedUrl,
-        favicon: iconToUse
-    };
-
     // Get existing links
     const links = getQuickLinks();
-    links.push(link);
+
+    if (editingId) {
+        // Update existing link
+        const linkIndex = links.findIndex(link => link.id === editingId);
+        if (linkIndex !== -1) {
+            links[linkIndex] = {
+                id: editingId,
+                title,
+                url: normalizedUrl,
+                favicon: iconToUse
+            };
+        }
+        delete linkForm.dataset.editingId;
+    } else {
+        // Create new link object
+        const link = {
+            id: Date.now().toString(),
+            title,
+            url: normalizedUrl,
+            favicon: iconToUse
+        };
+        links.push(link);
+    }
 
     // Save to storage
     saveQuickLinks(links);
@@ -602,21 +639,114 @@ function createQuickLinkElement(link) {
     title.className = 'quick-link-title';
     title.textContent = link.title;
 
-    const deleteBtn = document.createElement('button');
-    deleteBtn.className = 'quick-link-delete';
-    deleteBtn.innerHTML = '&times;';
-    deleteBtn.title = 'Delete link';
-    deleteBtn.addEventListener('click', (e) => {
+    // Add right-click context menu
+    linkEl.addEventListener('contextmenu', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        deleteQuickLink(link.id);
+        showQuickLinkContextMenu(e, link);
     });
 
-    linkEl.appendChild(deleteBtn);
     linkEl.appendChild(favicon);
     linkEl.appendChild(title);
 
     return linkEl;
+}
+
+// Show context menu for quick link
+function showQuickLinkContextMenu(e, link) {
+    // Remove any existing context menu
+    const existingMenu = document.querySelector('.quick-link-context-menu');
+    if (existingMenu) {
+        existingMenu.remove();
+    }
+
+    // Create context menu
+    const menu = document.createElement('div');
+    menu.className = 'quick-link-context-menu';
+    
+    // Edit option
+    const editOption = document.createElement('div');
+    editOption.className = 'context-menu-item';
+    const editIcon = document.createElement('img');
+    editIcon.src = 'public/icons/pencil-simple.svg';
+    editIcon.className = 'context-menu-icon';
+    const editText = document.createElement('span');
+    editText.textContent = 'Edit';
+    editOption.appendChild(editIcon);
+    editOption.appendChild(editText);
+    editOption.addEventListener('click', () => {
+        editQuickLink(link);
+        menu.remove();
+    });
+    
+    // Delete option
+    const deleteOption = document.createElement('div');
+    deleteOption.className = 'context-menu-item context-menu-item-danger';
+    const deleteIcon = document.createElement('img');
+    deleteIcon.src = 'public/icons/trash.svg';
+    deleteIcon.className = 'context-menu-icon';
+    const deleteText = document.createElement('span');
+    deleteText.textContent = 'Delete';
+    deleteOption.appendChild(deleteIcon);
+    deleteOption.appendChild(deleteText);
+    deleteOption.addEventListener('click', () => {
+        deleteQuickLink(link.id);
+        menu.remove();
+    });
+    
+    menu.appendChild(editOption);
+    menu.appendChild(deleteOption);
+    
+    // Position the menu
+    menu.style.left = `${e.pageX}px`;
+    menu.style.top = `${e.pageY}px`;
+    
+    document.body.appendChild(menu);
+    
+    // Close menu when clicking anywhere else
+    const closeMenu = (event) => {
+        if (!menu.contains(event.target)) {
+            menu.remove();
+            document.removeEventListener('click', closeMenu);
+            document.removeEventListener('contextmenu', closeMenu);
+        }
+    };
+    
+    // Delay adding the click listener to prevent immediate close
+    setTimeout(() => {
+        document.addEventListener('click', closeMenu);
+        document.addEventListener('contextmenu', closeMenu);
+    }, 10);
+}
+
+// Edit a quick link
+function editQuickLink(link) {
+    // Pre-fill the form with existing link data
+    document.getElementById('linkTitle').value = link.title;
+    document.getElementById('linkUrl').value = link.url;
+    
+    // Update the favicon in the picker
+    fetchedFavicon = link.favicon;
+    const faviconSlot = document.getElementById('faviconSlot');
+    const faviconPreview = document.getElementById('faviconPreview');
+    faviconPreview.src = link.favicon;
+    faviconSlot.classList.remove('loading');
+    faviconSlot.classList.add('active');
+    selectedIcon = link.favicon;
+    
+    // Update form submission to edit instead of add
+    const linkForm = document.getElementById('linkForm');
+    const submitBtn = linkForm.querySelector('button[type="submit"]');
+    submitBtn.textContent = 'Update Link';
+    
+    // Store the link ID for updating
+    linkForm.dataset.editingId = link.id;
+    
+    // Update modal title
+    const modalTitle = document.querySelector('#linkModal .modal-header h3');
+    modalTitle.textContent = 'Edit Link';
+    
+    openModal('linkModal');
 }
 
 // Delete a quick link
