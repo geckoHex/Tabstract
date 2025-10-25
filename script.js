@@ -112,6 +112,14 @@ function setupEventListeners() {
         });
     });
 
+    // Background options
+    document.querySelectorAll('.background-option').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const background = e.currentTarget.getAttribute('data-background');
+            setBackground(background);
+        });
+    });
+
     // Settings
     const searchEngineSelect = document.getElementById('searchEngine');
     const focusSearchCheckbox = document.getElementById('focusSearchOnLoad');
@@ -195,7 +203,8 @@ function getTheme() {
     const stored = localStorage.getItem('theme');
     return stored ? JSON.parse(stored) : {
         mode: 'light',
-        accentColor: '#007bff'
+        accentColor: '#007bff',
+        background: 'none'
     };
 }
 
@@ -219,6 +228,26 @@ function setAccentColor(color) {
     applyTheme();
     updateThemeUI();
     showToast('Accent color updated');
+}
+
+function setBackground(background) {
+    const theme = getTheme();
+    theme.background = background;
+    saveTheme(theme);
+    applyTheme();
+    updateThemeUI();
+    
+    // Get a friendly name for the toast
+    let name = 'None';
+    if (background === 'white') name = 'White';
+    else if (background === 'black') name = 'Black';
+    else if (background.includes('banannas')) name = 'Bananas';
+    else if (background.includes('moon-beach')) name = 'Moon Beach';
+    else if (background.includes('office')) name = 'Office';
+    else if (background.includes('retro-airport')) name = 'Retro Airport';
+    else if (background.includes('underwater-dome')) name = 'Underwater Dome';
+    
+    showToast(`Background set to ${name}`);
 }
 
 function applyTheme() {
@@ -247,6 +276,25 @@ function applyTheme() {
     const accentLighter = hexToRgba(theme.accentColor, 0.2);
     root.style.setProperty('--accent-light', accentLight);
     root.style.setProperty('--accent-lighter', accentLighter);
+    
+    // Apply background
+    const body = document.body;
+    if (theme.background === 'none') {
+        body.style.backgroundImage = '';
+        body.style.backgroundColor = '';
+    } else if (theme.background === 'white') {
+        body.style.backgroundImage = '';
+        body.style.backgroundColor = '#ffffff';
+    } else if (theme.background === 'black') {
+        body.style.backgroundImage = '';
+        body.style.backgroundColor = '#000000';
+    } else {
+        body.style.backgroundImage = `url('${theme.background}')`;
+        body.style.backgroundSize = 'cover';
+        body.style.backgroundPosition = 'center';
+        body.style.backgroundRepeat = 'no-repeat';
+        body.style.backgroundAttachment = 'fixed';
+    }
 }
 
 // Helper function to adjust color brightness
@@ -297,6 +345,16 @@ function updateThemeUI() {
     document.querySelectorAll('.color-option').forEach(btn => {
         const btnColor = btn.getAttribute('data-color');
         if (btnColor === theme.accentColor) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    
+    // Update background buttons
+    document.querySelectorAll('.background-option').forEach(btn => {
+        const btnBackground = btn.getAttribute('data-background');
+        if (btnBackground === theme.background) {
             btn.classList.add('active');
         } else {
             btn.classList.remove('active');

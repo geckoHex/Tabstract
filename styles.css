@@ -701,6 +701,59 @@ body {
     box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
 }
 
+/* Background Image Grid */
+
+.background-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.background-option {
+    background: var(--bg-primary);
+    border: 2px solid var(--border-light);
+    border-radius: 8px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.background-option:hover {
+    border-color: var(--accent-color);
+    background: var(--accent-light);
+}
+
+.background-option.active {
+    border-color: var(--accent-color);
+    background: var(--accent-lighter);
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
+}
+
+[data-theme="dark"] .background-option.active {
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.4);
+}
+
+.background-preview {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+}
+
+.background-option span {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+}
+
+.background-option.active span {
+    color: var(--accent-color);
+}
+
 /* --- Settings Modal --- */
 
 .settings-content {
