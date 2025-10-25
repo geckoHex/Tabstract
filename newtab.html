@@ -7,6 +7,19 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <!-- Top right island -->
+    <div class="top-right-island">
+        <button id="newLinkBtn" class="island-btn" title="Add New Link">
+            <img src="public/icons/plus-square.svg" alt="Add Link" class="island-icon" />
+        </button>
+        <button id="themeBtn" class="island-btn" title="Theme">
+            <img src="public/icons/paint-brush-household.svg" alt="Theme" class="island-icon" />
+        </button>
+        <button id="settingsBtn" class="island-btn" title="Settings">
+            <img src="public/icons/sliders-horizontal.svg" alt="Settings" class="island-icon" />
+        </button>
+    </div>
+
     <div class="container">
         <div class="search-container">
             <form id="searchForm" class="search-form">
@@ -29,7 +42,6 @@
         <div class="quick-links-section">
             <div class="quick-links-header">
                 <h2>Quick Links</h2>
-                <button id="newLinkBtn" class="new-link-btn">+ New Link</button>
             </div>
             <div id="quickLinksContainer" class="quick-links-container">
                 <!-- Links will be dynamically added here -->
@@ -66,6 +78,83 @@
             </form>
         </div>
     </div>
+
+    <!-- Theme Modal -->
+    <div id="themeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Theme Settings</h3>
+                <button class="close-btn modal-close" data-modal="themeModal">&times;</button>
+            </div>
+            <div class="theme-options">
+                <div class="theme-section">
+                    <h4>Color Scheme</h4>
+                    <div class="theme-grid">
+                        <button class="theme-option" data-theme="light">
+                            <div class="theme-preview light-preview"></div>
+                            <span>Light</span>
+                        </button>
+                        <button class="theme-option" data-theme="dark">
+                            <div class="theme-preview dark-preview"></div>
+                            <span>Dark</span>
+                        </button>
+                        <button class="theme-option" data-theme="auto">
+                            <div class="theme-preview auto-preview"></div>
+                            <span>Auto</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="theme-section">
+                    <h4>Accent Color</h4>
+                    <div class="color-grid">
+                        <button class="color-option" data-color="#007bff" style="background: #007bff;"></button>
+                        <button class="color-option" data-color="#28a745" style="background: #28a745;"></button>
+                        <button class="color-option" data-color="#dc3545" style="background: #dc3545;"></button>
+                        <button class="color-option" data-color="#ffc107" style="background: #ffc107;"></button>
+                        <button class="color-option" data-color="#17a2b8" style="background: #17a2b8;"></button>
+                        <button class="color-option" data-color="#6f42c1" style="background: #6f42c1;"></button>
+                        <button class="color-option" data-color="#fd7e14" style="background: #fd7e14;"></button>
+                        <button class="color-option" data-color="#e83e8c" style="background: #e83e8c;"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Settings</h3>
+                <button class="close-btn modal-close" data-modal="settingsModal">&times;</button>
+            </div>
+            <div class="settings-content">
+                <div class="setting-group">
+                    <label for="searchEngine">Search Engine</label>
+                    <select id="searchEngine" class="setting-select">
+                        <option value="google">Google</option>
+                        <option value="bing">Bing</option>
+                        <option value="duckduckgo">DuckDuckGo</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label class="setting-checkbox-label">
+                        <input type="checkbox" id="focusSearchOnLoad" class="setting-checkbox" checked />
+                        <span>Focus search on page load</span>
+                    </label>
+                </div>
+                <div class="setting-group">
+                    <label class="setting-checkbox-label">
+                        <input type="checkbox" id="openLinksNewTab" class="setting-checkbox" checked />
+                        <span>Open links in new tab</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast notification -->
+    <div id="toast" class="toast"></div>
 
     <script src="script.js"></script>
 </body>

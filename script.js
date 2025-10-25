@@ -3,6 +3,8 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     loadQuickLinks();
     initializeIconPicker();
+    loadSettings();
+    loadTheme();
 });
 
 // Available custom icons
@@ -35,32 +37,51 @@ function setupEventListeners() {
         e.preventDefault();
         const query = document.getElementById('searchInput').value;
         if (query) {
-            const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+            const searchEngine = getSettings().searchEngine || 'google';
+            const searchUrl = getSearchUrl(searchEngine, query);
             window.location.href = searchUrl;
         }
     });
 
-    // Quick Links - New Link Button
+    // Island buttons
     const newLinkBtn = document.getElementById('newLinkBtn');
-    newLinkBtn.addEventListener('click', openModal);
+    const themeBtn = document.getElementById('themeBtn');
+    const settingsBtn = document.getElementById('settingsBtn');
 
-    // Modal Controls
-    const closeModalBtn = document.getElementById('closeModal');
-    const cancelBtn = document.getElementById('cancelBtn');
-    const linkForm = document.getElementById('linkForm');
-    const modal = document.getElementById('linkModal');
+    newLinkBtn.addEventListener('click', () => openModal('linkModal'));
+    themeBtn.addEventListener('click', () => openModal('themeModal'));
+    settingsBtn.addEventListener('click', () => openModal('settingsModal'));
 
-    closeModalBtn.addEventListener('click', closeModal);
-    cancelBtn.addEventListener('click', closeModal);
-    
-    // Close modal when clicking outside
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            closeModal();
-        }
+    // Modal close buttons
+    document.querySelectorAll('.modal-close').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const modalId = e.target.getAttribute('data-modal');
+            closeModal(modalId);
+        });
     });
 
-    // Handle form submission
+    // Legacy close button for link modal
+    const closeModalBtn = document.getElementById('closeModal');
+    const cancelBtn = document.getElementById('cancelBtn');
+    
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', () => closeModal('linkModal'));
+    }
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => closeModal('linkModal'));
+    }
+    
+    // Close modal when clicking outside
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal(modal.id);
+            }
+        });
+    });
+
+    // Handle link form submission
+    const linkForm = document.getElementById('linkForm');
     linkForm.addEventListener('submit', (e) => {
         e.preventDefault();
         addQuickLink();
@@ -74,12 +95,215 @@ function setupEventListeners() {
             await updateFaviconInPicker(url);
         }
     });
+
+    // Theme options
+    document.querySelectorAll('.theme-option').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const theme = e.currentTarget.getAttribute('data-theme');
+            setTheme(theme);
+        });
+    });
+
+    // Color options
+    document.querySelectorAll('.color-option').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const color = e.currentTarget.getAttribute('data-color');
+            setAccentColor(color);
+        });
+    });
+
+    // Settings
+    const searchEngineSelect = document.getElementById('searchEngine');
+    const focusSearchCheckbox = document.getElementById('focusSearchOnLoad');
+    const openLinksCheckbox = document.getElementById('openLinksNewTab');
+
+    searchEngineSelect.addEventListener('change', (e) => {
+        updateSetting('searchEngine', e.target.value);
+        showToast(`Search engine set to ${e.target.value}`);
+    });
+
+    focusSearchCheckbox.addEventListener('change', (e) => {
+        updateSetting('focusSearchOnLoad', e.target.checked);
+        showToast(e.target.checked ? 'Auto-focus enabled' : 'Auto-focus disabled');
+    });
+
+    openLinksCheckbox.addEventListener('change', (e) => {
+        updateSetting('openLinksNewTab', e.target.checked);
+        showToast(e.target.checked ? 'Links open in new tab' : 'Links open in same tab');
+    });
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        // Escape key closes any open modal
+        if (e.key === 'Escape') {
+            const openModal = document.querySelector('.modal.show');
+            if (openModal) {
+                closeModal(openModal.id);
+            }
+        }
+    });
 }
 
 // Focus search input on startup
 window.addEventListener('load', () => {
-    document.getElementById('searchInput').focus();
+    const settings = getSettings();
+    if (settings.focusSearchOnLoad !== false) {
+        document.getElementById('searchInput').focus();
+    }
 });
+
+// --- Settings Functions ---
+
+function getSettings() {
+    const stored = localStorage.getItem('settings');
+    return stored ? JSON.parse(stored) : {
+        searchEngine: 'google',
+        focusSearchOnLoad: true,
+        openLinksNewTab: true
+    };
+}
+
+function saveSettings(settings) {
+    localStorage.setItem('settings', JSON.stringify(settings));
+}
+
+function updateSetting(key, value) {
+    const settings = getSettings();
+    settings[key] = value;
+    saveSettings(settings);
+}
+
+function loadSettings() {
+    const settings = getSettings();
+    document.getElementById('searchEngine').value = settings.searchEngine || 'google';
+    document.getElementById('focusSearchOnLoad').checked = settings.focusSearchOnLoad !== false;
+    document.getElementById('openLinksNewTab').checked = settings.openLinksNewTab !== false;
+}
+
+function getSearchUrl(engine, query) {
+    const urls = {
+        google: `https://www.google.com/search?q=${encodeURIComponent(query)}`,
+        bing: `https://www.bing.com/search?q=${encodeURIComponent(query)}`,
+        duckduckgo: `https://duckduckgo.com/?q=${encodeURIComponent(query)}`
+    };
+    return urls[engine] || urls.google;
+}
+
+// --- Theme Functions ---
+
+function getTheme() {
+    const stored = localStorage.getItem('theme');
+    return stored ? JSON.parse(stored) : {
+        mode: 'light',
+        accentColor: '#007bff'
+    };
+}
+
+function saveTheme(theme) {
+    localStorage.setItem('theme', JSON.stringify(theme));
+}
+
+function setTheme(mode) {
+    const theme = getTheme();
+    theme.mode = mode;
+    saveTheme(theme);
+    applyTheme();
+    updateThemeUI();
+    showToast(`Theme set to ${mode}`);
+}
+
+function setAccentColor(color) {
+    const theme = getTheme();
+    theme.accentColor = color;
+    saveTheme(theme);
+    applyTheme();
+    updateThemeUI();
+    showToast('Accent color updated');
+}
+
+function applyTheme() {
+    const theme = getTheme();
+    let mode = theme.mode;
+    
+    // Handle auto theme
+    if (mode === 'auto') {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        mode = prefersDark ? 'dark' : 'light';
+    }
+    
+    // Apply theme
+    document.documentElement.setAttribute('data-theme', mode);
+    
+    // Apply accent color
+    const root = document.documentElement;
+    root.style.setProperty('--accent-color', theme.accentColor);
+    
+    // Calculate hover color (slightly darker)
+    const accentHover = adjustColor(theme.accentColor, -20);
+    root.style.setProperty('--accent-hover', accentHover);
+    
+    // Calculate light colors
+    const accentLight = hexToRgba(theme.accentColor, 0.1);
+    const accentLighter = hexToRgba(theme.accentColor, 0.2);
+    root.style.setProperty('--accent-light', accentLight);
+    root.style.setProperty('--accent-lighter', accentLighter);
+}
+
+// Helper function to adjust color brightness
+function adjustColor(hex, amount) {
+    const num = parseInt(hex.replace('#', ''), 16);
+    const r = Math.max(0, Math.min(255, (num >> 16) + amount));
+    const g = Math.max(0, Math.min(255, ((num >> 8) & 0x00FF) + amount));
+    const b = Math.max(0, Math.min(255, (num & 0x0000FF) + amount));
+    return '#' + ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
+}
+
+// Helper function to convert hex to rgba
+function hexToRgba(hex, alpha) {
+    const num = parseInt(hex.replace('#', ''), 16);
+    const r = num >> 16;
+    const g = (num >> 8) & 0x00FF;
+    const b = num & 0x0000FF;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function loadTheme() {
+    applyTheme();
+    updateThemeUI();
+    
+    // Listen for system theme changes when in auto mode
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+        const theme = getTheme();
+        if (theme.mode === 'auto') {
+            applyTheme();
+        }
+    });
+}
+
+function updateThemeUI() {
+    const theme = getTheme();
+    
+    // Update theme buttons
+    document.querySelectorAll('.theme-option').forEach(btn => {
+        const btnTheme = btn.getAttribute('data-theme');
+        if (btnTheme === theme.mode) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    
+    // Update color buttons
+    document.querySelectorAll('.color-option').forEach(btn => {
+        const btnColor = btn.getAttribute('data-color');
+        if (btnColor === theme.accentColor) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+}
+
 
 // --- Quick Links Functions ---
 
@@ -169,41 +393,63 @@ function selectIcon(element, iconPath) {
 }
 
 // Open modal
-function openModal() {
-    const modal = document.getElementById('linkModal');
+function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    
     modal.classList.add('show');
-    document.getElementById('linkTitle').focus();
     
-    // Reset icon selection
-    selectedIcon = null;
-    fetchedFavicon = null;
-    document.querySelectorAll('.icon-option').forEach(opt => {
-        opt.classList.remove('selected');
-    });
-    
-    // Reset favicon slot to loading state
-    const faviconSlot = document.getElementById('faviconSlot');
-    faviconSlot.classList.remove('has-favicon');
-    faviconSlot.classList.add('loading');
-    document.getElementById('faviconPreview').src = '';
+    // Special handling for link modal
+    if (modalId === 'linkModal') {
+        document.getElementById('linkTitle').focus();
+        
+        // Reset icon selection
+        selectedIcon = null;
+        fetchedFavicon = null;
+        document.querySelectorAll('.icon-option').forEach(opt => {
+            opt.classList.remove('selected');
+        });
+        
+        // Reset favicon slot to loading state
+        const faviconSlot = document.getElementById('faviconSlot');
+        if (faviconSlot) {
+            faviconSlot.classList.remove('has-favicon');
+            faviconSlot.classList.add('loading');
+            document.getElementById('faviconPreview').src = '';
+        }
+    }
 }
 
 // Close modal
-function closeModal() {
-    const modal = document.getElementById('linkModal');
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    
     modal.classList.remove('show');
-    document.getElementById('linkForm').reset();
     
-    // Reset icon selection
-    selectedIcon = null;
-    fetchedFavicon = null;
-    document.querySelectorAll('.icon-option').forEach(opt => {
-        opt.classList.remove('selected');
-    });
-    
-    const faviconSlot = document.getElementById('faviconSlot');
-    faviconSlot.classList.remove('has-favicon', 'loading');
-    document.getElementById('faviconPreview').src = '';
+    // Special handling for link modal
+    if (modalId === 'linkModal') {
+        const linkForm = document.getElementById('linkForm');
+        if (linkForm) {
+            linkForm.reset();
+        }
+        
+        // Reset icon selection
+        selectedIcon = null;
+        fetchedFavicon = null;
+        document.querySelectorAll('.icon-option').forEach(opt => {
+            opt.classList.remove('selected');
+        });
+        
+        const faviconSlot = document.getElementById('faviconSlot');
+        if (faviconSlot) {
+            faviconSlot.classList.remove('has-favicon', 'loading');
+            const faviconPreview = document.getElementById('faviconPreview');
+            if (faviconPreview) {
+                faviconPreview.src = '';
+            }
+        }
+    }
 }
 
 // Add a new quick link
@@ -254,7 +500,7 @@ async function addQuickLink() {
     submitBtn.disabled = false;
 
     // Close modal
-    closeModal();
+    closeModal('linkModal');
 }
 
 // Fetch favicon for a URL
@@ -310,11 +556,16 @@ function loadQuickLinks() {
 
 // Create a quick link element
 function createQuickLinkElement(link) {
+    const settings = getSettings();
+    
     const linkEl = document.createElement('a');
     linkEl.className = 'quick-link';
     linkEl.href = link.url;
-    linkEl.target = '_blank';
-    linkEl.rel = 'noopener noreferrer';
+    
+    if (settings.openLinksNewTab !== false) {
+        linkEl.target = '_blank';
+        linkEl.rel = 'noopener noreferrer';
+    }
 
     const favicon = document.createElement('img');
     favicon.className = 'quick-link-favicon';
@@ -376,4 +627,24 @@ function deleteQuickLink(id) {
         saveQuickLinks(filtered);
         loadQuickLinks();
     }
+}
+
+// --- Toast Notification ---
+
+let toastTimeout;
+
+function showToast(message, duration = 2000) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.add('show');
+    
+    // Clear any existing timeout
+    if (toastTimeout) {
+        clearTimeout(toastTimeout);
+    }
+    
+    // Auto-hide after duration
+    toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+    }, duration);
 }
