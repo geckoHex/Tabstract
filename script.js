@@ -2,7 +2,30 @@
 document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     loadQuickLinks();
+    initializeIconPicker();
 });
+
+// Available custom icons
+const CUSTOM_ICONS = [
+    'bookmark-simple.svg',
+    'calendar.svg',
+    'camera.svg',
+    'chart-line.svg',
+    'chat.svg',
+    'envelope.svg',
+    'gear.svg',
+    'globe-hemisphere-west.svg',
+    'laptop.svg',
+    'lightbulb.svg',
+    'music-notes-simple.svg',
+    'palette.svg',
+    'puzzle-piece.svg',
+    'rocket-launch.svg',
+    'star.svg'
+];
+
+let selectedIcon = null; // Will store either favicon URL or custom icon path
+let fetchedFavicon = null; // Stores the fetched favicon URL
 
 // Set up event listeners
 function setupEventListeners() {
@@ -42,6 +65,15 @@ function setupEventListeners() {
         e.preventDefault();
         addQuickLink();
     });
+
+    // Listen for URL input changes to fetch favicon
+    const linkUrlInput = document.getElementById('linkUrl');
+    linkUrlInput.addEventListener('blur', async () => {
+        const url = linkUrlInput.value.trim();
+        if (url) {
+            await updateFaviconInPicker(url);
+        }
+    });
 }
 
 // Focus search input on startup
@@ -51,11 +83,109 @@ window.addEventListener('load', () => {
 
 // --- Quick Links Functions ---
 
+// Initialize icon picker
+function initializeIconPicker() {
+    const iconPicker = document.getElementById('iconPicker');
+    
+    // Create favicon slot (top-left, initially in loading state)
+    const faviconSlot = document.createElement('div');
+    faviconSlot.className = 'icon-option favicon-slot loading';
+    faviconSlot.id = 'faviconSlot';
+    faviconSlot.title = 'Favicon (fetched from URL)';
+    
+    const faviconImg = document.createElement('img');
+    faviconImg.id = 'faviconPreview';
+    faviconImg.alt = 'Favicon';
+    faviconSlot.appendChild(faviconImg);
+    
+    faviconSlot.addEventListener('click', () => {
+        if (fetchedFavicon) {
+            selectIcon(faviconSlot, fetchedFavicon);
+        }
+    });
+    
+    iconPicker.appendChild(faviconSlot);
+    
+    // Create custom icon options
+    CUSTOM_ICONS.forEach(iconFile => {
+        const iconOption = document.createElement('div');
+        iconOption.className = 'icon-option';
+        iconOption.title = iconFile.replace('.svg', '').replace(/-/g, ' ');
+        
+        const img = document.createElement('img');
+        img.src = `public/link-icons/${iconFile}`;
+        img.alt = iconFile;
+        
+        iconOption.appendChild(img);
+        iconOption.addEventListener('click', () => {
+            selectIcon(iconOption, `public/link-icons/${iconFile}`);
+        });
+        
+        iconPicker.appendChild(iconOption);
+    });
+}
+
+// Update favicon in picker when URL is entered
+async function updateFaviconInPicker(url) {
+    let normalizedUrl = url;
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        normalizedUrl = 'https://' + url;
+    }
+    
+    const faviconSlot = document.getElementById('faviconSlot');
+    const faviconPreview = document.getElementById('faviconPreview');
+    
+    // Show loading state
+    faviconSlot.classList.add('loading');
+    faviconSlot.classList.remove('has-favicon');
+    faviconPreview.src = '';
+    
+    try {
+        const faviconUrl = await getFavicon(normalizedUrl);
+        fetchedFavicon = faviconUrl;
+        
+        faviconPreview.src = faviconUrl;
+        faviconSlot.classList.remove('loading');
+        faviconSlot.classList.add('has-favicon');
+        
+        // Auto-select the favicon
+        selectIcon(faviconSlot, faviconUrl);
+    } catch (error) {
+        console.error('Error fetching favicon:', error);
+        faviconSlot.classList.remove('loading');
+    }
+}
+
+// Select an icon
+function selectIcon(element, iconPath) {
+    // Remove selection from all options
+    document.querySelectorAll('.icon-option').forEach(opt => {
+        opt.classList.remove('selected');
+    });
+    
+    // Add selection to clicked option
+    element.classList.add('selected');
+    selectedIcon = iconPath;
+}
+
 // Open modal
 function openModal() {
     const modal = document.getElementById('linkModal');
     modal.classList.add('show');
     document.getElementById('linkTitle').focus();
+    
+    // Reset icon selection
+    selectedIcon = null;
+    fetchedFavicon = null;
+    document.querySelectorAll('.icon-option').forEach(opt => {
+        opt.classList.remove('selected');
+    });
+    
+    // Reset favicon slot to loading state
+    const faviconSlot = document.getElementById('faviconSlot');
+    faviconSlot.classList.remove('has-favicon');
+    faviconSlot.classList.add('loading');
+    document.getElementById('faviconPreview').src = '';
 }
 
 // Close modal
@@ -63,6 +193,17 @@ function closeModal() {
     const modal = document.getElementById('linkModal');
     modal.classList.remove('show');
     document.getElementById('linkForm').reset();
+    
+    // Reset icon selection
+    selectedIcon = null;
+    fetchedFavicon = null;
+    document.querySelectorAll('.icon-option').forEach(opt => {
+        opt.classList.remove('selected');
+    });
+    
+    const faviconSlot = document.getElementById('faviconSlot');
+    faviconSlot.classList.remove('has-favicon', 'loading');
+    document.getElementById('faviconPreview').src = '';
 }
 
 // Add a new quick link
@@ -81,18 +222,21 @@ async function addQuickLink() {
     // Show loading state
     const submitBtn = document.querySelector('#linkForm button[type="submit"]');
     const originalText = submitBtn.textContent;
-    submitBtn.textContent = 'Loading...';
+    submitBtn.textContent = 'Adding...';
     submitBtn.disabled = true;
 
-    // Fetch and cache favicon
-    const favicon = await getFavicon(normalizedUrl);
+    // If no icon selected, fetch favicon as fallback
+    let iconToUse = selectedIcon;
+    if (!iconToUse) {
+        iconToUse = await getFavicon(normalizedUrl);
+    }
 
     // Create link object
     const link = {
         id: Date.now().toString(),
         title,
         url: normalizedUrl,
-        favicon
+        favicon: iconToUse
     };
 
     // Get existing links
