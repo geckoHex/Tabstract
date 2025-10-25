@@ -24,6 +24,41 @@
                 </div>
             </form>
         </div>
+
+        <!-- Quick Links Section -->
+        <div class="quick-links-section">
+            <div class="quick-links-header">
+                <h2>Quick Links</h2>
+                <button id="newLinkBtn" class="new-link-btn">+ New Link</button>
+            </div>
+            <div id="quickLinksContainer" class="quick-links-container">
+                <!-- Links will be dynamically added here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for adding new links -->
+    <div id="linkModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Link</h3>
+                <button id="closeModal" class="close-btn">&times;</button>
+            </div>
+            <form id="linkForm">
+                <div class="form-group">
+                    <label for="linkTitle">Title</label>
+                    <input type="text" id="linkTitle" placeholder="Enter link title" required />
+                </div>
+                <div class="form-group">
+                    <label for="linkUrl">URL</label>
+                    <input type="url" id="linkUrl" placeholder="https://example.com" required />
+                </div>
+                <div class="modal-actions">
+                    <button type="button" id="cancelBtn" class="btn btn-cancel">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Link</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <script src="script.js"></script>

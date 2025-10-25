@@ -4,7 +4,10 @@
   "version": "1.0.0",
   "description": "A customizable new tab page with a search bar",
   "permissions": [
-    "chrome://favicon/"
+    "storage"
+  ],
+  "host_permissions": [
+    "https://www.google.com/*"
   ],
   "chrome_url_overrides": {
     "newtab": "newtab.html"
