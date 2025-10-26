@@ -39,7 +39,7 @@ const DEFAULT_THEME = {
 const DEFAULT_SETTINGS = {
     searchEngine: 'google',
     focusSearchOnLoad: true,
-    openLinksNewTab: true,
+    openLinksNewTab: false,
     userName: ''
 };
 
@@ -225,7 +225,6 @@ function setupEventListeners() {
     }
 
     // Settings
-    const searchEngineSelect = document.getElementById('searchEngine');
     const focusSearchCheckbox = document.getElementById('focusSearchOnLoad');
     const openLinksCheckbox = document.getElementById('openLinksNewTab');
     const userNameInput = document.getElementById('userName');
@@ -249,24 +248,6 @@ function setupEventListeners() {
             updateGreeting(true);
         });
     }
-
-    searchEngineSelect.addEventListener('change', (e) => {
-        const selectedEngine = e.target.value;
-        updateSetting('searchEngine', selectedEngine);
-
-        const activeFilter = getActiveSearchFilter();
-        let message = `Search engine set to ${selectedEngine}`;
-
-        if (activeFilter) {
-            if (selectedEngine === 'google') {
-                message += ` · Filter active: ${activeFilter.label}`;
-            } else {
-                message += ' · Filters apply when Google is selected';
-            }
-        }
-
-        showToast(message);
-    });
 
     focusSearchCheckbox.addEventListener('change', (e) => {
         updateSetting('focusSearchOnLoad', e.target.checked);
@@ -755,21 +736,16 @@ function updateSetting(key, value) {
 
 function loadSettings() {
     const settings = getSettings();
-    const searchEngineSelect = document.getElementById('searchEngine');
     const focusSearchCheckbox = document.getElementById('focusSearchOnLoad');
     const openLinksCheckbox = document.getElementById('openLinksNewTab');
     const userNameInput = document.getElementById('userName');
-
-    if (searchEngineSelect) {
-        searchEngineSelect.value = settings.searchEngine || DEFAULT_SETTINGS.searchEngine;
-    }
 
     if (focusSearchCheckbox) {
         focusSearchCheckbox.checked = settings.focusSearchOnLoad !== false;
     }
 
     if (openLinksCheckbox) {
-        openLinksCheckbox.checked = settings.openLinksNewTab !== false;
+        openLinksCheckbox.checked = settings.openLinksNewTab === true;
     }
 
     if (userNameInput) {

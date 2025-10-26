@@ -205,23 +205,21 @@
                     <input type="text" id="userName" class="setting-input" placeholder="Add your name" maxlength="40" />
                 </div>
                 <div class="setting-group">
-                    <label for="searchEngine">Search Engine</label>
-                    <select id="searchEngine" class="setting-select">
-                        <option value="google">Google</option>
-                        <option value="bing">Bing</option>
-                        <option value="duckduckgo">DuckDuckGo</option>
-                    </select>
-                </div>
-                <div class="setting-group">
-                    <label class="setting-checkbox-label">
-                        <input type="checkbox" id="focusSearchOnLoad" class="setting-checkbox" checked />
+                    <label class="setting-toggle-label">
                         <span>Focus search on page load</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="focusSearchOnLoad" class="toggle-input" checked />
+                            <span class="toggle-slider"></span>
+                        </label>
                     </label>
                 </div>
                 <div class="setting-group">
-                    <label class="setting-checkbox-label">
-                        <input type="checkbox" id="openLinksNewTab" class="setting-checkbox" checked />
+                    <label class="setting-toggle-label">
                         <span>Open links in new tab</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="openLinksNewTab" class="toggle-input" />
+                            <span class="toggle-slider"></span>
+                        </label>
                     </label>
                 </div>
             </div>
