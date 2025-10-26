@@ -43,6 +43,24 @@
                         placeholder="Search the web..."
                         autocomplete="off"
                     />
+                    <button
+                        type="button"
+                        id="searchFilterToggle"
+                        class="search-filter-toggle"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                        title="Filter search results"
+                    >
+                        <span class="search-filter-toggle-icon" aria-hidden="true" data-icon="sliders-horizontal"></span>
+                        <span class="search-filter-toggle-label" hidden></span>
+                    </button>
+                    <div
+                        id="searchFilterMenu"
+                        class="search-filter-menu"
+                        role="menu"
+                        aria-label="Search filters"
+                        hidden
+                    ></div>
                 </div>
             </form>
         </div>
