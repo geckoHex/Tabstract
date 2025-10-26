@@ -199,58 +199,94 @@
 
     <!-- Settings Modal -->
     <div id="settingsModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content settings-modal-content">
             <div class="modal-header">
                 <h3>Settings</h3>
                 <button class="close-btn modal-close" data-modal="settingsModal">&times;</button>
             </div>
-            <div class="settings-content">
-                <div class="setting-group">
-                    <label for="userName">Display name</label>
-                    <input type="text" id="userName" class="setting-input" placeholder="Add your name" maxlength="40" />
-                </div>
-                <div class="setting-group">
-                    <label class="setting-toggle-label">
-                        <span>Type anywhere</span>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="typeAnywhere" class="toggle-input" checked />
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </label>
-                </div>
-                <div class="setting-group">
-                    <label class="setting-toggle-label">
-                        <span>Open links in new tab</span>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="openLinksNewTab" class="toggle-input" />
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </label>
-                </div>
-                <div class="setting-group">
-                    <label class="setting-toggle-label">
-                        <span>Show search hint</span>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="showSearchHint" class="toggle-input" checked />
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </label>
-                </div>
-                <div class="setting-group">
-                    <label for="faviconLoadMode">Favicon load mode</label>
-                    <div class="custom-select-wrapper">
-                        <select id="faviconLoadMode" class="custom-select">
-                            <option value="immediate">Immediately</option>
-                            <option value="delayed" selected>After delay (1.5s)</option>
-                            <option value="manual">After pressing Enter</option>
-                        </select>
-                        <span class="custom-select-arrow">
-                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </span>
+            <div class="settings-content-wrapper">
+                <div class="settings-left">
+                    <div class="settings-content">
+                        <div class="setting-group">
+                            <label for="userName">Display name</label>
+                            <input type="text" id="userName" class="setting-input" placeholder="Add your name" maxlength="40" />
+                        </div>
+                        <div class="setting-group">
+                            <label class="setting-toggle-label">
+                                <span>Type anywhere</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="typeAnywhere" class="toggle-input" checked />
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </label>
+                        </div>
+                        <div class="setting-group">
+                            <label class="setting-toggle-label">
+                                <span>Open links in new tab</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="openLinksNewTab" class="toggle-input" />
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </label>
+                        </div>
+                        <div class="setting-group">
+                            <label class="setting-toggle-label">
+                                <span>Show search hint</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="showSearchHint" class="toggle-input" checked />
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </label>
+                        </div>
+                        <div class="setting-group">
+                            <label for="faviconLoadMode">Favicon load mode</label>
+                            <div class="custom-select-wrapper">
+                                <select id="faviconLoadMode" class="custom-select">
+                                    <option value="immediate">Immediately</option>
+                                    <option value="delayed" selected>After delay (1.5s)</option>
+                                    <option value="manual">After pressing Enter</option>
+                                </select>
+                                <span class="custom-select-arrow">
+                                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </div>
+                <div class="settings-right">
+                    <div class="blocked-terms-section">
+                        <h4>Blocked Search Terms</h4>
+                        <p class="blocked-terms-description">Add terms that will trigger a warning when searching</p>
+                        <div class="blocked-terms-input-wrapper">
+                            <input type="text" id="blockedTermInput" class="setting-input" placeholder="Enter a term to block..." maxlength="50" />
+                            <button id="addBlockedTermBtn" class="btn btn-primary btn-small">Add</button>
+                        </div>
+                        <div id="blockedTermsList" class="blocked-terms-list">
+                            <!-- Blocked terms will be dynamically added here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Warning Modal -->
+    <div id="searchWarningModal" class="modal warning-modal">
+        <div class="modal-content warning-modal-content">
+            <div class="warning-header">
+                <img src="public/icons/flag.svg" alt="Warning" class="warning-icon" />
+                <h3 class="warning-title">Search Warning</h3>
+            </div>
+            <p class="warning-message">Your search contains blocked terms. Are you sure you want to continue?</p>
+            <div class="warning-terms-container">
+                <strong>Blocked terms found:</strong>
+                <div id="warningTermsList" class="warning-terms-list"></div>
+            </div>
+            <div class="modal-actions warning-actions">
+                <button id="warningBackBtn" class="btn btn-primary btn-large">Back</button>
+                <button id="warningSearchAnywayBtn" class="btn-text btn-large">Search Anyway</button>
             </div>
         </div>
     </div>
