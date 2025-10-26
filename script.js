@@ -38,7 +38,7 @@ const DEFAULT_THEME = {
 
 const DEFAULT_SETTINGS = {
     searchEngine: 'google',
-    focusSearchOnLoad: true,
+    typeAnywhere: true,
     openLinksNewTab: false,
     userName: '',
     showSearchHint: true
@@ -280,7 +280,7 @@ function isValidUrl(str) {
     }
 
     // Settings
-    const focusSearchCheckbox = document.getElementById('focusSearchOnLoad');
+    const typeAnywhereCheckbox = document.getElementById('typeAnywhere');
     const openLinksCheckbox = document.getElementById('openLinksNewTab');
     const showSearchHintCheckbox = document.getElementById('showSearchHint');
     const userNameInput = document.getElementById('userName');
@@ -305,9 +305,10 @@ function isValidUrl(str) {
         });
     }
 
-    focusSearchCheckbox.addEventListener('change', (e) => {
-        updateSetting('focusSearchOnLoad', e.target.checked);
-        showToast(e.target.checked ? 'Auto-focus enabled' : 'Auto-focus disabled');
+    typeAnywhereCheckbox.addEventListener('change', (e) => {
+        updateSetting('typeAnywhere', e.target.checked);
+        showToast(e.target.checked ? 'Type anywhere enabled' : 'Type anywhere disabled');
+        setupTypeAnywhereListeners();
     });
 
     openLinksCheckbox.addEventListener('change', (e) => {
@@ -773,12 +774,67 @@ function focusFirstFilterMenuItem() {
     }
 }
 
-// Focus search input on startup
-window.addEventListener('load', () => {
+// Setup type anywhere listeners
+function setupTypeAnywhereListeners() {
     const settings = getSettings();
-    if (settings.focusSearchOnLoad !== false) {
-        document.getElementById('searchInput').focus();
+    const searchInput = document.getElementById('searchInput');
+    
+    // Remove existing listeners if they exist
+    document.removeEventListener('keydown', typeAnywhereKeyHandler);
+    document.removeEventListener('click', typeAnywhereClickHandler);
+    
+    if (settings.typeAnywhere !== false) {
+        document.addEventListener('keydown', typeAnywhereKeyHandler);
+        document.addEventListener('click', typeAnywhereClickHandler);
     }
+}
+
+function typeAnywhereKeyHandler(e) {
+    const searchInput = document.getElementById('searchInput');
+    const target = e.target;
+    
+    // Don't focus if already in an input field, textarea, or contenteditable element
+    if (target.tagName === 'INPUT' || 
+        target.tagName === 'TEXTAREA' || 
+        target.isContentEditable ||
+        target.closest('[contenteditable="true"]')) {
+        return;
+    }
+    
+    // Don't focus on modifier keys or special keys
+    if (e.ctrlKey || e.metaKey || e.altKey || 
+        ['Escape', 'Tab', 'Enter', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        return;
+    }
+    
+    // Focus the search input and let the character be typed
+    if (searchInput && searchInput !== document.activeElement) {
+        searchInput.focus();
+    }
+}
+
+function typeAnywhereClickHandler(e) {
+    const searchInput = document.getElementById('searchInput');
+    const target = e.target;
+    
+    // Check if clicked on an interactive element
+    const isInteractive = target.tagName === 'INPUT' ||
+                         target.tagName === 'TEXTAREA' ||
+                         target.tagName === 'BUTTON' ||
+                         target.tagName === 'A' ||
+                         target.tagName === 'SELECT' ||
+                         target.isContentEditable ||
+                         target.closest('button, a, input, textarea, select, [contenteditable="true"]');
+    
+    // If clicked on the background (non-interactive element), focus search
+    if (!isInteractive && searchInput) {
+        searchInput.focus();
+    }
+}
+
+// Initialize type anywhere on startup
+window.addEventListener('load', () => {
+    setupTypeAnywhereListeners();
 });
 
 // --- Settings Functions ---
@@ -792,6 +848,15 @@ function getSettings() {
 
     try {
         const parsed = JSON.parse(stored);
+        
+        // Migrate old focusSearchOnLoad setting to typeAnywhere
+        if ('focusSearchOnLoad' in parsed && !('typeAnywhere' in parsed)) {
+            parsed.typeAnywhere = parsed.focusSearchOnLoad;
+            delete parsed.focusSearchOnLoad;
+            // Save migrated settings
+            localStorage.setItem('settings', JSON.stringify(parsed));
+        }
+        
         return { ...DEFAULT_SETTINGS, ...parsed };
     } catch (error) {
         console.error('Error parsing settings:', error);
@@ -818,13 +883,13 @@ function updateSearchHintVisibility(show) {
 
 function loadSettings() {
     const settings = getSettings();
-    const focusSearchCheckbox = document.getElementById('focusSearchOnLoad');
+    const typeAnywhereCheckbox = document.getElementById('typeAnywhere');
     const openLinksCheckbox = document.getElementById('openLinksNewTab');
     const showSearchHintCheckbox = document.getElementById('showSearchHint');
     const userNameInput = document.getElementById('userName');
 
-    if (focusSearchCheckbox) {
-        focusSearchCheckbox.checked = settings.focusSearchOnLoad !== false;
+    if (typeAnywhereCheckbox) {
+        typeAnywhereCheckbox.checked = settings.typeAnywhere !== false;
     }
 
     if (openLinksCheckbox) {
