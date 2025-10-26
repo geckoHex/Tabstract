@@ -41,7 +41,8 @@ const DEFAULT_SETTINGS = {
     typeAnywhere: true,
     openLinksNewTab: false,
     userName: '',
-    showSearchHint: true
+    showSearchHint: true,
+    faviconLoadMode: 'delayed' // 'immediate', 'delayed', or 'manual'
 };
 
 const SEARCH_FILTERS = [
@@ -213,18 +214,81 @@ function isValidUrl(str) {
 
     // Listen for URL input changes to fetch favicon
     const linkUrlInput = document.getElementById('linkUrl');
+    const linkTitleInput = document.getElementById('linkTitle');
+    const urlSuggestion = document.getElementById('urlSuggestion');
+    const urlSuggestionBtn = document.getElementById('urlSuggestionBtn');
     let faviconUpdateTimeout = null;
     
-    // Debounced input handler - fetch favicon after user stops typing
-    linkUrlInput.addEventListener('input', () => {
-        clearTimeout(faviconUpdateTimeout);
+    // Form validation - disable submit button until all fields are filled
+    function validateForm() {
+        const submitBtn = linkForm.querySelector('button[type="submit"]');
+        const title = linkTitleInput.value.trim();
         const url = linkUrlInput.value.trim();
-        if (url) {
-            faviconUpdateTimeout = setTimeout(async () => {
-                await updateFaviconInPicker(url);
-            }, 500); // Wait 500ms after user stops typing
+        const hasIcon = selectedIcon !== null;
+        
+        // Enable button only if title, url are filled and icon is selected (or favicon is fetched)
+        const isValid = title && url && (hasIcon || fetchedFavicon);
+        submitBtn.disabled = !isValid;
+    }
+    
+    // Validate form on input changes
+    linkTitleInput.addEventListener('input', validateForm);
+    linkUrlInput.addEventListener('input', () => {
+        validateForm();
+        // Continue with existing input handler...
+        handleUrlInputChange();
+    });
+    
+    // Handle Enter key to advance to next field
+    linkTitleInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            linkUrlInput.focus();
         }
     });
+    
+    function handleUrlInputChange() {
+        clearTimeout(faviconUpdateTimeout);
+        const url = linkUrlInput.value.trim();
+        
+        // Check if URL has path and show suggestion
+        checkAndShowUrlSuggestion(url);
+        
+        if (!url) {
+            resetFaviconSlot();
+            return;
+        }
+        
+        const settings = getSettings();
+        const mode = settings.faviconLoadMode || 'delayed';
+        
+        if (mode === 'immediate') {
+            faviconUpdateTimeout = setTimeout(async () => {
+                await updateFaviconInPicker(url);
+            }, 300); // Small debounce to avoid too many requests while typing
+        } else if (mode === 'delayed') {
+            setFaviconWaiting();
+            faviconUpdateTimeout = setTimeout(async () => {
+                await updateFaviconInPicker(url);
+            }, 1500); // Wait 1.5s after user stops typing
+        } else if (mode === 'manual') {
+            setFaviconWaiting();
+            // Don't auto-fetch, wait for Enter or blur
+        }
+    }
+    
+    // Handle URL suggestion click
+    if (urlSuggestionBtn) {
+        urlSuggestionBtn.addEventListener('click', () => {
+            const baseUrl = urlSuggestionBtn.textContent;
+            linkUrlInput.value = baseUrl;
+            urlSuggestion.style.display = 'none';
+            
+            // Trigger favicon update immediately after setting base URL
+            clearTimeout(faviconUpdateTimeout);
+            updateFaviconInPicker(baseUrl);
+        });
+    }
     
     // Handle paste events - fetch favicon immediately
     linkUrlInput.addEventListener('paste', async (e) => {
@@ -232,16 +296,41 @@ function isValidUrl(str) {
         // Wait a tiny bit for the paste to complete
         setTimeout(async () => {
             const url = linkUrlInput.value.trim();
+            
+            // Check if URL has path and show suggestion
+            checkAndShowUrlSuggestion(url);
+            
             if (url) await updateFaviconInPicker(url);
+            validateForm();
         }, 50);
     });
     
-    // Keep blur event as fallback
+    // Handle Enter key in URL input
+    linkUrlInput.addEventListener('keydown', async (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault(); // Prevent form submission
+            clearTimeout(faviconUpdateTimeout);
+            const url = linkUrlInput.value.trim();
+            if (url) {
+                await updateFaviconInPicker(url);
+                validateForm();
+            }
+        }
+    });
+    
+    // Handle blur event - fetch favicon if in manual mode
     linkUrlInput.addEventListener('blur', async () => {
         clearTimeout(faviconUpdateTimeout);
         const url = linkUrlInput.value.trim();
         if (url) {
-            await updateFaviconInPicker(url);
+            const settings = getSettings();
+            const mode = settings.faviconLoadMode || 'delayed';
+            
+            // Only fetch on blur for manual mode, or if not already fetched
+            if (mode === 'manual' || !fetchedFavicon) {
+                await updateFaviconInPicker(url);
+                validateForm();
+            }
         }
     });
 
@@ -321,6 +410,21 @@ function isValidUrl(str) {
         updateSearchHintVisibility(e.target.checked);
         showToast(e.target.checked ? 'Search hint shown' : 'Search hint hidden');
     });
+    
+    // Favicon load mode setting
+    const faviconLoadModeSelect = document.getElementById('faviconLoadMode');
+    if (faviconLoadModeSelect) {
+        faviconLoadModeSelect.addEventListener('change', (e) => {
+            const mode = e.target.value;
+            updateSetting('faviconLoadMode', mode);
+            const messages = {
+                'immediate': 'Favicon loads immediately',
+                'delayed': 'Favicon loads after 1.5s delay',
+                'manual': 'Favicon loads after Enter key'
+            };
+            showToast(messages[mode] || 'Favicon load mode updated');
+        });
+    }
     
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
@@ -901,6 +1005,7 @@ function loadSettings() {
     const openLinksCheckbox = document.getElementById('openLinksNewTab');
     const showSearchHintCheckbox = document.getElementById('showSearchHint');
     const userNameInput = document.getElementById('userName');
+    const faviconLoadModeSelect = document.getElementById('faviconLoadMode');
 
     if (typeAnywhereCheckbox) {
         typeAnywhereCheckbox.checked = settings.typeAnywhere !== false;
@@ -917,6 +1022,10 @@ function loadSettings() {
 
     if (userNameInput) {
         userNameInput.value = settings.userName || '';
+    }
+    
+    if (faviconLoadModeSelect) {
+        faviconLoadModeSelect.value = settings.faviconLoadMode || 'delayed';
     }
 }
 
@@ -1595,7 +1704,7 @@ async function updateFaviconInPicker(url) {
     
     // Show loading state
     faviconSlot.classList.add('loading');
-    faviconSlot.classList.remove('has-favicon');
+    faviconSlot.classList.remove('has-favicon', 'waiting');
     faviconPreview.src = '';
     
     try {
@@ -1603,14 +1712,82 @@ async function updateFaviconInPicker(url) {
         fetchedFavicon = faviconUrl;
         
         faviconPreview.src = faviconUrl;
-        faviconSlot.classList.remove('loading');
+        faviconSlot.classList.remove('loading', 'waiting');
         faviconSlot.classList.add('has-favicon');
         
         // Auto-select the favicon
         selectIcon(faviconSlot, faviconUrl);
+        
+        // Validate form after fetching favicon
+        const linkForm = document.getElementById('linkForm');
+        if (linkForm) {
+            const linkTitleInput = document.getElementById('linkTitle');
+            const linkUrlInput = document.getElementById('linkUrl');
+            const submitBtn = linkForm.querySelector('button[type="submit"]');
+            const title = linkTitleInput.value.trim();
+            const urlValue = linkUrlInput.value.trim();
+            const hasIcon = selectedIcon !== null;
+            const isValid = title && urlValue && (hasIcon || fetchedFavicon);
+            submitBtn.disabled = !isValid;
+        }
     } catch (error) {
         console.error('Error fetching favicon:', error);
-        faviconSlot.classList.remove('loading');
+        faviconSlot.classList.remove('loading', 'waiting');
+    }
+}
+
+// Set favicon slot to waiting state
+function setFaviconWaiting() {
+    const faviconSlot = document.getElementById('faviconSlot');
+    const faviconPreview = document.getElementById('faviconPreview');
+    
+    if (faviconSlot && !faviconSlot.classList.contains('has-favicon')) {
+        faviconSlot.classList.add('waiting');
+        faviconSlot.classList.remove('loading', 'has-favicon');
+        faviconPreview.src = '';
+    }
+}
+
+// Reset favicon slot
+function resetFaviconSlot() {
+    const faviconSlot = document.getElementById('faviconSlot');
+    const faviconPreview = document.getElementById('faviconPreview');
+    
+    if (faviconSlot) {
+        faviconSlot.classList.remove('has-favicon', 'loading', 'waiting');
+        faviconPreview.src = '';
+        fetchedFavicon = null;
+    }
+}
+
+// Check URL and show suggestion if it has a path
+function checkAndShowUrlSuggestion(url) {
+    const urlSuggestion = document.getElementById('urlSuggestion');
+    const urlSuggestionBtn = document.getElementById('urlSuggestionBtn');
+    
+    if (!urlSuggestion || !urlSuggestionBtn) return;
+    
+    try {
+        // Normalize URL
+        let normalizedUrl = url;
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+            normalizedUrl = 'https://' + url;
+        }
+        
+        const urlObj = new URL(normalizedUrl);
+        const hasPath = urlObj.pathname !== '/' || urlObj.search || urlObj.hash;
+        
+        if (hasPath) {
+            // Extract base URL
+            const baseUrl = urlObj.hostname;
+            urlSuggestionBtn.textContent = baseUrl;
+            urlSuggestion.style.display = 'flex';
+        } else {
+            urlSuggestion.style.display = 'none';
+        }
+    } catch (error) {
+        // Invalid URL, hide suggestion
+        urlSuggestion.style.display = 'none';
     }
 }
 
@@ -1624,6 +1801,19 @@ function selectIcon(element, iconPath) {
     // Add selection to clicked option
     element.classList.add('selected');
     selectedIcon = iconPath;
+    
+    // Validate form after selecting icon
+    const linkForm = document.getElementById('linkForm');
+    if (linkForm) {
+        const linkTitleInput = document.getElementById('linkTitle');
+        const linkUrlInput = document.getElementById('linkUrl');
+        const submitBtn = linkForm.querySelector('button[type="submit"]');
+        const title = linkTitleInput.value.trim();
+        const url = linkUrlInput.value.trim();
+        const hasIcon = selectedIcon !== null;
+        const isValid = title && url && (hasIcon || fetchedFavicon);
+        submitBtn.disabled = !isValid;
+    }
 }
 
 // Open modal
@@ -1646,6 +1836,7 @@ function openModal(modalId) {
             const submitBtn = linkForm.querySelector('button[type="submit"]');
             modalTitle.textContent = 'Add New Link';
             submitBtn.textContent = 'Add Link';
+            submitBtn.disabled = true; // Disable button initially
             
             // Reset icon selection
             selectedIcon = null;
@@ -1654,12 +1845,20 @@ function openModal(modalId) {
                 opt.classList.remove('selected', 'active');
             });
             
-            // Reset favicon slot to loading state
+            // Reset favicon slot to default state with blinking cursor
             const faviconSlot = document.getElementById('faviconSlot');
             if (faviconSlot) {
-                faviconSlot.classList.remove('has-favicon');
-                faviconSlot.classList.add('loading');
-                document.getElementById('faviconPreview').src = '';
+                faviconSlot.classList.remove('has-favicon', 'loading', 'waiting');
+                const faviconPreview = document.getElementById('faviconPreview');
+                if (faviconPreview) {
+                    faviconPreview.src = '';
+                }
+            }
+            
+            // Hide URL suggestion
+            const urlSuggestion = document.getElementById('urlSuggestion');
+            if (urlSuggestion) {
+                urlSuggestion.style.display = 'none';
             }
         }
         
@@ -1698,11 +1897,17 @@ function closeModal(modalId) {
         
         const faviconSlot = document.getElementById('faviconSlot');
         if (faviconSlot) {
-            faviconSlot.classList.remove('has-favicon', 'loading');
+            faviconSlot.classList.remove('has-favicon', 'loading', 'waiting');
             const faviconPreview = document.getElementById('faviconPreview');
             if (faviconPreview) {
                 faviconPreview.src = '';
             }
+        }
+        
+        // Hide URL suggestion
+        const urlSuggestion = document.getElementById('urlSuggestion');
+        if (urlSuggestion) {
+            urlSuggestion.style.display = 'none';
         }
     }
 }

@@ -845,6 +845,41 @@ a {
     border-color: var(--accent-color);
 }
 
+/* URL Suggestion */
+.url-suggestion {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+}
+
+.url-suggestion-text {
+    color: var(--text-secondary);
+    font-weight: 700;
+}
+
+.url-suggestion-btn {
+    background: transparent;
+    border: none;
+    color: var(--accent-color);
+    font-weight: 600;
+    font-style: italic;
+    cursor: pointer;
+    padding: 0;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+    font-size: 13px;
+}
+
+.url-suggestion-btn:hover {
+    background: var(--accent-light);
+    text-decoration: underline;
+}
+
+.url-suggestion-btn:active {
+    transform: scale(0.98);
+}
+
 .modal-actions {
     display: flex;
     gap: 12px;
@@ -881,8 +916,24 @@ a {
     background: var(--accent-hover);
 }
 
+.btn-primary:disabled {
+    background: var(--border-color);
+    color: var(--text-muted);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.btn-primary:disabled:hover {
+    background: var(--border-color);
+    transform: none;
+}
+
 .btn:active {
     transform: scale(0.98);
+}
+
+.btn:disabled:active {
+    transform: none;
 }
 
 /* --- Icon Picker --- */
@@ -949,14 +1000,34 @@ a {
     background: var(--bg-secondary);
 }
 
-.favicon-slot:not(.has-favicon) {
-    cursor: not-allowed;
-    opacity: 0.5;
+.favicon-slot:not(.has-favicon):not(.loading):not(.waiting) {
+    cursor: pointer;
+    opacity: 1;
+    background: var(--bg-primary);
 }
 
-.favicon-slot:not(.has-favicon):hover {
-    border-color: var(--border-light);
-    background: var(--bg-secondary);
+.favicon-slot:not(.has-favicon):not(.loading):not(.waiting)::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    background-image: url('public/icons/cursor.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    animation: blink 2s ease-in-out infinite;
+}
+
+.favicon-slot:not(.has-favicon):not(.loading):not(.waiting) img {
+    display: none;
+}
+
+.favicon-slot:not(.has-favicon):not(.loading):not(.waiting):hover {
+    border-color: var(--accent-color);
+    background: var(--bg-primary);
     transform: none;
 }
 
@@ -969,10 +1040,11 @@ a {
     cursor: wait;
     opacity: 1;
     background: var(--bg-primary);
+    position: relative;
 }
 
 .favicon-slot.loading::after {
-    content: 'Favicon';
+    content: 'Loading...';
     position: absolute;
     top: 50%;
     left: 50%;
@@ -989,16 +1061,6 @@ a {
     display: none;
 }
 
-/* Spinner animation with easing (Windows-style) */
-@keyframes spin {
-    0% { transform: translate(-50%, -50%) rotate(0deg); }
-    100% { transform: translate(-50%, -50%) rotate(360deg); }
-}
-
-.favicon-slot.loading {
-    position: relative;
-}
-
 .favicon-slot.loading::before {
     content: '';
     display: block;
@@ -1013,6 +1075,45 @@ a {
     border-right-color: var(--accent-color);
     border-radius: 50%;
     animation: spin 1s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+
+/* Waiting state for favicon slot */
+.favicon-slot.waiting {
+    cursor: wait;
+    opacity: 1;
+    background: var(--bg-primary);
+    position: relative;
+}
+
+.favicon-slot.waiting::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    background-image: url('public/icons/cursor.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    animation: blink 2s ease-in-out infinite;
+}
+
+.favicon-slot.waiting img {
+    display: none;
+}
+
+/* Spinner animation with easing (Windows-style) */
+@keyframes spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Smooth blink animation */
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
 }
 
 /* --- Theme Modal --- */
@@ -1344,6 +1445,51 @@ a {
 .setting-input:focus {
     outline: none;
     border-color: var(--accent-color);
+}
+
+/* Custom Select Dropdown */
+.custom-select-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.custom-select {
+    width: 100%;
+    padding: 10px 36px 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 14px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    transition: border-color 0.2s ease, background-color 0.3s ease, color 0.3s ease;
+}
+
+.custom-select:hover {
+    border-color: var(--accent-color);
+}
+
+.custom-select:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px var(--accent-lighter);
+}
+
+.custom-select-arrow {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: var(--text-secondary);
+    transition: color 0.2s ease;
+}
+
+.custom-select:hover + .custom-select-arrow {
+    color: var(--accent-color);
 }
 
 .setting-select {
