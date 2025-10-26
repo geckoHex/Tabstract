@@ -5,6 +5,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeIconPicker();
     loadSettings();
     loadTheme();
+    initializeGreeting();
+    startClock();
 });
 
 // Available custom icons
@@ -31,6 +33,13 @@ const DEFAULT_THEME = {
     accentColor: '#007bff',
     background: 'none',
     backgroundImageOpacity: 100
+};
+
+const DEFAULT_SETTINGS = {
+    searchEngine: 'google',
+    focusSearchOnLoad: true,
+    openLinksNewTab: true,
+    userName: ''
 };
 
 let selectedIcon = null; // Will store either favicon URL or custom icon path
@@ -141,6 +150,27 @@ function setupEventListeners() {
     const searchEngineSelect = document.getElementById('searchEngine');
     const focusSearchCheckbox = document.getElementById('focusSearchOnLoad');
     const openLinksCheckbox = document.getElementById('openLinksNewTab');
+    const userNameInput = document.getElementById('userName');
+    let nameUpdateTimeout = null;
+
+    if (userNameInput) {
+        userNameInput.addEventListener('input', (e) => {
+            const value = e.target.value;
+            clearTimeout(nameUpdateTimeout);
+            nameUpdateTimeout = setTimeout(() => {
+                updateSetting('userName', value.trim());
+                updateGreeting(true);
+            }, 300);
+        });
+
+        userNameInput.addEventListener('blur', (e) => {
+            clearTimeout(nameUpdateTimeout);
+            const sanitized = e.target.value.trim();
+            e.target.value = sanitized;
+            updateSetting('userName', sanitized);
+            updateGreeting(true);
+        });
+    }
 
     searchEngineSelect.addEventListener('change', (e) => {
         updateSetting('searchEngine', e.target.value);
@@ -181,11 +211,18 @@ window.addEventListener('load', () => {
 
 function getSettings() {
     const stored = localStorage.getItem('settings');
-    return stored ? JSON.parse(stored) : {
-        searchEngine: 'google',
-        focusSearchOnLoad: true,
-        openLinksNewTab: true
-    };
+
+    if (!stored) {
+        return { ...DEFAULT_SETTINGS };
+    }
+
+    try {
+        const parsed = JSON.parse(stored);
+        return { ...DEFAULT_SETTINGS, ...parsed };
+    } catch (error) {
+        console.error('Error parsing settings:', error);
+        return { ...DEFAULT_SETTINGS };
+    }
 }
 
 function saveSettings(settings) {
@@ -200,9 +237,26 @@ function updateSetting(key, value) {
 
 function loadSettings() {
     const settings = getSettings();
-    document.getElementById('searchEngine').value = settings.searchEngine || 'google';
-    document.getElementById('focusSearchOnLoad').checked = settings.focusSearchOnLoad !== false;
-    document.getElementById('openLinksNewTab').checked = settings.openLinksNewTab !== false;
+    const searchEngineSelect = document.getElementById('searchEngine');
+    const focusSearchCheckbox = document.getElementById('focusSearchOnLoad');
+    const openLinksCheckbox = document.getElementById('openLinksNewTab');
+    const userNameInput = document.getElementById('userName');
+
+    if (searchEngineSelect) {
+        searchEngineSelect.value = settings.searchEngine || DEFAULT_SETTINGS.searchEngine;
+    }
+
+    if (focusSearchCheckbox) {
+        focusSearchCheckbox.checked = settings.focusSearchOnLoad !== false;
+    }
+
+    if (openLinksCheckbox) {
+        openLinksCheckbox.checked = settings.openLinksNewTab !== false;
+    }
+
+    if (userNameInput) {
+        userNameInput.value = settings.userName || '';
+    }
 }
 
 function getSearchUrl(engine, query) {
@@ -396,6 +450,188 @@ function loadTheme() {
             applyTheme();
         }
     });
+}
+
+const GREETING_SEGMENTS = [
+    {
+        key: 'midnight',
+        start: 0,
+        end: 3,
+        messages: [
+            "Still up, {{name}}? The moon's impressed.",
+            'Midnight mission in progress, {{name}}.',
+            "Shouldn't you be asleep, {{name}}?",
+            'Night owl mode activated, {{name}}.'
+        ]
+    },
+    {
+        key: 'sunrise',
+        start: 4,
+        end: 7,
+        messages: [
+            'Up early, {{name}}?',
+            'Early bird gets the worm, {{name}}.',
+            'Sunrise squad assemble, {{name}}!',
+            'You beat the snooze button again, {{name}}.'
+        ]
+    },
+    {
+        key: 'morning',
+        start: 8,
+        end: 11,
+        messages: [
+            'Good morning, {{name}}.',
+            'Rise and shine, {{name}}!',
+            'Coffee break yet, {{name}}?',
+            "Let's make today awesome, {{name}}."
+        ]
+    },
+    {
+        key: 'afternoon',
+        start: 12,
+        end: 16,
+        messages: [
+            'Good afternoon, {{name}}.',
+            'Hope your day is cruising, {{name}}.',
+            'Need a stretch break, {{name}}?',
+            'Another victory lap, {{name}}?'
+        ]
+    },
+    {
+        key: 'evening',
+        start: 17,
+        end: 20,
+        messages: [
+            'Good evening, {{name}}.',
+            'Still rolling, {{name}}?',
+            'Golden hour hero, {{name}}.',
+            'Dinner plans, {{name}}?'
+        ]
+    },
+    {
+        key: 'lateNight',
+        start: 21,
+        end: 23,
+        messages: [
+            'Working late, {{name}}?',
+            'Night shift vibes, {{name}}.',
+            'Screens look brighter at night, {{name}}.',
+            'Time to wind down, {{name}}.'
+        ]
+    }
+];
+
+let currentGreetingState = {
+    segment: null,
+    template: null,
+    name: ''
+};
+
+let lastGreetingMinute = null;
+let clockIntervalId = null;
+
+function initializeGreeting() {
+    updateGreeting(true);
+}
+
+function startClock() {
+    updateClock();
+
+    if (clockIntervalId) {
+        clearInterval(clockIntervalId);
+    }
+
+    clockIntervalId = setInterval(updateClock, 1000);
+}
+
+function updateClock() {
+    const clockDisplay = document.getElementById('clock');
+    if (!clockDisplay) return;
+
+    const now = new Date();
+    clockDisplay.textContent = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+
+    if (lastGreetingMinute !== now.getMinutes()) {
+        lastGreetingMinute = now.getMinutes();
+        updateGreeting();
+    }
+}
+
+function updateGreeting(force = false) {
+    const greetingElement = document.getElementById('greeting');
+    if (!greetingElement) return;
+
+    const now = new Date();
+    const activeSegment = getGreetingSegment(now.getHours());
+    const settings = getSettings();
+    const name = (settings.userName || '').trim();
+
+    let templateToUse = currentGreetingState.template;
+
+    if (
+        force ||
+        !templateToUse ||
+        currentGreetingState.segment !== activeSegment.key ||
+        currentGreetingState.name !== name
+    ) {
+        templateToUse = pickGreetingTemplate(activeSegment.messages, currentGreetingState.template);
+    }
+
+    const message = formatGreeting(templateToUse, name);
+
+    if (greetingElement.textContent !== message) {
+        greetingElement.textContent = message;
+    }
+
+    currentGreetingState = {
+        segment: activeSegment.key,
+        template: templateToUse,
+        name
+    };
+}
+
+function getGreetingSegment(hour) {
+    return GREETING_SEGMENTS.find(segment => hour >= segment.start && hour <= segment.end)
+        || GREETING_SEGMENTS[0];
+}
+
+function pickGreetingTemplate(messages, previousTemplate) {
+    if (!messages || messages.length === 0) {
+        return 'Hello{{name}}';
+    }
+
+    if (messages.length === 1) {
+        return messages[0];
+    }
+
+    let template = messages[Math.floor(Math.random() * messages.length)];
+
+    if (previousTemplate && messages.length > 1 && template === previousTemplate) {
+        const alternatives = messages.filter(msg => msg !== previousTemplate);
+        if (alternatives.length > 0) {
+            template = alternatives[Math.floor(Math.random() * alternatives.length)];
+        }
+    }
+
+    return template;
+}
+
+function formatGreeting(template, name) {
+    if (!template) {
+        return name ? `Hello, ${name}.` : 'Hello.';
+    }
+
+    if (name) {
+        return template.replace(/{{name}}/g, name);
+    }
+
+    let result = template;
+    result = result.replace(/\s*,\s*{{name}}/g, '');
+    result = result.replace(/\s*{{name}}/g, '');
+    result = result.replace(/{{name}}/g, '');
+    result = result.replace(/\s{2,}/g, ' ');
+    result = result.replace(/\s+([!?.,])/g, '$1');
+    return result.trim();
 }
 
 function updateThemeUI() {

@@ -26,6 +26,10 @@
     </div>
 
     <div class="container">
+        <div class="intro-bar">
+            <div id="greeting" class="greeting-text"></div>
+            <div id="clock" class="clock-display"></div>
+        </div>
         <div class="search-container">
             <form id="searchForm" class="search-form">
                 <div class="search-input-wrapper">
@@ -46,7 +50,7 @@
         <!-- Quick Links Section -->
         <div class="quick-links-section">
             <div class="quick-links-header">
-                <h2>Quick Links</h2>
+                <!-- <h2>Quick Links</h2> -->
             </div>
             <div id="quickLinksContainer" class="quick-links-container">
                 <!-- Links will be dynamically added here -->
@@ -178,6 +182,10 @@
                 <button class="close-btn modal-close" data-modal="settingsModal">&times;</button>
             </div>
             <div class="settings-content">
+                <div class="setting-group">
+                    <label for="userName">Display name</label>
+                    <input type="text" id="userName" class="setting-input" placeholder="Add your name" maxlength="40" />
+                </div>
                 <div class="setting-group">
                     <label for="searchEngine">Search Engine</label>
                     <select id="searchEngine" class="setting-select">
