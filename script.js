@@ -106,9 +106,9 @@ function setupEventListeners() {
     const searchForm = document.getElementById('searchForm');
     searchForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        
+
         const searchInput = document.getElementById('searchInput');
-        
+
         // If shortcut menu is visible, apply selected filter
         if (shortcutMenuVisible && shortcutMenuSelectedIndex >= 0) {
             const selectedFilter = SEARCH_FILTERS[shortcutMenuSelectedIndex];
@@ -117,9 +117,20 @@ function setupEventListeners() {
             closeShortcutMenu();
             return;
         }
-        
+
         const query = searchInput.value.trim();
         if (query) {
+            // Check if input is a valid URL
+            if (isValidUrl(query)) {
+                let url = query;
+                // If missing protocol, add https://
+                if (!/^https?:\/\//i.test(url)) {
+                    url = 'https://' + url;
+                }
+                window.location.href = url;
+                return;
+            }
+
             const searchEngine = getSettings().searchEngine || 'google';
             const searchUrl = getSearchUrl(searchEngine, query, getActiveSearchFilter());
 
@@ -131,6 +142,24 @@ function setupEventListeners() {
             window.location.href = searchUrl;
         }
     });
+// Helper to check if a string is a valid URL or domain
+function isValidUrl(str) {
+    // Accepts full URLs and domain names (e.g., example.com)
+    try {
+        // Try to construct a URL object; if it fails, it's not a valid URL
+        new URL(str);
+        return true;
+    } catch (e) {
+        // If no protocol, try adding https:// and check again
+        try {
+            new URL('https://' + str);
+            // Also check for at least one dot and no spaces
+            return /\./.test(str) && !/\s/.test(str);
+        } catch (e2) {
+            return false;
+        }
+    }
+}
 
     // Search input for "/" shortcut menu
     const searchInput = document.getElementById('searchInput');
