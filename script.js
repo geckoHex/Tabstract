@@ -40,7 +40,8 @@ const DEFAULT_SETTINGS = {
     searchEngine: 'google',
     focusSearchOnLoad: true,
     openLinksNewTab: false,
-    userName: ''
+    userName: '',
+    showSearchHint: true
 };
 
 const SEARCH_FILTERS = [
@@ -281,6 +282,7 @@ function isValidUrl(str) {
     // Settings
     const focusSearchCheckbox = document.getElementById('focusSearchOnLoad');
     const openLinksCheckbox = document.getElementById('openLinksNewTab');
+    const showSearchHintCheckbox = document.getElementById('showSearchHint');
     const userNameInput = document.getElementById('userName');
     let nameUpdateTimeout = null;
 
@@ -311,6 +313,12 @@ function isValidUrl(str) {
     openLinksCheckbox.addEventListener('change', (e) => {
         updateSetting('openLinksNewTab', e.target.checked);
         showToast(e.target.checked ? 'Links open in new tab' : 'Links open in same tab');
+    });
+
+    showSearchHintCheckbox.addEventListener('change', (e) => {
+        updateSetting('showSearchHint', e.target.checked);
+        updateSearchHintVisibility(e.target.checked);
+        showToast(e.target.checked ? 'Search hint shown' : 'Search hint hidden');
     });
     
     // Keyboard shortcuts
@@ -346,6 +354,19 @@ function handleSearchInputChange(e) {
 }
 
 function handleSearchInputKeydown(e) {
+    // Handle Command+Enter for ChatGPT search
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        const input = e.target;
+        const query = input.value.trim();
+        
+        if (query) {
+            const chatGptUrl = `https://chat.openai.com/?q=${encodeURIComponent(query)}`;
+            window.location.href = chatGptUrl;
+        }
+        return;
+    }
+    
     if (!shortcutMenuVisible) return;
     
     const input = e.target;
@@ -788,10 +809,18 @@ function updateSetting(key, value) {
     saveSettings(settings);
 }
 
+function updateSearchHintVisibility(show) {
+    const searchHint = document.querySelector('.search-hint');
+    if (searchHint) {
+        searchHint.style.display = show ? 'block' : 'none';
+    }
+}
+
 function loadSettings() {
     const settings = getSettings();
     const focusSearchCheckbox = document.getElementById('focusSearchOnLoad');
     const openLinksCheckbox = document.getElementById('openLinksNewTab');
+    const showSearchHintCheckbox = document.getElementById('showSearchHint');
     const userNameInput = document.getElementById('userName');
 
     if (focusSearchCheckbox) {
@@ -800,6 +829,11 @@ function loadSettings() {
 
     if (openLinksCheckbox) {
         openLinksCheckbox.checked = settings.openLinksNewTab === true;
+    }
+
+    if (showSearchHintCheckbox) {
+        showSearchHintCheckbox.checked = settings.showSearchHint !== false;
+        updateSearchHintVisibility(settings.showSearchHint !== false);
     }
 
     if (userNameInput) {

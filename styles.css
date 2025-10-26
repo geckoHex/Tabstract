@@ -236,6 +236,19 @@ a {
     width: 100%;
 }
 
+.search-hint {
+    font-size: 11px;
+    color: var(--text-muted);
+    position: absolute;
+    right: 52px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.7;
+    user-select: none;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
 .search-input-wrapper {
     display: flex;
     align-items: center;
