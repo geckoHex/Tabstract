@@ -183,7 +183,32 @@ function setupEventListeners() {
 
     // Listen for URL input changes to fetch favicon
     const linkUrlInput = document.getElementById('linkUrl');
+    let faviconUpdateTimeout = null;
+    
+    // Debounced input handler - fetch favicon after user stops typing
+    linkUrlInput.addEventListener('input', () => {
+        clearTimeout(faviconUpdateTimeout);
+        const url = linkUrlInput.value.trim();
+        if (url) {
+            faviconUpdateTimeout = setTimeout(async () => {
+                await updateFaviconInPicker(url);
+            }, 500); // Wait 500ms after user stops typing
+        }
+    });
+    
+    // Handle paste events - fetch favicon immediately
+    linkUrlInput.addEventListener('paste', async (e) => {
+        clearTimeout(faviconUpdateTimeout);
+        // Wait a tiny bit for the paste to complete
+        setTimeout(async () => {
+            const url = linkUrlInput.value.trim();
+            if (url) await updateFaviconInPicker(url);
+        }, 50);
+    });
+    
+    // Keep blur event as fallback
     linkUrlInput.addEventListener('blur', async () => {
+        clearTimeout(faviconUpdateTimeout);
         const url = linkUrlInput.value.trim();
         if (url) {
             await updateFaviconInPicker(url);
