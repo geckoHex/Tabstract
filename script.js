@@ -347,6 +347,13 @@ function handleSearchInputChange(e) {
     const input = e.target;
     const value = input.value;
     
+    // Hide search hint when user starts typing or when a filter is active
+    const searchHint = document.querySelector('.search-hint');
+    if (searchHint) {
+        const shouldHide = value.length > 0 || activeSearchFilterId !== null;
+        searchHint.style.display = shouldHide ? 'none' : 'block';
+    }
+    
     if (value === '/') {
         openShortcutMenu();
     } else if (shortcutMenuVisible) {
@@ -688,6 +695,10 @@ function setActiveSearchFilter(filterId, options = {}) {
             showToast('Filter cleared');
         }
     }
+
+    // Update search hint visibility based on filter state
+    const settings = getSettings();
+    updateSearchHintVisibility(settings.showSearchHint !== false);
 }
 
 function updateSearchFilterUI() {
@@ -876,8 +887,11 @@ function updateSetting(key, value) {
 
 function updateSearchHintVisibility(show) {
     const searchHint = document.querySelector('.search-hint');
-    if (searchHint) {
-        searchHint.style.display = show ? 'block' : 'none';
+    const searchInput = document.getElementById('searchInput');
+    if (searchHint && searchInput) {
+        // Only show hint if setting is enabled AND input is empty AND no filter is active
+        const shouldShow = show && searchInput.value.length === 0 && activeSearchFilterId === null;
+        searchHint.style.display = shouldShow ? 'block' : 'none';
     }
 }
 
