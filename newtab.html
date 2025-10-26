@@ -14,6 +14,9 @@
 <body>
     <!-- Top right island -->
     <div class="top-right-island">
+        <button id="savedLinksBtn" class="island-btn" title="Saved Links">
+            <img src="public/icons/clock-counter-clockwise.svg" alt="Saved Links" class="island-icon" />
+        </button>
         <button id="newLinkBtn" class="island-btn" title="Add New Link">
             <img src="public/icons/plus-square.svg" alt="Add Link" class="island-icon" />
         </button>
@@ -287,6 +290,37 @@
             <div class="modal-actions warning-actions">
                 <button id="warningBackBtn" class="btn btn-primary btn-large">Back</button>
                 <button id="warningSearchAnywayBtn" class="btn-text btn-large">Search Anyway</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Saved Links Modal -->
+    <div id="savedLinksModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Saved Links</h3>
+                <button class="close-btn modal-close" data-modal="savedLinksModal">&times;</button>
+            </div>
+            <div class="saved-links-content">
+                <div class="saved-links-input-section">
+                    <div class="form-group">
+                        <label for="savedLinkUrl">Paste a link to save for later</label>
+                        <div class="saved-link-input-wrapper">
+                            <input type="url" id="savedLinkUrl" placeholder="https://example.com" />
+                            <button type="button" id="saveLinkBtn" class="btn btn-primary">Save</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="saved-links-list-section">
+                    <div id="savedLinksList" class="saved-links-list">
+                        <!-- Saved links will be dynamically added here -->
+                    </div>
+                    <div id="savedLinksEmpty" class="saved-links-empty">
+                        <img src="public/icons/clock-counter-clockwise.svg" alt="No saved links" class="empty-icon" />
+                        <p>No saved links yet</p>
+                        <p class="empty-subtitle">Paste links above to save them for later</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

@@ -103,6 +103,23 @@ let draggedQuickLinkId = null; // Tracks the quick link currently being dragged
 let draggedQuickLinkElement = null; // The actual element being dragged
 let quickLinkContainerListenersAttached = false;
 
+// Helper to check if a string is a valid URL or domain
+function isValidUrl(str) {
+    try {
+        // Accept full URLs first
+        new URL(str);
+        return true;
+    } catch (e) {
+        try {
+            // Fallback: assume https if protocol missing and validate basic shape
+            new URL('https://' + str);
+            return /\./.test(str) && !/\s/.test(str);
+        } catch (e2) {
+            return false;
+        }
+    }
+}
+
 // Set up event listeners
 function setupEventListeners() {
     // Search form
@@ -144,24 +161,6 @@ function setupEventListeners() {
             performSearch(query);
         }
     });
-// Helper to check if a string is a valid URL or domain
-function isValidUrl(str) {
-    // Accepts full URLs and domain names (e.g., example.com)
-    try {
-        // Try to construct a URL object; if it fails, it's not a valid URL
-        new URL(str);
-        return true;
-    } catch (e) {
-        // If no protocol, try adding https:// and check again
-        try {
-            new URL('https://' + str);
-            // Also check for at least one dot and no spaces
-            return /\./.test(str) && !/\s/.test(str);
-        } catch (e2) {
-            return false;
-        }
-    }
-}
 
     // Search input for "/" shortcut menu
     const searchInput = document.getElementById('searchInput');
@@ -170,10 +169,12 @@ function isValidUrl(str) {
 
     // Island buttons
     const newLinkBtn = document.getElementById('newLinkBtn');
+    const savedLinksBtn = document.getElementById('savedLinksBtn');
     const themeBtn = document.getElementById('themeBtn');
     const settingsBtn = document.getElementById('settingsBtn');
 
     newLinkBtn.addEventListener('click', () => openModal('linkModal'));
+    savedLinksBtn.addEventListener('click', () => openModal('savedLinksModal'));
     themeBtn.addEventListener('click', () => openModal('themeModal'));
     settingsBtn.addEventListener('click', () => openModal('settingsModal'));
 
@@ -469,6 +470,32 @@ function isValidUrl(str) {
             closeModal('searchWarningModal');
             if (query) {
                 performSearch(query);
+            }
+        });
+    }
+    
+    // Saved Links functionality
+    const saveLinkBtn = document.getElementById('saveLinkBtn');
+    const savedLinkUrlInput = document.getElementById('savedLinkUrl');
+    
+    if (saveLinkBtn && savedLinkUrlInput) {
+        saveLinkBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const url = savedLinkUrlInput.value.trim();
+            if (url) {
+                saveLinkForLater(url);
+                savedLinkUrlInput.value = '';
+            }
+        });
+        
+        savedLinkUrlInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const url = savedLinkUrlInput.value.trim();
+                if (url) {
+                    saveLinkForLater(url);
+                    savedLinkUrlInput.value = '';
+                }
             }
         });
     }
@@ -2022,6 +2049,16 @@ function openModal(modalId) {
         
         document.getElementById('linkTitle').focus();
     }
+    
+    // Special handling for saved links modal
+    if (modalId === 'savedLinksModal') {
+        loadSavedLinks();
+        // Focus on input field
+        const savedLinkUrlInput = document.getElementById('savedLinkUrl');
+        if (savedLinkUrlInput) {
+            savedLinkUrlInput.focus();
+        }
+    }
 }
 
 // Close modal
@@ -2553,3 +2590,312 @@ function showToast(message, duration = 2000) {
         toast.classList.remove('show');
     }, duration);
 }
+
+// --- Saved Links for Later ---
+
+function getSavedLinks() {
+    const stored = localStorage.getItem('savedLinks');
+    return stored ? JSON.parse(stored) : [];
+}
+
+function setSavedLinks(links) {
+    localStorage.setItem('savedLinks', JSON.stringify(links));
+}
+
+function saveLinkForLater(url) {
+    // Validate URL
+    if (!isValidUrl(url)) {
+        // Try adding https:// if missing
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+            url = 'https://' + url;
+        }
+        
+        // Validate again
+        if (!isValidUrl(url)) {
+            showToast('Please enter a valid URL');
+            return;
+        }
+    }
+    
+    const savedLinks = getSavedLinks();
+    
+    // Check if link already exists
+    if (savedLinks.some(link => link.url === url)) {
+        showToast('Link already saved');
+        return;
+    }
+    
+    // Create new saved link
+    const newLink = {
+        id: Date.now().toString(),
+        url: url,
+        title: extractDomain(url),
+        savedAt: new Date().toISOString()
+    };
+    
+    // Fetch favicon and title
+    fetchLinkMetadata(newLink);
+    
+    // Add to beginning of array
+    savedLinks.unshift(newLink);
+    setSavedLinks(savedLinks);
+    
+    // Reload the list
+    loadSavedLinks();
+    
+    showToast('Link saved');
+}
+
+function extractDomain(url) {
+    try {
+        const urlObj = new URL(url);
+        return urlObj.hostname.replace('www.', '');
+    } catch {
+        return url;
+    }
+}
+
+function fetchLinkMetadata(link) {
+    // Try to fetch the page title and favicon
+    fetch(link.url)
+        .then(response => response.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const title = doc.querySelector('title')?.textContent || extractDomain(link.url);
+            
+            // Update the link with the fetched title
+            const savedLinks = getSavedLinks();
+            const linkToUpdate = savedLinks.find(l => l.id === link.id);
+            if (linkToUpdate) {
+                linkToUpdate.title = title;
+                setSavedLinks(savedLinks);
+                loadSavedLinks();
+            }
+        })
+        .catch(() => {
+            // If fetch fails, just use the domain name
+        });
+}
+
+function loadSavedLinks() {
+    const savedLinks = getSavedLinks();
+    const savedLinksList = document.getElementById('savedLinksList');
+    const savedLinksEmpty = document.getElementById('savedLinksEmpty');
+    
+    if (!savedLinksList || !savedLinksEmpty) return;
+    
+    // Clear existing list
+    savedLinksList.innerHTML = '';
+    
+    if (savedLinks.length === 0) {
+        savedLinksEmpty.classList.add('show');
+        savedLinksList.style.display = 'none';
+    } else {
+        savedLinksEmpty.classList.remove('show');
+        savedLinksList.style.display = 'flex';
+        
+        savedLinks.forEach(link => {
+            const linkItem = createSavedLinkItem(link);
+            savedLinksList.appendChild(linkItem);
+        });
+    }
+}
+
+function createSavedLinkItem(link) {
+    const item = document.createElement('div');
+    item.className = 'saved-link-item';
+    
+    // Get favicon URL
+    const faviconUrl = getFaviconUrl(link.url);
+    const displayTitle = escapeHtml(getSavedLinkDisplayTitle(link));
+    const displayUrl = escapeHtml(link.url);
+    const timeAgoText = formatSavedLinkTimeAgo(link.savedAt);
+    
+    item.innerHTML = `
+        <img src="${faviconUrl}" alt="" class="saved-link-favicon" onerror="this.src='public/icons/globe-hemisphere-west.svg'" />
+        <div class="saved-link-info">
+            <div class="saved-link-title">${displayTitle}</div>
+            <div class="saved-link-url">${displayUrl}</div>
+            <div class="saved-link-meta">${escapeHtml(timeAgoText)}</div>
+        </div>
+        <div class="saved-link-actions">
+            <button class="saved-link-action-btn delete-btn" title="Delete">
+                <img src="public/icons/trash.svg" alt="Delete" />
+            </button>
+        </div>
+    `;
+    
+    // Click on item to open
+    item.addEventListener('click', (e) => {
+        if (!e.target.closest('.saved-link-actions')) {
+            openSavedLink(link);
+        }
+    });
+    
+    // Delete button
+    const deleteBtn = item.querySelector('.delete-btn');
+    deleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteSavedLink(link.id);
+    });
+    
+    return item;
+}
+
+function getFaviconUrl(url) {
+    try {
+        const urlObj = new URL(url);
+        return `https://www.google.com/s2/favicons?domain=${urlObj.hostname}&sz=32`;
+    } catch {
+        return 'public/icons/globe-hemisphere-west.svg';
+    }
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function getSavedLinkDisplayTitle(link) {
+    const rawTitle = sanitizeSavedLinkTitle(link?.title);
+    const fallbackName = deriveSiteNameFromUrl(link?.url || '');
+
+    if (rawTitle && !isDomainLikeTitle(rawTitle, link?.url || '', fallbackName)) {
+        return rawTitle;
+    }
+
+    return fallbackName;
+}
+
+function formatSavedLinkTimeAgo(savedAt) {
+    if (!savedAt) {
+        return 'Saved just now';
+    }
+
+    const savedDate = new Date(savedAt);
+    if (Number.isNaN(savedDate.getTime())) {
+        return 'Saved just now';
+    }
+
+    const diffInSeconds = Math.max(0, Math.floor((Date.now() - savedDate.getTime()) / 1000));
+    const intervals = [
+        { label: 'week', seconds: 604800 },
+        { label: 'day', seconds: 86400 },
+        { label: 'hour', seconds: 3600 },
+        { label: 'minute', seconds: 60 },
+        { label: 'second', seconds: 1 }
+    ];
+
+    for (const { label, seconds } of intervals) {
+        const value = Math.floor(diffInSeconds / seconds);
+        if (value >= 1) {
+            const suffix = value === 1 ? label : `${label}s`;
+            return `Saved ${value} ${suffix} ago`;
+        }
+    }
+
+    return 'Saved just now';
+}
+
+function sanitizeSavedLinkTitle(title) {
+    return (title || '').replace(/\s+/g, ' ').trim();
+}
+
+function isDomainLikeTitle(title, url, fallbackName) {
+    const normalizedTitle = normalizeComparableValue(title);
+    const normalizedDomain = normalizeComparableValue(extractDomain(url));
+    const normalizedFallback = normalizeComparableValue(fallbackName);
+    const normalizedUrl = normalizeComparableValue(url);
+
+    return normalizedTitle === normalizedDomain ||
+        (normalizedFallback && normalizedTitle === normalizedFallback) ||
+        (normalizedUrl && normalizedTitle === normalizedUrl);
+}
+
+function normalizeComparableValue(value) {
+    return (value || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+}
+
+function deriveSiteNameFromUrl(url) {
+    try {
+        const { hostname } = new URL(url);
+        if (!hostname) {
+            return url || 'Unknown site';
+        }
+
+        const trimmed = hostname.replace(/^www\./i, '');
+        if (!trimmed) {
+            return 'Unknown site';
+        }
+
+        const segments = trimmed.split('.').filter(Boolean);
+        if (segments.length === 0) {
+            return 'Unknown site';
+        }
+
+        const core = extractPrimaryDomainSegment(segments);
+        const words = core.split(/[-_]+/).filter(Boolean);
+
+        const readable = words
+            .map(segment => segment.toUpperCase() === segment
+                ? segment
+                : segment.charAt(0).toUpperCase() + segment.slice(1))
+            .join(' ');
+
+        return readable || core || trimmed;
+    } catch (error) {
+        console.warn('Unable to derive site name from URL', url, error);
+        return url || 'Unknown site';
+    }
+}
+
+const GENERIC_SECOND_LEVEL_DOMAINS = new Set([
+    'ac', 'co', 'com', 'edu', 'gov', 'ltd', 'me', 'net', 'org', 'plc'
+]);
+
+function extractPrimaryDomainSegment(segments) {
+    if (segments.length === 1) {
+        return segments[0];
+    }
+
+    const last = segments[segments.length - 1];
+    const secondLast = segments[segments.length - 2];
+
+    if (GENERIC_SECOND_LEVEL_DOMAINS.has(secondLast.toLowerCase())) {
+        return segments[segments.length - 3] || secondLast;
+    }
+
+    return secondLast;
+}
+
+function openSavedLink(link) {
+    // Open the link
+    const settings = getSettings();
+    if (settings.openLinksNewTab) {
+        window.open(link.url, '_blank');
+    } else {
+        window.location.href = link.url;
+    }
+    
+    // Note: We don't remove the link automatically anymore
+    // Users can manually delete links they no longer need
+}
+
+function deleteSavedLink(id, silent = false) {
+    const savedLinks = getSavedLinks();
+    const filtered = savedLinks.filter(link => link.id !== id);
+    setSavedLinks(filtered);
+    loadSavedLinks();
+    
+    if (!silent) {
+        showToast('Link deleted');
+    }
+}
+
+function getSettings() {
+    const stored = localStorage.getItem('settings');
+    return stored ? JSON.parse(stored) : DEFAULT_SETTINGS;
+}
+
