@@ -193,18 +193,19 @@ a {
 
 .greeting-text {
     font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    font-size: 28px;
+    font-size: clamp(32px, 4.5vw, 40px);
     font-weight: 700;
-    color: var(--text-primary);
+    color: var(--accent-hover);
     flex: 1;
     line-height: 1.25;
+    text-shadow: 0 10px 24px var(--accent-light);
 }
 
 .clock-display {
     font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    font-size: 18px;
-    font-weight: 400;
-    color: var(--text-secondary);
+    font-size: clamp(20px, 3vw, 26px);
+    font-weight: 500;
+    color: var(--accent-color);
     white-space: nowrap;
     padding-top: 6px;
     letter-spacing: 0.02em;
