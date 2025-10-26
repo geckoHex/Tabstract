@@ -26,6 +26,13 @@ const CUSTOM_ICONS = [
     'star.svg'
 ];
 
+const DEFAULT_THEME = {
+    mode: 'light',
+    accentColor: '#007bff',
+    background: 'none',
+    backgroundImageOpacity: 100
+};
+
 let selectedIcon = null; // Will store either favicon URL or custom icon path
 let fetchedFavicon = null; // Stores the fetched favicon URL
 
@@ -120,6 +127,16 @@ function setupEventListeners() {
         });
     });
 
+    const backgroundOpacitySlider = document.getElementById('backgroundImageOpacity');
+    if (backgroundOpacitySlider) {
+        backgroundOpacitySlider.addEventListener('input', (e) => {
+            updateBackgroundImageOpacity(Number(e.target.value));
+        });
+        backgroundOpacitySlider.addEventListener('change', (e) => {
+            showToast(`Background clarity ${e.target.value}%`);
+        });
+    }
+
     // Settings
     const searchEngineSelect = document.getElementById('searchEngine');
     const focusSearchCheckbox = document.getElementById('focusSearchOnLoad');
@@ -201,11 +218,17 @@ function getSearchUrl(engine, query) {
 
 function getTheme() {
     const stored = localStorage.getItem('theme');
-    return stored ? JSON.parse(stored) : {
-        mode: 'light',
-        accentColor: '#007bff',
-        background: 'none'
-    };
+    if (!stored) {
+        return { ...DEFAULT_THEME };
+    }
+
+    try {
+        const parsed = JSON.parse(stored);
+        return { ...DEFAULT_THEME, ...parsed };
+    } catch (error) {
+        console.error('Error parsing theme settings:', error);
+        return { ...DEFAULT_THEME };
+    }
 }
 
 function saveTheme(theme) {
@@ -228,6 +251,20 @@ function setAccentColor(color) {
     applyTheme();
     updateThemeUI();
     showToast('Accent color updated');
+}
+
+function updateBackgroundImageOpacity(value) {
+    const clamped = Math.max(0, Math.min(100, Math.round(value)));
+    const theme = getTheme();
+    if (theme.backgroundImageOpacity === clamped) {
+        updateThemeUI();
+        return;
+    }
+
+    theme.backgroundImageOpacity = clamped;
+    saveTheme(theme);
+    applyTheme();
+    updateThemeUI();
 }
 
 function setBackground(background) {
@@ -279,22 +316,55 @@ function applyTheme() {
     
     // Apply background
     const body = document.body;
-    if (theme.background === 'none') {
-        body.style.backgroundImage = '';
-        body.style.backgroundColor = '';
-    } else if (theme.background === 'white') {
-        body.style.backgroundImage = '';
-        body.style.backgroundColor = '#ffffff';
-    } else if (theme.background === 'black') {
-        body.style.backgroundImage = '';
-        body.style.backgroundColor = '#000000';
-    } else {
-        body.style.backgroundImage = `url('${theme.background}')`;
+    const overlayStrength = 1 - ((theme.backgroundImageOpacity ?? DEFAULT_THEME.backgroundImageOpacity) / 100);
+    const hasImageBackground = theme.background && !['none', 'white', 'black'].includes(theme.background);
+
+    body.style.backgroundImage = '';
+    body.style.backgroundColor = '';
+    body.style.backgroundSize = '';
+    body.style.backgroundPosition = '';
+    body.style.backgroundRepeat = '';
+    body.style.backgroundAttachment = '';
+
+    if (!theme.background || theme.background === 'none') {
+        // fall back to stylesheet defaults
+        return;
+    }
+
+    if (theme.background === 'white' || theme.background === 'black') {
+        body.style.backgroundColor = theme.background === 'white' ? '#ffffff' : '#000000';
+        return;
+    }
+
+    if (hasImageBackground) {
+        const layers = [];
+
+        if (overlayStrength > 0) {
+            const whiteAlpha = Math.min(1, overlayStrength * 0.6);
+            const blackAlpha = Math.min(1, overlayStrength * 0.25);
+
+            if (whiteAlpha > 0.001) {
+                const alpha = whiteAlpha.toFixed(3);
+                layers.push(`linear-gradient(rgba(255, 255, 255, ${alpha}), rgba(255, 255, 255, ${alpha}))`);
+            }
+
+            if (blackAlpha > 0.001) {
+                const alpha = blackAlpha.toFixed(3);
+                layers.push(`linear-gradient(rgba(0, 0, 0, ${alpha}), rgba(0, 0, 0, ${alpha}))`);
+            }
+        }
+
+        layers.push(`url('${theme.background}')`);
+
+        body.style.backgroundImage = layers.join(', ');
         body.style.backgroundSize = 'cover';
         body.style.backgroundPosition = 'center';
         body.style.backgroundRepeat = 'no-repeat';
         body.style.backgroundAttachment = 'fixed';
+        return;
     }
+
+    body.style.backgroundColor = theme.background;
 }
 
 // Helper function to adjust color brightness
@@ -360,6 +430,25 @@ function updateThemeUI() {
             btn.classList.remove('active');
         }
     });
+
+    const backgroundOpacitySlider = document.getElementById('backgroundImageOpacity');
+    const backgroundOpacityValue = document.getElementById('backgroundImageOpacityValue');
+    const backgroundOpacityLabel = document.querySelector('.theme-slider .slider-label');
+    const sliderValue = theme.backgroundImageOpacity ?? DEFAULT_THEME.backgroundImageOpacity;
+    const hasImageBackground = theme.background && !['none', 'white', 'black'].includes(theme.background);
+
+    if (backgroundOpacitySlider) {
+        backgroundOpacitySlider.value = String(sliderValue);
+        backgroundOpacitySlider.disabled = !hasImageBackground;
+    }
+
+    if (backgroundOpacityValue) {
+        backgroundOpacityValue.textContent = hasImageBackground ? `${sliderValue}%` : 'N/A';
+    }
+
+    if (backgroundOpacityLabel) {
+        backgroundOpacityLabel.classList.toggle('disabled', !hasImageBackground);
+    }
 }
 
 
