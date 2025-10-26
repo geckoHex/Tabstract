@@ -580,12 +580,23 @@ a {
     border-radius: 12px;
     text-decoration: none;
     color: var(--text-primary);
-    transition: background-color 0.2s ease, transform 0.1s ease;
+    transition: transform 0.2s ease, opacity 0.2s ease;
     position: relative;
-    cursor: pointer;
+    cursor: grab;
+    -webkit-user-drag: element;
 }
+    .quick-link.dragging {
+         opacity: 0.5;
+         cursor: grabbing;
+         transform: scale(1.05);
+         z-index: 1000;
+    }
 
-.quick-link:hover {
+    .quick-link:not(.dragging) {
+         transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+    }
+
+.quick-link:hover:not(.dragging) {
     background: var(--accent-light);
     box-shadow: 0 4px 12px var(--shadow-md);
 }
