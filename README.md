@@ -4,6 +4,13 @@
 
 Tabstract is a highly customizable, beautiful, and feature-rich new tab page for Chromium based browsers (Google Chrome, Microsoft Edge, Arc, etc).
 
+## Screenshots
+
+![Home Page](readme/city.png)
+![Add Quicklink Menu](readme/add.png)
+![Themes Menu](readme/theme.png)
+![Settings Menu](readme/set.png)
+
 ## Features
 
 Tabstract has many features to explore.
