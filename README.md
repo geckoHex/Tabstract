@@ -135,3 +135,40 @@ When adding quicklinks, you might want to control how fast the URL's favicon loa
 
 Here you can type strings that, if are in the search term will show a warning before searching. This isn't a hard and fast "safe search" feature. I only put it here so I see a warning before searching Google for a sport team's scores so I don't inadvertently spoil it for myself. When the warning shows, you have the choice to cancel the search or search anyways.
 
+## Installation
+
+Getting started with Tabstract is easy! Since I haven't published this extension yet, you'll have to install it manually. These instructions are written specifically for Google Chrome on a Mac, but other chromium based browsers and operating systems should  work very similarly. To install, please follow these instructions:
+
+### 0. Find a place to save
+
+You should find a place to save the code where it won't be disturbed. Moving it from here will confuse Chrome. As such, I recommend creating a folder for extensions in a safe place such as:
+
+Your home folder: `~/Extensions` or your documents folder: `~/Documents`. Once you pick a place, open the folder in a new terminal window.
+
+### 1. Clone the repo
+
+```bash
+git clone https://github.com/geckoHex/Tabstract.git
+```
+
+### 2. Enable developer mode
+
+Open your Chromium based browser, and navigate to `chrome://extensions/`. In the top right, click the toggle ON for "Developer Mode"
+
+### 3. Install the extension
+
+In the top left of the page, click "Load Unpacked". Then use the file manager window that's opened to find the extension folder. Click the folder, then click "Select".
+
+### 4. Setup the new tab page
+
+Open a new tab. You will se a popup telling you the new tab page was changed. Click "Keep It". At the bottom of the screen, you will see a bar that says "Tabstract" and a button that says "Customize Chrome". Right click on any empty part of the bottom bar, then click "Hide footer on new tab page".
+
+You're now fully up and running. I recommend opening the themes menu (Paintbrush Icon) and playing around there to get started.
+
+## Issues & Contributing
+
+If you find an issue, please open an issue. Also feel free to fork and edit the code how you want. You can even submit a PR if you're so inclined :)
+
+## Compatibility
+
+This extension has been verified to work on Chrome 141.0.7390.123. Other versions should work fine as well!
