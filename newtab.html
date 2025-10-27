@@ -242,6 +242,15 @@
                             </label>
                         </div>
                         <div class="setting-group">
+                            <label class="setting-toggle-label">
+                                <span>Check for updates</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="checkForUpdates" class="toggle-input" checked />
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </label>
+                        </div>
+                        <div class="setting-group">
                             <label for="faviconLoadMode">Favicon load mode</label>
                             <div class="custom-select-wrapper">
                                 <select id="faviconLoadMode" class="custom-select">
@@ -327,6 +336,27 @@
 
     <!-- Toast notification -->
     <div id="toast" class="toast"></div>
+
+    <div id="updateToast" class="update-toast" hidden>
+        <button type="button" id="updateToastButton" class="update-toast-button">
+            <img src="public/icons/package.svg" alt="" class="update-toast-icon" />
+            <span class="update-toast-text">Updates available</span>
+        </button>
+    </div>
+
+    <div id="updateInstructionsModal" class="modal">
+        <div class="modal-content update-modal-content">
+            <div class="modal-header">
+                <h3>Update Available</h3>
+                <button class="close-btn modal-close" data-modal="updateInstructionsModal">&times;</button>
+            </div>
+            <div class="update-modal-body">
+                <p>To update Tabstract, open the folder where you cloned the extension and run:</p>
+                <pre><code>git fetch</code></pre>
+                <p>After fetching, reload the extension from <code>chrome://extensions</code> so the new version is applied.</p>
+            </div>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>

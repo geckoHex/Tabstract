@@ -172,6 +172,18 @@ Open a new tab. You will se a popup telling you the new tab page was changed. Cl
 
 You're now fully up and running. I recommend opening the themes menu (Paintbrush Icon) and playing around there to get started.
 
+## Updating
+
+Tabstract checks GitHub for updates every few hours when the "Check for updates" toggle is enabled in Settings. If a newer version is detected, you'll see an update toast in the bottom-left corner of the new tab page—click it for a reminder of what to do next.
+
+To pull the latest files, open a terminal in the folder where you cloned Tabstract and run:
+
+```bash
+git fetch
+```
+
+After fetching, visit `chrome://extensions/` and reload the Tabstract entry so the new version is applied.
+
 ## Issues & Contributing
 
 If you find an issue, please open an issue. Also feel free to fork and edit the code how you want. You can even submit a PR if you're so inclined :)
