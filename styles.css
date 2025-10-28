@@ -1665,6 +1665,16 @@ a {
     height: 0;
 }
 
+.toggle-input:disabled + .toggle-slider {
+    background-color: var(--border-light);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.toggle-input:disabled + .toggle-slider:before {
+    background-color: var(--text-muted);
+}
+
 .toggle-slider {
     position: absolute;
     cursor: pointer;
@@ -1699,6 +1709,23 @@ a {
 
 .toggle-slider:hover {
     box-shadow: 0 0 0 2px var(--accent-light);
+}
+
+.toggle-switch-disabled {
+    pointer-events: none;
+}
+
+.toggle-switch-disabled .toggle-slider {
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+.setting-toggle-label.setting-toggle-disabled {
+    cursor: not-allowed;
+}
+
+.setting-toggle-label.setting-toggle-disabled span {
+    color: var(--text-muted);
 }
 
 .setting-checkbox {

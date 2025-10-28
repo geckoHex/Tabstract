@@ -8,7 +8,11 @@ document.addEventListener('DOMContentLoaded', () => {
     loadTheme();
     initializeGreeting();
     startClock();
-    initializeUpdateChecker();
+    if (UPDATE_CHECKER_ENABLED) {
+        initializeUpdateChecker();
+    } else {
+        disableUpdateCheckerUI();
+    }
 });
 
 // Available custom icons
@@ -43,10 +47,12 @@ const DEFAULT_SETTINGS = {
     openLinksNewTab: false,
     userName: '',
     showSearchHint: true,
-    checkForUpdates: true,
+    checkForUpdates: false,
     faviconLoadMode: 'delayed', // 'immediate', 'delayed', or 'manual'
     blockedTerms: [] // Array of blocked search terms
 };
+
+const UPDATE_CHECKER_ENABLED = false;
 
 const UPDATE_CHECK_INTERVAL_MS = 3 * 60 * 60 * 1000; // 3 hours
 const UPDATE_MANIFEST_URL = 'https://raw.githubusercontent.com/geckoHex/Tabstract/refs/heads/main/manifest.json';
@@ -421,12 +427,16 @@ function setupEventListeners() {
     });
 
     if (checkForUpdatesCheckbox) {
-        checkForUpdatesCheckbox.addEventListener('change', (e) => {
-            const enabled = e.target.checked;
-            updateSetting('checkForUpdates', enabled);
-            handleUpdateCheckToggleChange(enabled);
-            showToast(enabled ? 'Automatic update checks enabled' : 'Automatic update checks disabled');
-        });
+        if (UPDATE_CHECKER_ENABLED) {
+            checkForUpdatesCheckbox.addEventListener('change', (e) => {
+                const enabled = e.target.checked;
+                updateSetting('checkForUpdates', enabled);
+                handleUpdateCheckToggleChange(enabled);
+                showToast(enabled ? 'Automatic update checks enabled' : 'Automatic update checks disabled');
+            });
+        } else {
+            setUpdateToggleAvailability(checkForUpdatesCheckbox, false);
+        }
     }
 
     if (updateToastButton) {
@@ -1061,6 +1071,28 @@ function updateSetting(key, value) {
     saveSettings(settings);
 }
 
+function setUpdateToggleAvailability(checkbox, enabled) {
+    if (!checkbox) {
+        return;
+    }
+
+    const toggleSwitch = checkbox.closest('.toggle-switch');
+    const toggleLabel = checkbox.closest('.setting-toggle-label');
+
+    if (enabled) {
+        checkbox.disabled = false;
+        checkbox.setAttribute('aria-disabled', 'false');
+        toggleSwitch?.classList.remove('toggle-switch-disabled');
+        toggleLabel?.classList.remove('setting-toggle-disabled');
+    } else {
+        checkbox.checked = false;
+        checkbox.disabled = true;
+        checkbox.setAttribute('aria-disabled', 'true');
+        toggleSwitch?.classList.add('toggle-switch-disabled');
+        toggleLabel?.classList.add('setting-toggle-disabled');
+    }
+}
+
 function updateSearchHintVisibility(show) {
     const searchHint = document.querySelector('.search-hint');
     const searchInput = document.getElementById('searchInput');
@@ -1094,7 +1126,12 @@ function loadSettings() {
     }
 
     if (checkForUpdatesCheckbox) {
-        checkForUpdatesCheckbox.checked = settings.checkForUpdates !== false;
+        setUpdateToggleAvailability(checkForUpdatesCheckbox, UPDATE_CHECKER_ENABLED);
+        if (UPDATE_CHECKER_ENABLED) {
+            checkForUpdatesCheckbox.checked = settings.checkForUpdates !== false;
+        } else {
+            checkForUpdatesCheckbox.checked = false;
+        }
     }
 
     if (userNameInput) {
@@ -1110,6 +1147,23 @@ function loadSettings() {
 }
 
 // --- Update Checker ---
+
+function disableUpdateCheckerUI() {
+    const checkbox = document.getElementById('checkForUpdates');
+    setUpdateToggleAvailability(checkbox, false);
+
+    const settings = getSettings();
+    if (settings.checkForUpdates !== false) {
+        updateSetting('checkForUpdates', false);
+    }
+
+    hideUpdateAvailableToast();
+    updateUpdateCheckState({
+        availableVersion: undefined,
+        lastError: undefined,
+        lastCheckStatus: 'disabled'
+    });
+}
 
 let cachedExtensionVersion = null;
 
@@ -1166,6 +1220,11 @@ function updateUpdateCheckState(partial) {
 }
 
 async function initializeUpdateChecker() {
+    if (!UPDATE_CHECKER_ENABLED) {
+        hideUpdateAvailableToast();
+        return;
+    }
+
     const settings = getSettings();
     if (settings.checkForUpdates === false) {
         hideUpdateAvailableToast();
@@ -1177,6 +1236,10 @@ async function initializeUpdateChecker() {
 }
 
 function handleUpdateCheckToggleChange(enabled) {
+    if (!UPDATE_CHECKER_ENABLED) {
+        return;
+    }
+
     if (enabled) {
         maybeShowPersistedUpdateNotice();
         runUpdateCheck({ skipThrottle: true });
@@ -1186,6 +1249,10 @@ function handleUpdateCheckToggleChange(enabled) {
 }
 
 function maybeShowPersistedUpdateNotice() {
+    if (!UPDATE_CHECKER_ENABLED) {
+        return;
+    }
+
     const currentVersion = getCurrentExtensionVersion();
     if (!currentVersion) return;
 
@@ -1196,6 +1263,10 @@ function maybeShowPersistedUpdateNotice() {
 }
 
 async function runUpdateCheck({ skipThrottle = false } = {}) {
+    if (!UPDATE_CHECKER_ENABLED) {
+        return;
+    }
+
     const settings = getSettings();
     if (settings.checkForUpdates === false) {
         return;
