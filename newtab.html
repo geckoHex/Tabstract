@@ -4,7 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>New Tab</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles/base.css">
+    <link rel="stylesheet" href="styles/top-right-island.css">
+    <link rel="stylesheet" href="styles/search/search-container.css">
+    <link rel="stylesheet" href="styles/search/search-controls.css">
+    <link rel="stylesheet" href="styles/quick-links.css">
+    <link rel="stylesheet" href="styles/modals.css">
+    <link rel="stylesheet" href="styles/icon-picker.css">
+    <link rel="stylesheet" href="styles/theme.css">
+    <link rel="stylesheet" href="styles/settings-general.css">
+    <link rel="stylesheet" href="styles/settings-advanced.css">
+    <link rel="stylesheet" href="styles/toast.css">
+    <link rel="stylesheet" href="styles/search-warning.css">
+    <link rel="stylesheet" href="styles/saved-links.css">
     <!-- Favicon -->
     <link rel="icon" href="public/icons/tabs.svg" type="image/svg+xml">
     <link rel="shortcut icon" href="public/icons/tabs.svg">
@@ -373,6 +385,40 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script defer src="scripts/core/app-bootstrap.js"></script>
+    <script defer src="scripts/ui/toast.js"></script>
+    <script defer src="scripts/ui/modals.js"></script>
+    <script defer src="scripts/search/shortcut-menu.js"></script>
+    <script defer src="scripts/search/search-filters.js"></script>
+    <script defer src="scripts/search/type-anywhere.js"></script>
+    <script defer src="scripts/search/search-core.js"></script>
+    <script defer src="scripts/settings/settings.js"></script>
+    <script defer src="scripts/settings/config-export.js"></script>
+    <script defer src="scripts/settings/config-import.js"></script>
+    <script defer src="scripts/update/update-checker.js"></script>
+    <script defer src="scripts/theme/theme-core.js"></script>
+    <script defer src="scripts/theme/theme-ui.js"></script>
+    <script defer src="scripts/theme/greeting-data.js"></script>
+    <script defer src="scripts/theme/greeting.js"></script>
+    <script defer src="scripts/quick-links/quick-links-storage.js"></script>
+    <script defer src="scripts/quick-links/icon-picker.js"></script>
+    <script defer src="scripts/quick-links/quick-links-core.js"></script>
+    <script defer src="scripts/quick-links/quick-links-render.js"></script>
+    <script defer src="scripts/quick-links/quick-links-dnd.js"></script>
+    <script defer src="scripts/quick-links/quick-links-context.js"></script>
+    <script defer src="scripts/saved-links/saved-links-metadata.js"></script>
+    <script defer src="scripts/saved-links/saved-links-storage.js"></script>
+    <script defer src="scripts/saved-links/saved-links-ui.js"></script>
+    <script defer src="scripts/events/search-events.js"></script>
+    <script defer src="scripts/events/theme-events.js"></script>
+    <script defer src="scripts/events/settings-events.js"></script>
+    <script defer src="scripts/events/link-form-events.js"></script>
+    <script defer src="scripts/events/modal-events.js"></script>
+    <script defer src="scripts/events/favicon-events.js"></script>
+    <script defer src="scripts/events/blocked-terms-events.js"></script>
+    <script defer src="scripts/events/search-warning-events.js"></script>
+    <script defer src="scripts/events/saved-links-events.js"></script>
+    <script defer src="scripts/events/keyboard-events.js"></script>
+    <script defer src="scripts/events/setup-event-listeners.js"></script>
 </body>
 </html>

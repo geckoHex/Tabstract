@@ -1,0 +1,130 @@
+/* --- Search Warning Modal --- */
+
+.warning-modal {
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+}
+
+[data-theme="dark"] .warning-modal {
+    background: rgba(0, 0, 0, 0.85);
+}
+
+.warning-modal .modal-content {
+    max-width: 480px;
+    text-align: center;
+    padding: 0;
+    overflow: hidden;
+}
+
+.warning-modal-content {
+    background: var(--bg-primary);
+    border: none;
+}
+
+.warning-header {
+    background: var(--danger);
+    padding: 32px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
+.warning-icon {
+    width: 48px;
+    height: 48px;
+    filter: brightness(0) invert(1);
+}
+
+.warning-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: white;
+    margin: 0;
+}
+
+.warning-message {
+    font-size: 15px;
+    color: var(--text-secondary);
+    margin: 24px 24px 20px;
+    line-height: 1.5;
+}
+
+.warning-terms-container {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 16px;
+    margin: 0 24px 24px;
+    text-align: left;
+}
+
+.warning-terms-container strong {
+    display: block;
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+    font-weight: 500;
+}
+
+.warning-terms-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.warning-term-tag {
+    display: inline-block;
+    padding: 6px 12px;
+    background: var(--danger);
+    color: white;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.warning-actions {
+    display: flex;
+    gap: 12px;
+    padding: 0 24px 24px;
+}
+
+.btn-large {
+    padding: 14px 24px;
+    font-size: 15px;
+    font-weight: 600;
+    flex: 1;
+}
+
+.warning-actions .btn-primary {
+    background: white;
+    color: #333;
+    border: none;
+}
+
+.warning-actions .btn-primary:hover {
+    background: #f5f5f5;
+}
+
+[data-theme="dark"] .warning-actions .btn-primary {
+    background: white;
+    color: #1a1a1a;
+}
+
+[data-theme="dark"] .warning-actions .btn-primary:hover {
+    background: #e8e8e8;
+}
+
+.btn-text {
+    background: transparent;
+    color: var(--text-secondary);
+    border: none;
+    font-weight: 500;
+}
+
+.btn-text:hover {
+    background: transparent;
+    color: var(--text-primary);
+    text-decoration: underline;
+}
+

@@ -1,0 +1,180 @@
+/* --- Icon Picker --- */
+
+.icon-picker {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 8px;
+    padding: 8px;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    border: 1px solid var(--border-light);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Fewer columns on smaller screens */
+@media (max-width: 600px) {
+    .icon-picker {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+.icon-option {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    background: var(--bg-primary);
+    border: 2px solid var(--border-light);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.icon-option:hover {
+    border-color: var(--accent-color);
+    background: var(--accent-light);
+    transform: scale(1.05);
+}
+
+.icon-option.selected {
+    border-color: var(--accent-color);
+    background: var(--accent-lighter);
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
+}
+
+[data-theme="dark"] .icon-option.selected {
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.4);
+}
+
+.icon-option img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+[data-theme="dark"] .icon-option img {
+    filter: brightness(0) invert(1);
+}
+
+.favicon-slot {
+    position: relative;
+    background: var(--bg-secondary);
+}
+
+.favicon-slot:not(.has-favicon):not(.loading):not(.waiting) {
+    cursor: pointer;
+    opacity: 1;
+    background: var(--bg-primary);
+}
+
+.favicon-slot:not(.has-favicon):not(.loading):not(.waiting)::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    background-image: url('public/icons/cursor.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    animation: blink 2s ease-in-out infinite;
+}
+
+.favicon-slot:not(.has-favicon):not(.loading):not(.waiting) img {
+    display: none;
+}
+
+.favicon-slot:not(.has-favicon):not(.loading):not(.waiting):hover {
+    border-color: var(--accent-color);
+    background: var(--bg-primary);
+    transform: none;
+}
+
+.favicon-slot.has-favicon {
+    cursor: pointer;
+}
+
+/* Loading state for favicon slot */
+.favicon-slot.loading {
+    cursor: wait;
+    opacity: 1;
+    background: var(--bg-primary);
+    position: relative;
+}
+
+.favicon-slot.loading::after {
+    content: 'Loading...';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 10px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+    text-align: center;
+    white-space: nowrap;
+    padding-top: 24px;
+}
+
+.favicon-slot.loading img {
+    display: none;
+}
+
+.favicon-slot.loading::before {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 18px;
+    height: 18px;
+    margin-top: -12px;
+    border: 2px solid transparent;
+    border-top-color: var(--accent-color);
+    border-right-color: var(--accent-color);
+    border-radius: 50%;
+    animation: spin 1s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+
+/* Waiting state for favicon slot */
+.favicon-slot.waiting {
+    cursor: wait;
+    opacity: 1;
+    background: var(--bg-primary);
+    position: relative;
+}
+
+.favicon-slot.waiting::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    background-image: url('public/icons/cursor.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    animation: blink 2s ease-in-out infinite;
+}
+
+.favicon-slot.waiting img {
+    display: none;
+}
+
+/* Spinner animation with easing (Windows-style) */
+@keyframes spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Smooth blink animation */
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+}
+

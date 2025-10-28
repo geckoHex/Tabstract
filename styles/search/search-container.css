@@ -1,0 +1,175 @@
+/* --- Search Bar --- */
+
+.search-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.search-form {
+    width: 100%;
+}
+
+.search-hint {
+    font-size: 11px;
+    color: var(--text-muted);
+    position: absolute;
+    right: 52px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.7;
+    user-select: none;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+.search-input-wrapper {
+    display: flex;
+    align-items: center;
+    background: var(--bg-secondary);
+    border-radius: 24px;
+    padding: 6px 12px;
+    box-shadow: 0 3px 8px var(--shadow-sm);
+    transition: box-shadow 0.3s ease, background-color 0.3s ease;
+    position: relative;
+}
+
+.search-input-wrapper:focus-within {
+    background: var(--bg-tertiary);
+    box-shadow: 0 4px 12px var(--shadow-md);
+}
+
+.search-filter-toggle {
+    border: none;
+    background: none;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    margin-left: 8px;
+    height: 32px;
+    padding: 0 10px;
+    color: var(--text-secondary);
+}
+
+.search-filter-toggle:hover,
+.search-filter-toggle:focus-visible {
+    background: var(--accent-light);
+    color: var(--text-primary);
+}
+
+.search-filter-toggle.active {
+    background: var(--accent-light);
+    color: var(--accent-hover);
+}
+
+.search-filter-toggle-icon {
+    width: 18px;
+    height: 18px;
+    background-color: currentColor;
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+    mask: url('public/icons/sliders-horizontal.svg') center/contain no-repeat;
+    -webkit-mask: url('public/icons/sliders-horizontal.svg') center/contain no-repeat;
+    flex-shrink: 0;
+}
+
+.search-filter-toggle:hover .search-filter-toggle-icon,
+.search-filter-toggle:focus-visible .search-filter-toggle-icon,
+.search-filter-toggle.active .search-filter-toggle-icon {
+    opacity: 1;
+}
+
+.search-filter-toggle-label {
+    font-size: 12px;
+    line-height: 1.2;
+    color: #ffffff;
+    background: var(--accent-color);
+    border-radius: 999px;
+    padding: 4px 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.search-filter-toggle-label[hidden] {
+    display: none;
+}
+
+[data-theme="dark"] .search-filter-toggle {
+    color: var(--text-secondary);
+}
+
+.search-filter-toggle-icon[data-icon="sliders-horizontal"] {
+    mask: url('public/icons/sliders-horizontal.svg') center/contain no-repeat;
+    -webkit-mask: url('public/icons/sliders-horizontal.svg') center/contain no-repeat;
+}
+
+.search-filter-toggle-icon[data-icon="hourglass-medium"] {
+    mask: url('public/icons/hourglass-medium.svg') center/contain no-repeat;
+    -webkit-mask: url('public/icons/hourglass-medium.svg') center/contain no-repeat;
+}
+
+.search-filter-toggle-icon[data-icon="calendar-blank"] {
+    mask: url('public/icons/calendar-blank.svg') center/contain no-repeat;
+    -webkit-mask: url('public/icons/calendar-blank.svg') center/contain no-repeat;
+}
+
+.search-filter-toggle-icon[data-icon="image"] {
+    mask: url('public/icons/image.svg') center/contain no-repeat;
+    -webkit-mask: url('public/icons/image.svg') center/contain no-repeat;
+}
+
+.search-filter-toggle-icon[data-icon="high-definition"] {
+    mask: url('public/icons/high-definition.svg') center/contain no-repeat;
+    -webkit-mask: url('public/icons/high-definition.svg') center/contain no-repeat;
+}
+
+.search-filter-toggle-icon[data-icon="file-pdf"] {
+    mask: url('public/icons/file-pdf.svg') center/contain no-repeat;
+    -webkit-mask: url('public/icons/file-pdf.svg') center/contain no-repeat;
+}
+
+.search-filter-toggle-icon[data-icon="article-ny-times"] {
+    mask: url('public/icons/article-ny-times.svg') center/contain no-repeat;
+    -webkit-mask: url('public/icons/article-ny-times.svg') center/contain no-repeat;
+}
+
+.search-filter-menu {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 12px 24px var(--shadow-md);
+    padding: 8px;
+    min-width: 200px;
+    display: none;
+    z-index: 20;
+}
+
+.search-filter-menu.show {
+    display: block;
+}
+
+.search-filter-menu::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    right: 18px;
+    width: 12px;
+    height: 12px;
+    background: var(--bg-primary);
+    border-left: 1px solid var(--border-color);
+    border-top: 1px solid var(--border-color);
+    transform: rotate(45deg);
+}
+
+.search-filter-menu-item {
+    width: 100%;
+    border: none;
+    background: transparent;
