@@ -1452,6 +1452,47 @@ a {
     color: var(--text-secondary);
 }
 
+.config-actions-description {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    margin: 0;
+}
+
+.config-actions-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.config-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
+}
+
+.config-action-btn:hover {
+    background: var(--accent-light);
+    color: var(--text-primary);
+}
+
+.config-action-btn:active {
+    transform: scale(0.98);
+}
+
+.config-action-btn img {
+    width: 18px;
+    height: 18px;
+}
+
 /* Blocked Terms Section */
 .blocked-terms-section h4 {
     font-size: 16px;

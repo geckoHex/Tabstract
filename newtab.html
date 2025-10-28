@@ -265,6 +265,21 @@
                                 </span>
                             </div>
                         </div>
+                        <div class="setting-group config-actions">
+                            <label>Configuration</label>
+                            <p class="config-actions-description">Export or import your Tabstract setup.</p>
+                            <div class="config-actions-buttons">
+                                <button type="button" id="exportConfigBtn" class="config-action-btn">
+                                    <img src="public/icons/download-simple.svg" alt="" aria-hidden="true" />
+                                    <span>Export config</span>
+                                </button>
+                                <button type="button" id="importConfigBtn" class="config-action-btn">
+                                    <img src="public/icons/upload-simple.svg" alt="" aria-hidden="true" />
+                                    <span>Import config</span>
+                                </button>
+                            </div>
+                            <input type="file" id="configImportInput" accept="application/json" hidden />
+                        </div>
                     </div>
                 </div>
                 <div class="settings-right">
