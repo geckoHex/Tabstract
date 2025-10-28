@@ -2028,6 +2028,13 @@ a {
     gap: 2px;
 }
 
+.saved-link-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
 .saved-link-title {
     font-size: 14px;
     font-weight: 500;
@@ -2035,6 +2042,9 @@ a {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    flex: 1;
+    min-width: 0;
+    cursor: text;
 }
 
 .saved-link-url {
@@ -2047,10 +2057,13 @@ a {
 
 .saved-link-meta {
     font-size: 11px;
-    color: var(--text-tertiary);
+    color: var(--text-muted);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    margin-left: auto;
+    text-align: right;
+    flex-shrink: 0;
 }
 
 .saved-link-actions {
@@ -2062,6 +2075,22 @@ a {
 
 .saved-link-item:hover .saved-link-actions {
     opacity: 1;
+}
+
+.saved-link-title-input {
+    width: 100%;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 2px 6px;
+}
+
+.saved-link-title-input:focus {
+    outline: 1px solid var(--accent-color);
+    border-color: var(--accent-color);
 }
 
 .saved-link-action-btn {
@@ -2137,4 +2166,3 @@ a {
     color: var(--text-muted);
     margin-top: 4px;
 }
-
