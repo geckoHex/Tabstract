@@ -72,8 +72,8 @@
     background-color: currentColor;
     opacity: 0.8;
     transition: opacity 0.2s ease;
-    mask: url('public/icons/sliders-horizontal.svg') center/contain no-repeat;
-    -webkit-mask: url('public/icons/sliders-horizontal.svg') center/contain no-repeat;
+    mask: url('../../public/icons/sliders-horizontal.svg') center/contain no-repeat;
+    -webkit-mask: url('../../public/icons/sliders-horizontal.svg') center/contain no-repeat;
     flex-shrink: 0;
 }
 
@@ -104,38 +104,38 @@
 }
 
 .search-filter-toggle-icon[data-icon="sliders-horizontal"] {
-    mask: url('public/icons/sliders-horizontal.svg') center/contain no-repeat;
-    -webkit-mask: url('public/icons/sliders-horizontal.svg') center/contain no-repeat;
+    mask: url('../../public/icons/sliders-horizontal.svg') center/contain no-repeat;
+    -webkit-mask: url('../../public/icons/sliders-horizontal.svg') center/contain no-repeat;
 }
 
 .search-filter-toggle-icon[data-icon="hourglass-medium"] {
-    mask: url('public/icons/hourglass-medium.svg') center/contain no-repeat;
-    -webkit-mask: url('public/icons/hourglass-medium.svg') center/contain no-repeat;
+    mask: url('../../public/icons/hourglass-medium.svg') center/contain no-repeat;
+    -webkit-mask: url('../../public/icons/hourglass-medium.svg') center/contain no-repeat;
 }
 
 .search-filter-toggle-icon[data-icon="calendar-blank"] {
-    mask: url('public/icons/calendar-blank.svg') center/contain no-repeat;
-    -webkit-mask: url('public/icons/calendar-blank.svg') center/contain no-repeat;
+    mask: url('../../public/icons/calendar-blank.svg') center/contain no-repeat;
+    -webkit-mask: url('../../public/icons/calendar-blank.svg') center/contain no-repeat;
 }
 
 .search-filter-toggle-icon[data-icon="image"] {
-    mask: url('public/icons/image.svg') center/contain no-repeat;
-    -webkit-mask: url('public/icons/image.svg') center/contain no-repeat;
+    mask: url('../../public/icons/image.svg') center/contain no-repeat;
+    -webkit-mask: url('../../public/icons/image.svg') center/contain no-repeat;
 }
 
 .search-filter-toggle-icon[data-icon="high-definition"] {
-    mask: url('public/icons/high-definition.svg') center/contain no-repeat;
-    -webkit-mask: url('public/icons/high-definition.svg') center/contain no-repeat;
+    mask: url('../../public/icons/high-definition.svg') center/contain no-repeat;
+    -webkit-mask: url('../../public/icons/high-definition.svg') center/contain no-repeat;
 }
 
 .search-filter-toggle-icon[data-icon="file-pdf"] {
-    mask: url('public/icons/file-pdf.svg') center/contain no-repeat;
-    -webkit-mask: url('public/icons/file-pdf.svg') center/contain no-repeat;
+    mask: url('../../public/icons/file-pdf.svg') center/contain no-repeat;
+    -webkit-mask: url('../../public/icons/file-pdf.svg') center/contain no-repeat;
 }
 
 .search-filter-toggle-icon[data-icon="article-ny-times"] {
-    mask: url('public/icons/article-ny-times.svg') center/contain no-repeat;
-    -webkit-mask: url('public/icons/article-ny-times.svg') center/contain no-repeat;
+    mask: url('../../public/icons/article-ny-times.svg') center/contain no-repeat;
+    -webkit-mask: url('../../public/icons/article-ny-times.svg') center/contain no-repeat;
 }
 
 .search-filter-menu {
@@ -168,8 +168,3 @@
     border-top: 1px solid var(--border-color);
     transform: rotate(45deg);
 }
-
-.search-filter-menu-item {
-    width: 100%;
-    border: none;
-    background: transparent;
