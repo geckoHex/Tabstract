@@ -9,4 +9,13 @@ function saveQuickLinks(links) {
     localStorage.setItem('quickLinks', JSON.stringify(links));
 }
 
+// Delete a quick link by id
+function deleteQuickLink(id) {
+    const links = getQuickLinks();
+    const filtered = links.filter((link) => link.id !== id);
+    saveQuickLinks(filtered);
+    loadQuickLinks();
+    showToast('Link deleted');
+}
+
 // Load and display quick links
