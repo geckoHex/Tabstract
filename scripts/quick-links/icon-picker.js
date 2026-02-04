@@ -110,37 +110,6 @@ function resetFaviconSlot() {
     }
 }
 
-// Check URL and show suggestion if it has a path
-function checkAndShowUrlSuggestion(url) {
-    const urlSuggestion = document.getElementById('urlSuggestion');
-    const urlSuggestionBtn = document.getElementById('urlSuggestionBtn');
-    
-    if (!urlSuggestion || !urlSuggestionBtn) return;
-    
-    try {
-        // Normalize URL
-        let normalizedUrl = url;
-        if (!url.startsWith('http://') && !url.startsWith('https://')) {
-            normalizedUrl = 'https://' + url;
-        }
-        
-        const urlObj = new URL(normalizedUrl);
-        const hasPath = urlObj.pathname !== '/' || urlObj.search || urlObj.hash;
-        
-        if (hasPath) {
-            // Extract base URL
-            const baseUrl = urlObj.hostname;
-            urlSuggestionBtn.textContent = baseUrl;
-            urlSuggestion.style.display = 'flex';
-        } else {
-            urlSuggestion.style.display = 'none';
-        }
-    } catch (error) {
-        // Invalid URL, hide suggestion
-        urlSuggestion.style.display = 'none';
-    }
-}
-
 // Select an icon
 function selectIcon(element, iconPath) {
     // Remove selection from all options

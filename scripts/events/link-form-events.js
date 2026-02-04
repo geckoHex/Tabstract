@@ -2,8 +2,6 @@ function setupLinkFormHandlers() {
     const linkForm = document.getElementById('linkForm');
     const linkUrlInput = document.getElementById('linkUrl');
     const linkTitleInput = document.getElementById('linkTitle');
-    const urlSuggestion = document.getElementById('urlSuggestion');
-    const urlSuggestionBtn = document.getElementById('urlSuggestionBtn');
 
     if (!linkForm || !linkUrlInput || !linkTitleInput) {
         return;
@@ -26,7 +24,6 @@ function setupLinkFormHandlers() {
     const handleUrlInputChange = () => {
         clearTimeout(faviconUpdateTimeout);
         const url = linkUrlInput.value.trim();
-        checkAndShowUrlSuggestion(url);
 
         if (!url) {
             resetFaviconSlot();
@@ -69,25 +66,10 @@ function setupLinkFormHandlers() {
         handleUrlInputChange();
     });
 
-    urlSuggestionBtn?.addEventListener('click', () => {
-        const baseUrl = urlSuggestionBtn.textContent;
-        if (!baseUrl) {
-            return;
-        }
-        linkUrlInput.value = baseUrl;
-        if (urlSuggestion) {
-            urlSuggestion.style.display = 'none';
-        }
-        clearTimeout(faviconUpdateTimeout);
-        updateFaviconInPicker(baseUrl);
-        validateForm();
-    });
-
     linkUrlInput.addEventListener('paste', () => {
         clearTimeout(faviconUpdateTimeout);
         setTimeout(async () => {
             const url = linkUrlInput.value.trim();
-            checkAndShowUrlSuggestion(url);
             if (url) {
                 await updateFaviconInPicker(url);
             }

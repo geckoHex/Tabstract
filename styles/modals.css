@@ -157,41 +157,6 @@
     border-color: var(--accent-color);
 }
 
-/* URL Suggestion */
-.url-suggestion {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-}
-
-.url-suggestion-text {
-    color: var(--text-secondary);
-    font-weight: 700;
-}
-
-.url-suggestion-btn {
-    background: transparent;
-    border: none;
-    color: var(--accent-color);
-    font-weight: 600;
-    font-style: italic;
-    cursor: pointer;
-    padding: 0;
-    border-radius: 4px;
-    transition: background-color 0.2s ease;
-    font-size: 13px;
-}
-
-.url-suggestion-btn:hover {
-    background: var(--accent-light);
-    text-decoration: underline;
-}
-
-.url-suggestion-btn:active {
-    transform: scale(0.98);
-}
-
 .modal-actions {
     display: flex;
     gap: 12px;
@@ -247,4 +212,3 @@
 .btn:disabled:active {
     transform: none;
 }
-

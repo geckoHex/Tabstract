@@ -37,11 +37,6 @@ function openModal(modalId) {
                 }
             }
             
-            // Hide URL suggestion
-            const urlSuggestion = document.getElementById('urlSuggestion');
-            if (urlSuggestion) {
-                urlSuggestion.style.display = 'none';
-            }
         }
         
         document.getElementById('linkTitle').focus();
@@ -96,11 +91,6 @@ function closeModal(modalId) {
             }
         }
         
-        // Hide URL suggestion
-        const urlSuggestion = document.getElementById('urlSuggestion');
-        if (urlSuggestion) {
-            urlSuggestion.style.display = 'none';
-        }
     }
 }
 
