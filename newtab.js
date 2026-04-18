@@ -96,13 +96,6 @@
     } catch { return null; }
   }
 
-  // Deterministic hue from string → used for fallback icon backgrounds
-  function strHue(str) {
-    let h = 0;
-    for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) & 0xffffffff;
-    return Math.abs(h) % 360;
-  }
-
   // ══════════════════════════════════════════════════════════════════════════
   // DATA OPERATIONS  (recursive — supports nested folders)
   // ══════════════════════════════════════════════════════════════════════════
@@ -411,9 +404,6 @@
     const wrap = document.createElement("div");
     wrap.className = "link-icon-wrap";
 
-    const hue = strHue(link.title || link.url || link.id);
-    wrap.style.background = `hsl(${hue}, 40%, 18%)`;
-
     const favSrc = faviconSrc(link.url);
     if (favSrc) {
       const img = document.createElement("img");
@@ -422,11 +412,11 @@
       img.alt = "";
       img.addEventListener("error", () => {
         img.remove();
-        wrap.appendChild(makeFallbackLetter(link, hue));
+        wrap.appendChild(makeFallbackLetter(link));
       });
       wrap.appendChild(img);
     } else {
-      wrap.appendChild(makeFallbackLetter(link, hue));
+      wrap.appendChild(makeFallbackLetter(link));
     }
 
     el.appendChild(wrap);
@@ -460,11 +450,10 @@
     return el;
   }
 
-  function makeFallbackLetter(link, hue) {
+  function makeFallbackLetter(link) {
     const span = document.createElement("span");
     span.className = "favicon-fallback";
     span.textContent = (link.title || hostname(link.url) || "?")[0].toUpperCase();
-    span.style.color = `hsl(${hue}, 80%, 75%)`;
     return span;
   }
 
