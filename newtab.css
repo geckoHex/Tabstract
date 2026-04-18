@@ -579,6 +579,16 @@ body {
   display: none;
 }
 
+.modal-overlay-elevated {
+  z-index: 110;
+}
+
+.modal-message {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
 .modal {
   background: var(--surface);
   border: 1px solid rgba(255,255,255,0.09);
@@ -708,4 +718,20 @@ body {
 
 .btn-primary:hover {
   background: #9088f9;
+}
+
+.btn-danger {
+  background: var(--danger);
+  border: none;
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-size: 0.8125rem;
+  font-family: inherit;
+  color: #fff;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.btn-danger:hover {
+  background: #e87070;
 }

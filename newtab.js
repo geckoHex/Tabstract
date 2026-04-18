@@ -264,9 +264,53 @@
     hideContextMenu();
   });
 
+  // ── Confirm delete modal ─────────────────────────────────────────────────
+
+  const deleteConfirmModal = document.getElementById("delete-confirm-modal");
+  const deleteModalTitle = document.getElementById("delete-modal-title");
+  const deleteModalMessage = document.getElementById("delete-modal-message");
+  let pendingDeleteId = null;
+
+  function openDeleteConfirm(id) {
+    const r = findItem(data.items, id);
+    if (!r) return;
+    pendingDeleteId = id;
+    const item = r.item;
+    if (item.type === "link") {
+      const label = item.title || hostname(item.url);
+      deleteModalTitle.textContent = "Delete bookmark?";
+      deleteModalMessage.textContent = `Permanently delete "${label}"?`;
+    } else {
+      const n = item.children.length;
+      deleteModalTitle.textContent = "Delete folder?";
+      deleteModalMessage.textContent =
+        n > 0
+          ? `Permanently delete the folder "${item.name}" and everything inside it (${n} item${n === 1 ? "" : "s"})?`
+          : `Permanently delete the folder "${item.name}"?`;
+    }
+    deleteConfirmModal.hidden = false;
+  }
+
+  function closeDeleteConfirm() {
+    deleteConfirmModal.hidden = true;
+    pendingDeleteId = null;
+  }
+
+  document.getElementById("delete-modal-close").addEventListener("click", closeDeleteConfirm);
+  document.getElementById("delete-cancel").addEventListener("click", closeDeleteConfirm);
+  document.getElementById("delete-confirm").addEventListener("click", () => {
+    if (pendingDeleteId) deleteItem(pendingDeleteId);
+    closeDeleteConfirm();
+  });
+  deleteConfirmModal.addEventListener("click", (e) => {
+    if (e.target === deleteConfirmModal) closeDeleteConfirm();
+  });
+
   ctxDelete.addEventListener("click", () => {
-    if (contextItemId) deleteItem(contextItemId);
+    if (!contextItemId) { hideContextMenu(); return; }
+    const id = contextItemId;
     hideContextMenu();
+    openDeleteConfirm(id);
   });
 
   function render() {
@@ -560,12 +604,13 @@
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
       if (!itemContextMenu.hidden) { hideContextMenu(); return; }
+      if (!deleteConfirmModal.hidden) { closeDeleteConfirm(); return; }
       closeLinkModal();
       closeFolderModal();
     }
     // Backspace/ArrowLeft when no modal is open → go up one level
     if ((e.key === "Backspace" || e.key === "ArrowLeft") &&
-        linkModal.hidden && folderModal.hidden &&
+        linkModal.hidden && folderModal.hidden && deleteConfirmModal.hidden &&
         document.activeElement === document.body) {
       if (currentPath.length > 0) { currentPath.pop(); render(); }
     }

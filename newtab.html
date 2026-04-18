@@ -113,6 +113,28 @@
     </div>
   </div>
 
+  <!-- ── Modal: Confirm delete ──────────────────────────────────────── -->
+  <div class="modal-overlay modal-overlay-elevated" id="delete-confirm-modal" hidden>
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="delete-modal-title">Delete?</h3>
+        <button class="modal-close" id="delete-modal-close" aria-label="Close">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-message" id="delete-modal-message"></p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="delete-cancel" type="button">Cancel</button>
+        <button class="btn-danger" id="delete-confirm" type="button">Delete</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Context menu for bookmark icons (right-click) -->
   <div class="context-menu" id="item-context-menu" hidden role="menu" aria-label="Bookmark actions">
     <button type="button" class="context-menu-item" id="ctx-edit" role="menuitem">
