@@ -46,14 +46,14 @@
           New Folder
         </button>
         <button class="action-btn accent" id="add-link-btn" title="Add bookmark">
-          <img class="toolbar-icon" src="icons/pencil.svg" alt="" width="13" height="13" />
+          <img class="toolbar-icon" src="icons/plus.svg" alt="" width="13" height="13" />
           Add Link
         </button>
       </div>
     </div>
 
     <!-- Icon grid -->
-    <div class="grid-scroll">
+    <div class="grid-scroll" id="grid-scroll">
       <div class="icon-grid" id="icon-grid"></div>
     </div>
 
@@ -63,7 +63,7 @@
   <div class="modal-overlay" id="link-modal" hidden>
     <div class="modal">
       <div class="modal-header">
-        <h3>Add Bookmark</h3>
+        <h3 id="link-modal-title">Add Bookmark</h3>
         <button class="modal-close" id="link-modal-close" aria-label="Close">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -83,7 +83,7 @@
       </div>
       <div class="modal-footer">
         <button class="btn-secondary" id="link-cancel">Cancel</button>
-        <button class="btn-primary" id="link-save">Add Bookmark</button>
+        <button class="btn-primary" id="link-save" type="button">Add Bookmark</button>
       </div>
     </div>
   </div>
@@ -92,7 +92,7 @@
   <div class="modal-overlay" id="folder-modal" hidden>
     <div class="modal">
       <div class="modal-header">
-        <h3>New Folder</h3>
+        <h3 id="folder-modal-title">New Folder</h3>
         <button class="modal-close" id="folder-modal-close" aria-label="Close">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -108,9 +108,21 @@
       </div>
       <div class="modal-footer">
         <button class="btn-secondary" id="folder-cancel">Cancel</button>
-        <button class="btn-primary" id="folder-save">Create</button>
+        <button class="btn-primary" id="folder-save" type="button">Create</button>
       </div>
     </div>
+  </div>
+
+  <!-- Context menu for bookmark icons (right-click) -->
+  <div class="context-menu" id="item-context-menu" hidden role="menu" aria-label="Bookmark actions">
+    <button type="button" class="context-menu-item" id="ctx-edit" role="menuitem">
+      <img class="context-menu-icon" src="icons/pencil.svg" alt="" width="14" height="14" />
+      Edit
+    </button>
+    <button type="button" class="context-menu-item danger" id="ctx-delete" role="menuitem">
+      <img class="context-menu-icon" src="icons/trash.svg" alt="" width="14" height="14" />
+      Delete
+    </button>
   </div>
 
   <script src="newtab.js"></script>

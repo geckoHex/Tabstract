@@ -418,39 +418,66 @@ body {
   cursor: grabbing;
 }
 
-/* Delete badge — appears on hover */
-.icon-delete {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: rgba(30, 30, 40, 0.95);
-  border: 1px solid rgba(255,255,255,0.12);
-  color: var(--text-secondary);
+/* ── Context menu (right-click on icons) ─────────────────────────────── */
+
+.context-menu {
+  position: fixed;
+  z-index: 90;
+  min-width: 140px;
+  padding: 4px;
+  background: var(--surface);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+
+.context-menu[hidden] {
+  display: none;
+}
+
+.context-menu-item {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  font-size: 0.8125rem;
+  font-family: inherit;
+  color: var(--text-primary);
   cursor: pointer;
-  opacity: 0;
-  transition: opacity var(--transition), color var(--transition), background var(--transition);
-  z-index: 2;
+  text-align: left;
+  transition: background var(--transition), color var(--transition);
 }
 
-.icon-delete svg {
-  width: 9px;
-  height: 9px;
+.context-menu-item:hover {
+  background: var(--surface-hover);
 }
 
-.icon-item:hover .icon-delete {
-  opacity: 1;
+.context-menu-item.danger {
+  color: #f0a0a0;
 }
 
-.icon-delete:hover {
-  background: var(--danger);
-  border-color: var(--danger);
-  color: #fff;
+.context-menu-item.danger:hover {
+  background: rgba(224, 92, 92, 0.15);
+  color: #ffb4b4;
+}
+
+.context-menu-icon {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  display: block;
+  filter: invert(1);
+  opacity: 0.75;
+}
+
+.context-menu-item.danger .context-menu-icon {
+  opacity: 0.9;
+  filter: invert(55%) sepia(65%) saturate(1200%) hue-rotate(310deg) brightness(105%) contrast(92%);
 }
 
 /* ── Folder Icons ─────────────────────────────────────────────────────── */

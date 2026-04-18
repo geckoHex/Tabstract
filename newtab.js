@@ -210,6 +210,64 @@
   // ══════════════════════════════════════════════════════════════════════════
 
   const grid = document.getElementById("icon-grid");
+  const itemContextMenu = document.getElementById("item-context-menu");
+  const ctxEdit = document.getElementById("ctx-edit");
+  const ctxDelete = document.getElementById("ctx-delete");
+
+  let contextItemId = null;
+  let contextItemType = null; // "folder" | "link"
+
+  function hideContextMenu() {
+    itemContextMenu.hidden = true;
+    contextItemId = null;
+    contextItemType = null;
+  }
+
+  function positionContextMenu(e) {
+    const pad = 8;
+    let x = e.clientX;
+    let y = e.clientY;
+    itemContextMenu.hidden = false;
+    itemContextMenu.style.left = `${x}px`;
+    itemContextMenu.style.top = `${y}px`;
+    const rect = itemContextMenu.getBoundingClientRect();
+    if (rect.right > window.innerWidth - pad) x = window.innerWidth - rect.width - pad;
+    if (rect.bottom > window.innerHeight - pad) y = window.innerHeight - rect.height - pad;
+    if (x < pad) x = pad;
+    if (y < pad) y = pad;
+    itemContextMenu.style.left = `${x}px`;
+    itemContextMenu.style.top = `${y}px`;
+  }
+
+  function showItemContextMenu(e, id, type) {
+    e.preventDefault();
+    contextItemId = id;
+    contextItemType = type;
+    positionContextMenu(e);
+  }
+
+  document.addEventListener("mousedown", (e) => {
+    if (itemContextMenu.hidden) return;
+    if (!itemContextMenu.contains(e.target)) hideContextMenu();
+  });
+
+  document.getElementById("grid-scroll").addEventListener("scroll", () => {
+    if (!itemContextMenu.hidden) hideContextMenu();
+  });
+
+  ctxEdit.addEventListener("click", () => {
+    if (!contextItemId) return;
+    const r = findItem(data.items, contextItemId);
+    if (!r) { hideContextMenu(); return; }
+    if (contextItemType === "link" && r.item.type === "link") openLinkModalForEdit(r.item);
+    else if (contextItemType === "folder" && r.item.type === "folder") openFolderModalForEdit(r.item);
+    hideContextMenu();
+  });
+
+  ctxDelete.addEventListener("click", () => {
+    if (contextItemId) deleteItem(contextItemId);
+    hideContextMenu();
+  });
 
   function render() {
     renderPathBar();
@@ -240,9 +298,6 @@
     el.className = "icon-item";
     el.dataset.id = folder.id;
 
-    // Delete button
-    el.appendChild(makeDeleteBtn(folder.id));
-
     const wrap = document.createElement("div");
     wrap.className = "folder-icon-wrap";
     const folderImg = document.createElement("img");
@@ -260,9 +315,10 @@
     label.textContent = folder.name;
     el.appendChild(label);
 
+    el.addEventListener("contextmenu", (e) => showItemContextMenu(e, folder.id, "folder"));
+
     // Click → navigate into folder
-    el.addEventListener("click", (e) => {
-      if (e.target.closest(".icon-delete")) return;
+    el.addEventListener("click", () => {
       currentPath = [...currentPath, folder.id];
       render();
     });
@@ -307,9 +363,6 @@
     el.className = "icon-item";
     el.dataset.id = link.id;
 
-    // Delete button
-    el.appendChild(makeDeleteBtn(link.id));
-
     // Favicon wrapper
     const wrap = document.createElement("div");
     wrap.className = "link-icon-wrap";
@@ -340,9 +393,10 @@
     label.textContent = link.title || hostname(link.url);
     el.appendChild(label);
 
+    el.addEventListener("contextmenu", (e) => showItemContextMenu(e, link.id, "link"));
+
     // Click → open URL
-    el.addEventListener("click", (e) => {
-      if (e.target.closest(".icon-delete")) return;
+    el.addEventListener("click", () => {
       window.location.href = link.url;
     });
 
@@ -370,32 +424,43 @@
     return span;
   }
 
-  function makeDeleteBtn(id) {
-    const btn = document.createElement("button");
-    btn.className = "icon-delete";
-    btn.title = "Remove";
-    btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
-    btn.addEventListener("click", (e) => { e.stopPropagation(); deleteItem(id); });
-    return btn;
-  }
-
   // ══════════════════════════════════════════════════════════════════════════
   // MODAL: ADD LINK
   // ══════════════════════════════════════════════════════════════════════════
 
-  const linkModal      = document.getElementById("link-modal");
-  const linkUrlInput   = document.getElementById("link-url");
-  const linkTitleInput = document.getElementById("link-title");
+  const linkModal       = document.getElementById("link-modal");
+  const linkUrlInput    = document.getElementById("link-url");
+  const linkTitleInput  = document.getElementById("link-title");
+  const linkModalTitle  = document.getElementById("link-modal-title");
+  const linkSaveBtn     = document.getElementById("link-save");
+
+  let editingLinkId = null;
 
   function openLinkModal() {
+    editingLinkId = null;
+    linkModalTitle.textContent = "Add Bookmark";
+    linkSaveBtn.textContent = "Add Bookmark";
     linkUrlInput.value = "";
     linkTitleInput.value = "";
     linkModal.hidden = false;
     setTimeout(() => linkUrlInput.focus(), 0);
   }
 
+  function openLinkModalForEdit(link) {
+    editingLinkId = link.id;
+    linkModalTitle.textContent = "Edit Bookmark";
+    linkSaveBtn.textContent = "Save";
+    linkUrlInput.value = link.url;
+    linkTitleInput.value = link.title;
+    linkModal.hidden = false;
+    setTimeout(() => linkUrlInput.focus(), 0);
+  }
+
   function closeLinkModal() {
     linkModal.hidden = true;
+    editingLinkId = null;
+    linkModalTitle.textContent = "Add Bookmark";
+    linkSaveBtn.textContent = "Add Bookmark";
   }
 
   // Auto-fill title from hostname on URL blur
@@ -410,7 +475,15 @@
     if (!url) { linkUrlInput.focus(); return; }
     const title = linkTitleInput.value.trim() || hostname(url);
 
-    currentItems().push({ type: "link", id: uid(), title, url });
+    if (editingLinkId) {
+      const r = findItem(data.items, editingLinkId);
+      if (r && r.item.type === "link") {
+        r.item.url = url;
+        r.item.title = title;
+      }
+    } else {
+      currentItems().push({ type: "link", id: uid(), title, url });
+    }
     saveData();
     render();
     closeLinkModal();
@@ -428,24 +501,48 @@
   // MODAL: NEW FOLDER
   // ══════════════════════════════════════════════════════════════════════════
 
-  const folderModal     = document.getElementById("folder-modal");
-  const folderNameInput = document.getElementById("folder-name");
+  const folderModal      = document.getElementById("folder-modal");
+  const folderNameInput  = document.getElementById("folder-name");
+  const folderModalTitle = document.getElementById("folder-modal-title");
+  const folderSaveBtn    = document.getElementById("folder-save");
+
+  let editingFolderId = null;
 
   function openFolderModal() {
+    editingFolderId = null;
+    folderModalTitle.textContent = "New Folder";
+    folderSaveBtn.textContent = "Create";
     folderNameInput.value = "";
+    folderModal.hidden = false;
+    setTimeout(() => folderNameInput.focus(), 0);
+  }
+
+  function openFolderModalForEdit(folder) {
+    editingFolderId = folder.id;
+    folderModalTitle.textContent = "Rename Folder";
+    folderSaveBtn.textContent = "Save";
+    folderNameInput.value = folder.name;
     folderModal.hidden = false;
     setTimeout(() => folderNameInput.focus(), 0);
   }
 
   function closeFolderModal() {
     folderModal.hidden = true;
+    editingFolderId = null;
+    folderModalTitle.textContent = "New Folder";
+    folderSaveBtn.textContent = "Create";
   }
 
   function saveFolderModal() {
     const name = folderNameInput.value.trim();
     if (!name) { folderNameInput.focus(); return; }
 
-    currentItems().push({ type: "folder", id: uid(), name, children: [] });
+    if (editingFolderId) {
+      const r = findItem(data.items, editingFolderId);
+      if (r && r.item.type === "folder") r.item.name = name;
+    } else {
+      currentItems().push({ type: "folder", id: uid(), name, children: [] });
+    }
     saveData();
     render();
     closeFolderModal();
@@ -461,7 +558,11 @@
   // ── Global keyboard ────────────────────────────────────────────────────────
 
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") { closeLinkModal(); closeFolderModal(); }
+    if (e.key === "Escape") {
+      if (!itemContextMenu.hidden) { hideContextMenu(); return; }
+      closeLinkModal();
+      closeFolderModal();
+    }
     // Backspace/ArrowLeft when no modal is open → go up one level
     if ((e.key === "Backspace" || e.key === "ArrowLeft") &&
         linkModal.hidden && folderModal.hidden &&
