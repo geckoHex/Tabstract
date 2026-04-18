@@ -85,9 +85,12 @@ body {
   left: 16px;
   width: 17px;
   height: 17px;
-  color: var(--text-secondary);
   pointer-events: none;
-  transition: color var(--transition);
+  object-fit: contain;
+  display: block;
+  filter: invert(1);
+  opacity: 0.42;
+  transition: opacity var(--transition), filter var(--transition);
 }
 
 .search-input {
@@ -116,7 +119,8 @@ body {
 }
 
 .search-wrapper:focus-within .search-icon {
-  color: var(--accent);
+  opacity: 1;
+  filter: invert(58%) sepia(45%) saturate(1846%) hue-rotate(219deg) brightness(101%) contrast(97%);
 }
 
 .clear-btn {
@@ -219,10 +223,23 @@ body {
   background: none;
 }
 
-.path-segment svg {
+.path-icon {
   width: 12px;
   height: 12px;
   flex-shrink: 0;
+  object-fit: contain;
+  display: block;
+  filter: invert(1);
+  opacity: 0.42;
+  transition: opacity var(--transition);
+}
+
+.path-segment:hover .path-icon {
+  opacity: 0.92;
+}
+
+.path-segment.current .path-icon {
+  opacity: 0.92;
 }
 
 .path-sep {
@@ -257,10 +274,32 @@ body {
   white-space: nowrap;
 }
 
-.action-btn svg {
+.toolbar-icon {
   width: 13px;
   height: 13px;
   flex-shrink: 0;
+  object-fit: contain;
+  display: block;
+}
+
+.action-btn:not(.accent) .toolbar-icon {
+  filter: invert(1);
+  opacity: 0.42;
+  transition: opacity var(--transition), filter var(--transition);
+}
+
+.action-btn:not(.accent):hover .toolbar-icon {
+  opacity: 0.92;
+}
+
+.action-btn.accent .toolbar-icon {
+  filter: invert(70%) sepia(48%) saturate(427%) hue-rotate(209deg) brightness(103%) contrast(97%);
+  opacity: 1;
+  transition: opacity var(--transition), filter var(--transition);
+}
+
+.action-btn.accent:hover .toolbar-icon {
+  filter: invert(76%) sepia(42%) saturate(500%) hue-rotate(209deg) brightness(108%) contrast(97%);
 }
 
 .action-btn:hover {
@@ -330,9 +369,12 @@ body {
   text-align: center;
 }
 
-.grid-empty svg {
+.empty-bookmark-icon {
   width: 40px;
   height: 40px;
+  object-fit: contain;
+  display: block;
+  filter: invert(1);
   opacity: 0.25;
 }
 
@@ -428,9 +470,18 @@ body {
   filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
 }
 
-.folder-icon-wrap svg {
+.folder-grid-icon {
   width: 60px;
   height: 60px;
+  object-fit: contain;
+  display: block;
+  filter: invert(1);
+  opacity: 0.88;
+  transition: opacity var(--transition);
+}
+
+.icon-item:hover .folder-grid-icon {
+  opacity: 1;
 }
 
 /* ── Link / Favicon Icons ─────────────────────────────────────────────── */

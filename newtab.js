@@ -1,6 +1,7 @@
 (() => {
   const SEARCH_URL  = "https://www.google.com/search?q=";
   const STORAGE_KEY = "tabstract_bookmarks_v2";
+  const iconSrc = (file) => chrome.runtime.getURL(`icons/${file}`);
 
   // ── Storage ────────────────────────────────────────────────────────────────
 
@@ -171,10 +172,7 @@
     const rootBtn = document.createElement("button");
     rootBtn.className = "path-segment" + (currentPath.length === 0 ? " current" : "");
     rootBtn.innerHTML = `
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-        <polyline points="9 22 9 12 15 12 15 22"></polyline>
-      </svg>
+      <img class="path-icon" src="${iconSrc("house.svg")}" alt="" width="12" height="12" />
       Bookmarks`;
     rootBtn.addEventListener("click", () => { currentPath = []; render(); });
     bar.appendChild(rootBtn);
@@ -224,9 +222,7 @@
       empty.className = "grid-empty";
       const isRoot = currentPath.length === 0;
       empty.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-        </svg>
+        <img class="empty-bookmark-icon" src="${iconSrc("bookmark-simple.svg")}" alt="" width="40" height="40" />
         <p>${isRoot ? "No bookmarks yet.<br>Add links or folders above." : "This folder is empty.<br>Use Add Link to add one."}</p>`;
       grid.appendChild(empty);
       return;
@@ -247,10 +243,15 @@
     // Delete button
     el.appendChild(makeDeleteBtn(folder.id));
 
-    // Folder SVG (macOS-inspired two-tone shape)
     const wrap = document.createElement("div");
     wrap.className = "folder-icon-wrap";
-    wrap.innerHTML = folderSVG();
+    const folderImg = document.createElement("img");
+    folderImg.className = "folder-grid-icon";
+    folderImg.src = iconSrc("folder.svg");
+    folderImg.alt = "";
+    folderImg.width = 60;
+    folderImg.height = 60;
+    wrap.appendChild(folderImg);
     el.appendChild(wrap);
 
     // Label
@@ -376,20 +377,6 @@
     btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
     btn.addEventListener("click", (e) => { e.stopPropagation(); deleteItem(id); });
     return btn;
-  }
-
-  // macOS-inspired two-tone folder SVG
-  function folderSVG() {
-    return `<svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <!-- folder back -->
-      <rect x="3" y="16" width="54" height="37" rx="5" fill="#5248b8"/>
-      <!-- tab -->
-      <path d="M3 16h20l5-8H8a5 5 0 0 0-5 5v3z" fill="#5248b8"/>
-      <!-- folder body -->
-      <rect x="3" y="22" width="54" height="31" rx="5" fill="#7c6ff7"/>
-      <!-- subtle top highlight -->
-      <rect x="3" y="22" width="54" height="6" rx="5" fill="rgba(255,255,255,0.07)"/>
-    </svg>`;
   }
 
   // ══════════════════════════════════════════════════════════════════════════
