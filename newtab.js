@@ -72,6 +72,178 @@
   });
 
   // ══════════════════════════════════════════════════════════════════════════
+  // BOOKMARK SEARCH (fuzzy, all folders)
+  // ══════════════════════════════════════════════════════════════════════════
+
+  const bookmarkSearchInput = document.getElementById("bookmark-search-input");
+  const bookmarkClearBtn = document.getElementById("bookmark-clear-btn");
+  const bookmarkSearchResults = document.getElementById("bookmark-search-results");
+
+  function collectAllLinks(items, folderNames, out = []) {
+    for (const item of items) {
+      if (item.type === "folder") {
+        collectAllLinks(item.children, [...folderNames, item.name], out);
+      } else if (item.type === "link") {
+        const pathLabel =
+          folderNames.length > 0
+            ? `Bookmarks › ${folderNames.join(" › ")}`
+            : "Bookmarks";
+        out.push({ link: item, pathLabel });
+      }
+    }
+    return out;
+  }
+
+  /**
+   * Returns a similarity score (higher is better), or -1 if the query does not
+   * fuzzy-match as a subsequence (case-insensitive).
+   */
+  function fuzzySimilarity(query, text) {
+    const q = query.trim().toLowerCase();
+    const t = text.toLowerCase();
+    if (!q.length) return 0;
+    if (!t.length) return -1;
+    const idx = t.indexOf(q);
+    if (idx !== -1) return 5000 + (200 - Math.min(199, idx)) + (q.length / t.length) * 50;
+
+    let qi = 0;
+    let score = 0;
+    let prev = -999;
+    for (let i = 0; i < t.length && qi < q.length; i++) {
+      if (t[i] === q[qi]) {
+        const gap = i - prev - 1;
+        score += 24 - Math.min(23, Math.max(0, gap));
+        if (prev === i - 1) score += 18;
+        if (i === 0 || /[\s›/._-]/.test(t[i - 1])) score += 10;
+        prev = i;
+        qi++;
+      }
+    }
+    if (qi < q.length) return -1;
+    score += (q.length / t.length) * 40;
+    return score;
+  }
+
+  function bookmarkSearchHaystack(entry) {
+    const title = entry.link.title || hostname(entry.link.url);
+    const host = hostname(entry.link.url);
+    return `${title} ${entry.pathLabel} ${host} ${entry.link.url}`;
+  }
+
+  function scoreBookmarkEntry(query, entry) {
+    const title = entry.link.title || hostname(entry.link.url);
+    const host = hostname(entry.link.url);
+    const parts = [
+      fuzzySimilarity(query, title),
+      fuzzySimilarity(query, entry.pathLabel),
+      fuzzySimilarity(query, host),
+      fuzzySimilarity(query, bookmarkSearchHaystack(entry)),
+    ];
+    return Math.max(...parts);
+  }
+
+  function updateBookmarkSearchResults() {
+    const q = bookmarkSearchInput.value.trim();
+    bookmarkClearBtn.classList.toggle("visible", q.length > 0);
+
+    if (!q) {
+      bookmarkSearchResults.innerHTML = "";
+      bookmarkSearchResults.hidden = true;
+      return;
+    }
+
+    const flat = collectAllLinks(data.items, [], []);
+    const ranked = [];
+    for (const entry of flat) {
+      const s = scoreBookmarkEntry(q, entry);
+      if (s >= 0) ranked.push({ entry, score: s });
+    }
+    ranked.sort((a, b) => b.score - a.score);
+    const top = ranked.slice(0, 5);
+
+    bookmarkSearchResults.innerHTML = "";
+    if (top.length === 0) {
+      bookmarkSearchResults.hidden = true;
+      return;
+    }
+
+    for (const { entry } of top) {
+      const link = entry.link;
+      const title = link.title || hostname(link.url);
+      const fav = faviconSrc(link.url);
+
+      const li = document.createElement("li");
+      li.setAttribute("role", "presentation");
+
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "bookmark-search-hit";
+      btn.addEventListener("click", () => {
+        window.location.href = link.url;
+      });
+
+      if (fav) {
+        const img = document.createElement("img");
+        img.className = "bookmark-search-hit-favicon";
+        img.src = fav;
+        img.alt = "";
+        img.addEventListener("error", () => {
+          img.replaceWith(makeBookmarkSearchFallback(link));
+        });
+        btn.appendChild(img);
+      } else {
+        btn.appendChild(makeBookmarkSearchFallback(link));
+      }
+
+      const text = document.createElement("div");
+      text.className = "bookmark-search-hit-text";
+      const tEl = document.createElement("div");
+      tEl.className = "bookmark-search-hit-title";
+      tEl.textContent = title;
+      const pEl = document.createElement("div");
+      pEl.className = "bookmark-search-hit-path";
+      pEl.textContent = entry.pathLabel;
+      text.appendChild(tEl);
+      text.appendChild(pEl);
+      btn.appendChild(text);
+
+      li.appendChild(btn);
+      bookmarkSearchResults.appendChild(li);
+    }
+    bookmarkSearchResults.hidden = false;
+  }
+
+  function makeBookmarkSearchFallback(link) {
+    const span = document.createElement("span");
+    span.className = "bookmark-search-hit-fallback";
+    span.textContent = (link.title || hostname(link.url) || "?")[0].toUpperCase();
+    return span;
+  }
+
+  bookmarkClearBtn.addEventListener("click", () => {
+    bookmarkSearchInput.value = "";
+    bookmarkClearBtn.classList.remove("visible");
+    updateBookmarkSearchResults();
+    bookmarkSearchInput.focus();
+  });
+
+  bookmarkSearchInput.addEventListener("input", updateBookmarkSearchResults);
+
+  bookmarkSearchInput.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      bookmarkSearchInput.blur();
+      return;
+    }
+    if (e.key === "Enter") {
+      const first = bookmarkSearchResults.querySelector(".bookmark-search-hit");
+      if (first) {
+        e.preventDefault();
+        first.click();
+      }
+    }
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
   // UTILITIES
   // ══════════════════════════════════════════════════════════════════════════
 
@@ -341,12 +513,14 @@
         <img class="empty-bookmark-icon" src="${iconSrc("bookmark-simple.svg")}" alt="" width="40" height="40" />
         <p>${isRoot ? "No bookmarks yet.<br>Add links or folders above." : "This folder is empty.<br>Use Add Link to add one."}</p>`;
       grid.appendChild(empty);
+      updateBookmarkSearchResults();
       return;
     }
 
     for (const item of items) {
       grid.appendChild(item.type === "folder" ? makeFolderIcon(item) : makeLinkIcon(item));
     }
+    updateBookmarkSearchResults();
   }
 
   // ── Folder icon ────────────────────────────────────────────────────────────

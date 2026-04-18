@@ -63,6 +63,13 @@ body {
   gap: 28px;
 }
 
+.left-search-stack {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
 /* Clock */
 .clock {
   font-size: 1.875rem;
@@ -159,6 +166,111 @@ body {
 .clear-btn.visible {
   opacity: 1;
   pointer-events: auto;
+}
+
+/* Bookmark search (left panel) */
+.bookmark-search-box {
+  position: relative;
+  width: 100%;
+  z-index: 2;
+}
+
+.bookmark-search-form {
+  width: 100%;
+}
+
+.bookmark-search-results {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  margin-top: 6px;
+  z-index: 2;
+  list-style: none;
+  width: 100%;
+  margin-bottom: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  pointer-events: auto;
+}
+
+.bookmark-search-results[hidden] {
+  display: none;
+}
+
+.bookmark-search-hit {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.bookmark-search-hit:hover,
+.bookmark-search-hit:focus-visible {
+  background: var(--surface-hover);
+  border-color: rgba(255, 255, 255, 0.12);
+  outline: none;
+}
+
+.bookmark-search-hit-favicon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  object-fit: contain;
+  border-radius: 4px;
+  margin-top: 2px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.bookmark-search-hit-fallback {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  border-radius: 4px;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.bookmark-search-hit-text {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bookmark-search-hit-title {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.bookmark-search-hit-path {
+  font-size: 0.6875rem;
+  font-weight: 300;
+  color: var(--text-tertiary);
+  line-height: 1.35;
+  word-break: break-word;
 }
 
 /* ══════════════════════════════════════════════════════════════════════

@@ -12,25 +12,52 @@
   <div class="left-panel">
     <div class="left-inner">
       <div class="clock" id="clock" aria-live="polite"></div>
-      <form class="search-form" id="search-form" autocomplete="off">
-        <div class="search-wrapper">
-          <img class="search-icon" src="icons/google-logo.svg" alt="" width="17" height="17" />
-          <input
-            type="text"
-            id="search-input"
-            class="search-input"
-            placeholder="Search the web..."
-            spellcheck="false"
-            autofocus
-          />
-          <button type="button" class="clear-btn" id="clear-btn" aria-label="Clear search">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
+      <div class="left-search-stack">
+        <form class="search-form" id="search-form" autocomplete="off">
+          <div class="search-wrapper">
+            <img class="search-icon" src="icons/google-logo.svg" alt="" width="17" height="17" />
+            <input
+              type="text"
+              id="search-input"
+              class="search-input"
+              placeholder="Search the web..."
+              spellcheck="false"
+              autofocus
+            />
+            <button type="button" class="clear-btn" id="clear-btn" aria-label="Clear search">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+        </form>
+
+        <div class="bookmark-search-box">
+          <form class="bookmark-search-form" id="bookmark-search-form" autocomplete="off">
+            <div class="search-wrapper">
+              <img class="search-icon" src="icons/bookmarks.svg" alt="" width="17" height="17" />
+              <input
+                type="text"
+                id="bookmark-search-input"
+                class="search-input"
+                placeholder="Search bookmarks..."
+                spellcheck="false"
+                aria-label="Search bookmarks"
+                aria-controls="bookmark-search-results"
+                aria-autocomplete="list"
+              />
+              <button type="button" class="clear-btn" id="bookmark-clear-btn" aria-label="Clear bookmark search">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+          </form>
+          <ul class="bookmark-search-results" id="bookmark-search-results" role="listbox" aria-label="Bookmark matches" hidden></ul>
         </div>
-      </form>
+      </div>
     </div>
   </div>
 
