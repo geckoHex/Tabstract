@@ -164,9 +164,7 @@
     // Root segment
     const rootBtn = document.createElement("button");
     rootBtn.className = "path-segment" + (currentPath.length === 0 ? " current" : "");
-    rootBtn.innerHTML = `
-      <img class="path-icon" src="${iconSrc("house.svg")}" alt="" width="12" height="12" />
-      Bookmarks`;
+    rootBtn.innerHTML = `<img class="path-icon" src="${iconSrc("house.svg")}" alt="" width="16" height="16" /><span class="path-root-label">Bookmarks</span>`;
     rootBtn.addEventListener("click", () => { currentPath = []; render(); });
     bar.appendChild(rootBtn);
 
@@ -275,11 +273,10 @@
       deleteModalMessage.textContent = `Permanently delete "${label}"?`;
     } else {
       const n = item.children.length;
+      const itemWord = n === 1 ? "item" : "items";
       deleteModalTitle.textContent = "Delete folder?";
       deleteModalMessage.textContent =
-        n > 0
-          ? `Permanently delete the folder "${item.name}" and everything inside it (${n} item${n === 1 ? "" : "s"})?`
-          : `Permanently delete the folder "${item.name}"?`;
+        `Permanently delete the folder "${item.name}" and all ${n} ${itemWord} inside it?`;
     }
     deleteConfirmModal.hidden = false;
   }
