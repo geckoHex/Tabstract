@@ -85,6 +85,31 @@
     return /^https?:\/\//i.test(url) ? url : `https://${url}`;
   }
 
+  /** True if the host looks like a real web target (not arbitrary words turned into https://word). */
+  function isHttpUrlHostPlausible(host) {
+    if (!host) return false;
+    const h = host.toLowerCase();
+    if (h === "localhost") return true;
+    if (h.includes(".")) return true;
+    if (h.includes(":")) return true; // IPv6
+    return false;
+  }
+
+  /** If clipboard text is a single http(s) URL, return normalised URL; else null. */
+  function urlFromClipboardText(text) {
+    const raw = String(text).trim();
+    if (!raw || /\s/.test(raw)) return null;
+    const u = normaliseUrl(raw);
+    try {
+      const parsed = new URL(u);
+      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null;
+      if (!isHttpUrlHostPlausible(parsed.hostname)) return null;
+      return u;
+    } catch {
+      return null;
+    }
+  }
+
   function hostname(url) {
     try { return new URL(url).hostname.replace(/^www\./, ""); }
     catch { return url; }
@@ -473,7 +498,13 @@
     linkUrlInput.value = "";
     linkTitleInput.value = "";
     linkModal.hidden = false;
-    setTimeout(() => linkUrlInput.focus(), 0);
+    if (navigator.clipboard?.readText) {
+      navigator.clipboard.readText().then((text) => {
+        const url = urlFromClipboardText(text);
+        if (url) linkUrlInput.value = url;
+      }).catch(() => {});
+    }
+    setTimeout(() => linkTitleInput.focus(), 0);
   }
 
   function openLinkModalForEdit(link) {
@@ -483,7 +514,7 @@
     linkUrlInput.value = link.url;
     linkTitleInput.value = link.title;
     linkModal.hidden = false;
-    setTimeout(() => linkUrlInput.focus(), 0);
+    setTimeout(() => linkTitleInput.focus(), 0);
   }
 
   function closeLinkModal() {
@@ -492,13 +523,6 @@
     linkModalTitle.textContent = "Add Bookmark";
     linkSaveBtn.textContent = "Add Bookmark";
   }
-
-  // Auto-fill title from hostname on URL blur
-  linkUrlInput.addEventListener("blur", () => {
-    const url = linkUrlInput.value.trim();
-    if (!url || linkTitleInput.value.trim()) return;
-    try { linkTitleInput.value = hostname(normaliseUrl(url)); } catch {}
-  });
 
   function saveLinkModal() {
     const url = normaliseUrl(linkUrlInput.value.trim());

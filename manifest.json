@@ -3,6 +3,7 @@
   "name": "Tabstract",
   "version": "1.0.0",
   "description": "A clean, minimal new tab with a focused search experience.",
+  "permissions": ["clipboardRead"],
   "chrome_url_overrides": {
     "newtab": "newtab.html"
   },
