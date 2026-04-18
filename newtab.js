@@ -28,17 +28,16 @@
   let drag = null; // { itemId }
 
   // ══════════════════════════════════════════════════════════════════════════
-  // GREETING
+  // CLOCK
   // ══════════════════════════════════════════════════════════════════════════
 
-  function updateGreeting() {
-    const h = new Date().getHours();
-    const text =
-      h < 5  ? "Good night."     :
-      h < 12 ? "Good morning."   :
-      h < 17 ? "Good afternoon." :
-      h < 21 ? "Good evening."   : "Good night.";
-    document.getElementById("greeting").textContent = text;
+  function updateClock() {
+    const el = document.getElementById("clock");
+    const now = new Date();
+    el.textContent = now.toLocaleTimeString(undefined, {
+      hour: "numeric",
+      minute: "2-digit",
+    });
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -628,7 +627,14 @@
 
   // ── Init ───────────────────────────────────────────────────────────────────
 
-  updateGreeting();
+  updateClock();
+  const now = new Date();
+  const msUntilNextMinute =
+    60000 - (now.getSeconds() * 1000 + now.getMilliseconds());
+  setTimeout(() => {
+    updateClock();
+    setInterval(updateClock, 60000);
+  }, msUntilNextMinute);
   searchInput.focus();
   render();
 })();

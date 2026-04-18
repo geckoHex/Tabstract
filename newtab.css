@@ -63,11 +63,12 @@ body {
   gap: 28px;
 }
 
-/* Greeting */
-.greeting {
+/* Clock */
+.clock {
   font-size: 1.875rem;
   font-weight: 600;
   letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
   color: var(--text-primary);
   text-align: center;
   min-height: 2.4rem;
