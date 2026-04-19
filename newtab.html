@@ -60,6 +60,11 @@
         </div>
       </div>
     </div>
+    <div class="left-panel-footer">
+      <button type="button" class="settings-btn" id="settings-btn" aria-label="Settings" title="Settings">
+        <img class="settings-btn-icon" src="icons/gear.svg" alt="" width="22" height="22" />
+      </button>
+    </div>
   </div>
 
   <!-- ── Right Panel: Bookmarks ─────────────────────────────────────── -->
@@ -137,6 +142,27 @@
       <div class="modal-footer">
         <button class="btn-secondary" id="folder-cancel">Cancel</button>
         <button class="btn-primary" id="folder-save" type="button">Create</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Modal: Settings ─────────────────────────────────────────────── -->
+  <div class="modal-overlay" id="settings-modal" hidden>
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Settings</h3>
+        <button class="modal-close" id="settings-modal-close" aria-label="Close">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-message">Settings will appear here.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" id="settings-modal-done" type="button">Done</button>
       </div>
     </div>
   </div>

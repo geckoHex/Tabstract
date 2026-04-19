@@ -782,18 +782,40 @@
   folderModal.addEventListener("click", (e) => { if (e.target === folderModal) closeFolderModal(); });
   folderNameInput.addEventListener("keydown", (e) => { if (e.key === "Enter") saveFolderModal(); });
 
+  // ══════════════════════════════════════════════════════════════════════════
+  // MODAL: SETTINGS
+  // ══════════════════════════════════════════════════════════════════════════
+
+  const settingsModal = document.getElementById("settings-modal");
+
+  function openSettingsModal() {
+    settingsModal.hidden = false;
+  }
+
+  function closeSettingsModal() {
+    settingsModal.hidden = true;
+  }
+
+  document.getElementById("settings-btn").addEventListener("click", openSettingsModal);
+  document.getElementById("settings-modal-close").addEventListener("click", closeSettingsModal);
+  document.getElementById("settings-modal-done").addEventListener("click", closeSettingsModal);
+  settingsModal.addEventListener("click", (e) => {
+    if (e.target === settingsModal) closeSettingsModal();
+  });
+
   // ── Global keyboard ────────────────────────────────────────────────────────
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
       if (!itemContextMenu.hidden) { hideContextMenu(); return; }
       if (!deleteConfirmModal.hidden) { closeDeleteConfirm(); return; }
+      if (!settingsModal.hidden) { closeSettingsModal(); return; }
       closeLinkModal();
       closeFolderModal();
     }
     // Backspace/ArrowLeft when no modal is open → go up one level
     if ((e.key === "Backspace" || e.key === "ArrowLeft") &&
-        linkModal.hidden && folderModal.hidden && deleteConfirmModal.hidden &&
+        linkModal.hidden && folderModal.hidden && deleteConfirmModal.hidden && settingsModal.hidden &&
         document.activeElement === document.body) {
       if (currentPath.length > 0) { currentPath.pop(); render(); }
     }

@@ -46,21 +46,77 @@ body {
    ══════════════════════════════════════════════════════════════════════ */
 
 .left-panel {
+  /* Horizontal inset to settings control; bottom can differ for vertical nudge. */
+  --settings-inset: 16px;
+  --settings-inset-bottom: 10px;
+  --settings-btn-pad: 6px;
   width: 380px;
   flex-shrink: 0;
   display: flex;
+  flex-direction: column;
   align-items: stretch;
   justify-content: flex-start;
-  padding: 32px 40px 40px;
+  padding: 32px 40px var(--settings-inset-bottom);
   border-right: 1px solid var(--border);
+  min-height: 0;
 }
 
 .left-inner {
   width: 100%;
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: stretch;
   gap: 28px;
+}
+
+.left-panel-footer {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding-top: 8px;
+  /* Panel left padding is 40px; align button box so its outer edge sits --settings-inset from panel edge. */
+  margin-left: calc(var(--settings-inset) - 40px - var(--settings-btn-pad));
+}
+
+.settings-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--settings-btn-pad);
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  transition: background var(--transition), opacity var(--transition);
+}
+
+.settings-btn:hover {
+  background: var(--surface-hover);
+}
+
+.settings-btn:focus-visible {
+  outline: none;
+  background: var(--surface-hover);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.12);
+}
+
+.settings-btn-icon {
+  display: block;
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  filter: invert(1);
+  opacity: 0.42;
+  transition: opacity var(--transition);
+}
+
+.settings-btn:hover .settings-btn-icon,
+.settings-btn:focus-visible .settings-btn-icon {
+  opacity: 0.92;
 }
 
 .left-search-stack {
