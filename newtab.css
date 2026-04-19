@@ -49,9 +49,9 @@ body {
   width: 380px;
   flex-shrink: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 40px;
+  align-items: stretch;
+  justify-content: flex-start;
+  padding: 32px 40px 40px;
   border-right: 1px solid var(--border);
 }
 
@@ -59,7 +59,7 @@ body {
   width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   gap: 28px;
 }
 
@@ -72,13 +72,13 @@ body {
 
 /* Clock */
 .clock {
-  font-size: 1.875rem;
+  font-size: 2.25rem;
   font-weight: 600;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
   color: var(--text-primary);
   text-align: center;
-  min-height: 2.4rem;
+  min-height: 2.75rem;
 }
 
 /* Search */
