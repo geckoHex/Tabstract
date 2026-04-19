@@ -1,5 +1,6 @@
 (() => {
-  const SEARCH_URL  = "https://www.google.com/search?q=";
+  const SEARCH_URL   = "https://www.google.com/search?q=";
+  const CHATGPT_URL  = "https://chatgpt.com/?q=";
   const STORAGE_KEY = "tabstract_bookmarks_v2";
   const iconSrc = (file) => chrome.runtime.getURL(`icons/${file}`);
 
@@ -69,6 +70,37 @@
 
   searchInput.addEventListener("input", () => {
     clearBtn.classList.toggle("visible", searchInput.value.length > 0);
+  });
+
+  // ── ChatGPT prompt (left panel) ────────────────────────────────────────────
+
+  const aiSearchForm = document.getElementById("ai-search-form");
+  const aiSearchInput = document.getElementById("ai-search-input");
+  const aiClearBtn = document.getElementById("ai-clear-btn");
+
+  function navigateToChatGPT(prompt) {
+    const q = prompt.trim();
+    if (!q) return;
+    window.location.href = CHATGPT_URL + encodeURIComponent(q);
+  }
+
+  aiClearBtn.addEventListener("click", () => {
+    aiSearchInput.value = "";
+    aiClearBtn.classList.remove("visible");
+    aiSearchInput.focus();
+  });
+
+  aiSearchForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    navigateToChatGPT(aiSearchInput.value);
+  });
+
+  aiSearchInput.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") aiSearchInput.blur();
+  });
+
+  aiSearchInput.addEventListener("input", () => {
+    aiClearBtn.classList.toggle("visible", aiSearchInput.value.length > 0);
   });
 
   // ══════════════════════════════════════════════════════════════════════════
