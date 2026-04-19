@@ -181,12 +181,30 @@
       <div class="modal-body">
         <div class="settings-section">
           <h4 class="settings-section-title">AI Search Provider</h4>
-          <div class="field">
-            <label for="ai-provider-select">Provider</label>
-            <select id="ai-provider-select" class="settings-select" autocomplete="off">
-              <option value="chatgpt">ChatGPT</option>
-              <option value="claude">Claude</option>
-            </select>
+          <div class="settings-row">
+            <span class="settings-setting-label" id="ai-provider-label">Provider</span>
+            <div class="custom-select" id="ai-provider-custom-select">
+              <button
+                type="button"
+                class="custom-select-trigger"
+                id="ai-provider-trigger"
+                aria-haspopup="listbox"
+                aria-expanded="false"
+                aria-controls="ai-provider-list"
+                aria-labelledby="ai-provider-label ai-provider-trigger-text"
+              >
+                <span class="custom-select-value" id="ai-provider-trigger-text">ChatGPT</span>
+                <span class="custom-select-chevron" aria-hidden="true">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </span>
+              </button>
+              <ul class="custom-select-menu" id="ai-provider-list" role="listbox" aria-labelledby="ai-provider-label" hidden>
+                <li class="custom-select-option" role="option" tabindex="-1" data-value="chatgpt">ChatGPT</li>
+                <li class="custom-select-option" role="option" tabindex="-1" data-value="claude">Claude</li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>

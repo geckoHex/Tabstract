@@ -6,6 +6,7 @@
   const AI_PROVIDERS = {
     chatgpt: {
       id: "chatgpt",
+      label: "ChatGPT",
       urlPrefix: "https://chatgpt.com/?q=",
       icon: "openai.svg",
       placeholder: "Ask ChatGPT...",
@@ -14,6 +15,7 @@
     },
     claude: {
       id: "claude",
+      label: "Claude",
       urlPrefix: "https://claude.ai/new?q=",
       icon: "claude.svg",
       placeholder: "Ask Claude...",
@@ -97,7 +99,10 @@
   const aiSearchIcon = document.getElementById("ai-search-icon");
   const aiSearchInput = document.getElementById("ai-search-input");
   const aiClearBtn = document.getElementById("ai-clear-btn");
-  const aiProviderSelect = document.getElementById("ai-provider-select");
+  const aiProviderCustom = document.getElementById("ai-provider-custom-select");
+  const aiProviderTrigger = document.getElementById("ai-provider-trigger");
+  const aiProviderTriggerText = document.getElementById("ai-provider-trigger-text");
+  const aiProviderList = document.getElementById("ai-provider-list");
 
   let aiProviderId = "chatgpt";
 
@@ -125,7 +130,49 @@
     aiSearchInput.placeholder = p.placeholder;
     aiSearchInput.setAttribute("aria-label", p.inputAria);
     aiClearBtn.setAttribute("aria-label", p.clearAria);
-    if (aiProviderSelect) aiProviderSelect.value = aiProviderId;
+    syncAiProviderCustomSelect();
+  }
+
+  function syncAiProviderCustomSelect() {
+    if (!aiProviderTriggerText || !aiProviderList) return;
+    const p = providerOrDefault(aiProviderId);
+    aiProviderTriggerText.textContent = p.label;
+    aiProviderList.querySelectorAll("[role='option']").forEach((opt) => {
+      const on = opt.getAttribute("data-value") === aiProviderId;
+      opt.setAttribute("aria-selected", on ? "true" : "false");
+      opt.classList.toggle("is-selected", on);
+    });
+  }
+
+  function isAiProviderDropdownOpen() {
+    return aiProviderTrigger && aiProviderTrigger.getAttribute("aria-expanded") === "true";
+  }
+
+  function setAiProviderDropdownOpen(open) {
+    if (!aiProviderTrigger || !aiProviderList) return;
+    aiProviderList.hidden = !open;
+    aiProviderTrigger.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+
+  function closeAiProviderDropdown() {
+    setAiProviderDropdownOpen(false);
+  }
+
+  function openAiProviderDropdown() {
+    setAiProviderDropdownOpen(true);
+  }
+
+  function focusAiProviderOption(dir) {
+    const opts = [...aiProviderList.querySelectorAll("[role='option']")];
+    if (!opts.length) return;
+    const ix = opts.findIndex((o) => o === document.activeElement);
+    const next =
+      ix < 0
+        ? dir === 1
+          ? 0
+          : opts.length - 1
+        : Math.min(Math.max(ix + dir, 0), opts.length - 1);
+    opts[next].focus();
   }
 
   function initAiSearchProvider() {
@@ -876,11 +923,13 @@
   const settingsModal = document.getElementById("settings-modal");
 
   function openSettingsModal() {
-    if (aiProviderSelect) aiProviderSelect.value = aiProviderId;
+    syncAiProviderCustomSelect();
+    closeAiProviderDropdown();
     settingsModal.hidden = false;
   }
 
   function closeSettingsModal() {
+    closeAiProviderDropdown();
     settingsModal.hidden = true;
   }
 
@@ -891,9 +940,59 @@
     if (e.target === settingsModal) closeSettingsModal();
   });
 
-  if (aiProviderSelect) {
-    aiProviderSelect.addEventListener("change", () => {
-      applyAiSearchProvider(aiProviderSelect.value, { persist: true });
+  if (aiProviderTrigger && aiProviderList) {
+    aiProviderTrigger.addEventListener("click", (e) => {
+      e.stopPropagation();
+      setAiProviderDropdownOpen(!isAiProviderDropdownOpen());
+    });
+    aiProviderTrigger.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        if (!isAiProviderDropdownOpen()) openAiProviderDropdown();
+        focusAiProviderOption(1);
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        if (!isAiProviderDropdownOpen()) openAiProviderDropdown();
+        focusAiProviderOption(-1);
+      } else if (e.key === "Escape" && isAiProviderDropdownOpen()) {
+        e.preventDefault();
+        e.stopPropagation();
+        closeAiProviderDropdown();
+      }
+    });
+    aiProviderList.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        closeAiProviderDropdown();
+        aiProviderTrigger.focus();
+      } else if (e.key === "ArrowDown") {
+        e.preventDefault();
+        focusAiProviderOption(1);
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        focusAiProviderOption(-1);
+      } else if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        const v = document.activeElement.getAttribute("data-value");
+        if (v) {
+          applyAiSearchProvider(v, { persist: true });
+          closeAiProviderDropdown();
+          aiProviderTrigger.focus();
+        }
+      }
+    });
+    aiProviderList.querySelectorAll("[role='option']").forEach((opt) => {
+      opt.addEventListener("click", () => {
+        const v = opt.getAttribute("data-value");
+        if (v) applyAiSearchProvider(v, { persist: true });
+        closeAiProviderDropdown();
+        aiProviderTrigger.focus();
+      });
+    });
+    document.addEventListener("click", (e) => {
+      if (!isAiProviderDropdownOpen() || !aiProviderCustom) return;
+      if (!aiProviderCustom.contains(e.target)) closeAiProviderDropdown();
     });
   }
 
@@ -903,7 +1002,14 @@
     if (e.key === "Escape") {
       if (!itemContextMenu.hidden) { hideContextMenu(); return; }
       if (!deleteConfirmModal.hidden) { closeDeleteConfirm(); return; }
-      if (!settingsModal.hidden) { closeSettingsModal(); return; }
+      if (!settingsModal.hidden) {
+        if (isAiProviderDropdownOpen()) {
+          closeAiProviderDropdown();
+          return;
+        }
+        closeSettingsModal();
+        return;
+      }
       closeLinkModal();
       closeFolderModal();
     }
