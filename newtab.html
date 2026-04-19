@@ -36,7 +36,7 @@
 
         <form class="search-form" id="ai-search-form" autocomplete="off">
           <div class="search-wrapper">
-            <img class="search-icon" src="icons/openai.svg" alt="" width="17" height="17" />
+            <img class="search-icon" id="ai-search-icon" src="icons/openai.svg" alt="" width="17" height="17" />
             <input
               type="text"
               id="ai-search-input"
@@ -179,7 +179,16 @@
         </button>
       </div>
       <div class="modal-body">
-        <p class="modal-message">Settings will appear here.</p>
+        <div class="settings-section">
+          <h4 class="settings-section-title">AI Search Provider</h4>
+          <div class="field">
+            <label for="ai-provider-select">Provider</label>
+            <select id="ai-provider-select" class="settings-select" autocomplete="off">
+              <option value="chatgpt">ChatGPT</option>
+              <option value="claude">Claude</option>
+            </select>
+          </div>
+        </div>
       </div>
       <div class="modal-footer">
         <button class="btn-primary" id="settings-modal-done" type="button">Done</button>

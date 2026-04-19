@@ -1,7 +1,26 @@
 (() => {
-  const SEARCH_URL   = "https://www.google.com/search?q=";
-  const CHATGPT_URL  = "https://chatgpt.com/?q=";
+  const SEARCH_URL = "https://www.google.com/search?q=";
   const STORAGE_KEY = "tabstract_bookmarks_v2";
+  const AI_PROVIDER_KEY = "tabstract_ai_search_provider";
+
+  const AI_PROVIDERS = {
+    chatgpt: {
+      id: "chatgpt",
+      urlPrefix: "https://chatgpt.com/?q=",
+      icon: "openai.svg",
+      placeholder: "Ask ChatGPT...",
+      inputAria: "ChatGPT prompt",
+      clearAria: "Clear ChatGPT prompt",
+    },
+    claude: {
+      id: "claude",
+      urlPrefix: "https://claude.ai/new?q=",
+      icon: "claude.svg",
+      placeholder: "Ask Claude...",
+      inputAria: "Claude prompt",
+      clearAria: "Clear Claude prompt",
+    },
+  };
   const iconSrc = (file) => chrome.runtime.getURL(`icons/${file}`);
 
   // ── Storage ────────────────────────────────────────────────────────────────
@@ -72,16 +91,52 @@
     clearBtn.classList.toggle("visible", searchInput.value.length > 0);
   });
 
-  // ── ChatGPT prompt (left panel) ────────────────────────────────────────────
+  // ── AI prompt (left panel; provider from settings) ─────────────────────────
 
   const aiSearchForm = document.getElementById("ai-search-form");
+  const aiSearchIcon = document.getElementById("ai-search-icon");
   const aiSearchInput = document.getElementById("ai-search-input");
   const aiClearBtn = document.getElementById("ai-clear-btn");
+  const aiProviderSelect = document.getElementById("ai-provider-select");
 
-  function navigateToChatGPT(prompt) {
+  let aiProviderId = "chatgpt";
+
+  function getStoredAiProvider() {
+    try {
+      const v = localStorage.getItem(AI_PROVIDER_KEY);
+      if (v === "claude" || v === "chatgpt") return v;
+    } catch {}
+    return "chatgpt";
+  }
+
+  function providerOrDefault(id) {
+    return AI_PROVIDERS[id] || AI_PROVIDERS.chatgpt;
+  }
+
+  function applyAiSearchProvider(id, { persist } = {}) {
+    const p = providerOrDefault(id);
+    aiProviderId = p.id;
+    if (persist) {
+      try {
+        localStorage.setItem(AI_PROVIDER_KEY, aiProviderId);
+      } catch {}
+    }
+    aiSearchIcon.src = `icons/${p.icon}`;
+    aiSearchInput.placeholder = p.placeholder;
+    aiSearchInput.setAttribute("aria-label", p.inputAria);
+    aiClearBtn.setAttribute("aria-label", p.clearAria);
+    if (aiProviderSelect) aiProviderSelect.value = aiProviderId;
+  }
+
+  function initAiSearchProvider() {
+    applyAiSearchProvider(getStoredAiProvider(), { persist: false });
+  }
+
+  function navigateToAi(prompt) {
     const q = prompt.trim();
     if (!q) return;
-    window.location.href = CHATGPT_URL + encodeURIComponent(q);
+    const p = providerOrDefault(aiProviderId);
+    window.location.href = p.urlPrefix + encodeURIComponent(q);
   }
 
   aiClearBtn.addEventListener("click", () => {
@@ -92,7 +147,7 @@
 
   aiSearchForm.addEventListener("submit", (e) => {
     e.preventDefault();
-    navigateToChatGPT(aiSearchInput.value);
+    navigateToAi(aiSearchInput.value);
   });
 
   aiSearchInput.addEventListener("keydown", (e) => {
@@ -821,6 +876,7 @@
   const settingsModal = document.getElementById("settings-modal");
 
   function openSettingsModal() {
+    if (aiProviderSelect) aiProviderSelect.value = aiProviderId;
     settingsModal.hidden = false;
   }
 
@@ -834,6 +890,12 @@
   settingsModal.addEventListener("click", (e) => {
     if (e.target === settingsModal) closeSettingsModal();
   });
+
+  if (aiProviderSelect) {
+    aiProviderSelect.addEventListener("change", () => {
+      applyAiSearchProvider(aiProviderSelect.value, { persist: true });
+    });
+  }
 
   // ── Global keyboard ────────────────────────────────────────────────────────
 
@@ -863,6 +925,7 @@
     updateClock();
     setInterval(updateClock, 60000);
   }, msUntilNextMinute);
+  initAiSearchProvider();
   searchInput.focus();
   render();
 })();
