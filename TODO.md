@@ -17,3 +17,4 @@
 - [ ] Add named greeting
 - [ ] Add greeting messages
 - [ ] Get more people to test project
+- [ ] Add beta version tag (with hide for 4 hrs)
