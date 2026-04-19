@@ -615,24 +615,22 @@ body {
   width: 60px;
   height: 60px;
   border-radius: 14px;
-  background: var(--surface);
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: transform var(--transition), box-shadow var(--transition);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+  transition: transform var(--transition);
   overflow: hidden;
 }
 
-.icon-item:hover .link-icon-wrap {
-  box-shadow: 0 5px 14px rgba(0,0,0,0.5);
-}
-
 .link-icon-wrap img.favicon {
-  width: 30px;
-  height: 30px;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
+  object-position: center;
+  border-radius: 14px;
+  display: block;
 }
 
 .link-icon-wrap .favicon-fallback {
