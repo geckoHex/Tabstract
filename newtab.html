@@ -78,6 +78,13 @@
           </form>
           <ul class="bookmark-search-results" id="bookmark-search-results" role="listbox" aria-label="Bookmark matches" hidden></ul>
         </div>
+
+        <section class="favorites-section" aria-label="Favorites">
+          <h2 class="favorites-heading">Favorites</h2>
+          <div class="favorites-scroll" id="favorites-scroll">
+            <div class="favorites-grid" id="favorites-grid"></div>
+          </div>
+        </section>
       </div>
     </div>
     <div class="left-panel-footer">
@@ -239,6 +246,10 @@
 
   <!-- Context menu for bookmark icons (right-click) -->
   <div class="context-menu" id="item-context-menu" hidden role="menu" aria-label="Bookmark actions">
+    <button type="button" class="context-menu-item" id="ctx-favorite" role="menuitem">
+      <img class="context-menu-icon" src="icons/star.svg" alt="" width="14" height="14" />
+      <span id="ctx-favorite-label">Favorite</span>
+    </button>
     <button type="button" class="context-menu-item" id="ctx-edit" role="menuitem">
       <img class="context-menu-icon" src="icons/pencil.svg" alt="" width="14" height="14" />
       Edit

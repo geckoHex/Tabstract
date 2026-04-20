@@ -28,12 +28,19 @@
 
   // ── Storage ────────────────────────────────────────────────────────────────
 
+  const MAX_FAVORITES = 16;
+
   function loadData() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) return JSON.parse(raw);
+      if (raw) {
+        const d = JSON.parse(raw);
+        if (!Array.isArray(d.items)) d.items = [];
+        if (!Array.isArray(d.favorites)) d.favorites = [];
+        return d;
+      }
     } catch {}
-    return { items: [] };
+    return { items: [], favorites: [] };
   }
 
   function saveData() {
@@ -473,6 +480,26 @@
     return null;
   }
 
+  /** Folder id chain from root down to and including `folderId` (opens that folder). */
+  function pathIdsToFolder(folderId, items = data.items, prefix = []) {
+    for (const item of items) {
+      if (item.type !== "folder") continue;
+      const chain = [...prefix, item.id];
+      if (item.id === folderId) return chain;
+      const found = pathIdsToFolder(folderId, item.children, chain);
+      if (found) return found;
+    }
+    return null;
+  }
+
+  function pruneStaleFavorites() {
+    const next = data.favorites.filter((id) => findItem(data.items, id));
+    if (next.length !== data.favorites.length) {
+      data.favorites = next;
+      saveData();
+    }
+  }
+
   // Removes item from wherever it lives; returns the item
   function extractItem(id) {
     const r = findItem(data.items, id);
@@ -495,6 +522,7 @@
   // Delete any item by id (folders: children are lost)
   function deleteItem(id) {
     extractItem(id);
+    data.favorites = data.favorites.filter((fid) => fid !== id);
     saveData();
     render();
   }
@@ -562,7 +590,10 @@
   // ══════════════════════════════════════════════════════════════════════════
 
   const grid = document.getElementById("icon-grid");
+  const favoritesGrid = document.getElementById("favorites-grid");
   const itemContextMenu = document.getElementById("item-context-menu");
+  const ctxFavorite = document.getElementById("ctx-favorite");
+  const ctxFavoriteLabel = document.getElementById("ctx-favorite-label");
   const ctxEdit = document.getElementById("ctx-edit");
   const ctxDelete = document.getElementById("ctx-delete");
 
@@ -595,6 +626,14 @@
     e.preventDefault();
     contextItemId = id;
     contextItemType = type;
+    const already = data.favorites.includes(id);
+    if (already) {
+      ctxFavoriteLabel.textContent = "Unfavorite";
+      ctxFavorite.disabled = false;
+    } else {
+      ctxFavoriteLabel.textContent = "Favorite";
+      ctxFavorite.disabled = data.favorites.length >= MAX_FAVORITES;
+    }
     positionContextMenu(e);
   }
 
@@ -605,6 +644,24 @@
 
   document.getElementById("grid-scroll").addEventListener("scroll", () => {
     if (!itemContextMenu.hidden) hideContextMenu();
+  });
+
+  document.getElementById("favorites-scroll").addEventListener("scroll", () => {
+    if (!itemContextMenu.hidden) hideContextMenu();
+  });
+
+  ctxFavorite.addEventListener("click", () => {
+    if (!contextItemId || ctxFavorite.disabled) return;
+    const id = contextItemId;
+    const ix = data.favorites.indexOf(id);
+    if (ix >= 0) {
+      data.favorites.splice(ix, 1);
+    } else if (data.favorites.length < MAX_FAVORITES) {
+      data.favorites.push(id);
+    }
+    saveData();
+    hideContextMenu();
+    render();
   });
 
   ctxEdit.addEventListener("click", () => {
@@ -679,6 +736,7 @@
         <p>${isRoot ? "No bookmarks yet.<br>Add links or folders above." : "This folder is empty.<br>Use Add Link to add one."}</p>`;
       grid.appendChild(empty);
       updateBookmarkSearchResults();
+      renderFavorites();
       return;
     }
 
@@ -686,11 +744,28 @@
       grid.appendChild(item.type === "folder" ? makeFolderIcon(item) : makeLinkIcon(item));
     }
     updateBookmarkSearchResults();
+    renderFavorites();
+  }
+
+  function renderFavorites() {
+    pruneStaleFavorites();
+    favoritesGrid.innerHTML = "";
+    for (const id of data.favorites) {
+      const r = findItem(data.items, id);
+      if (!r) continue;
+      const item = r.item;
+      const node =
+        item.type === "folder"
+          ? makeFolderIcon(item, { draggable: false, navigateFromRoot: true })
+          : makeLinkIcon(item, { draggable: false });
+      favoritesGrid.appendChild(node);
+    }
   }
 
   // ── Folder icon ────────────────────────────────────────────────────────────
 
-  function makeFolderIcon(folder) {
+  function makeFolderIcon(folder, opts = {}) {
+    const { draggable = true, navigateFromRoot = false } = opts;
     const el = document.createElement("div");
     el.className = "icon-item";
     el.dataset.id = folder.id;
@@ -716,29 +791,37 @@
 
     // Click → navigate into folder
     el.addEventListener("click", () => {
-      currentPath = [...currentPath, folder.id];
+      if (navigateFromRoot) {
+        const p = pathIdsToFolder(folder.id);
+        if (p) currentPath = p;
+      } else {
+        currentPath = [...currentPath, folder.id];
+      }
       render();
     });
 
     // Drag & drop (as drag source)
-    el.draggable = true;
-    el.addEventListener("dragstart", (e) => {
-      drag = { itemId: folder.id, dropTarget: null };
-      el.classList.add("dragging");
-      e.dataTransfer.effectAllowed = "move";
-    });
-    el.addEventListener("dragend", () => {
-      drag = null;
-      el.classList.remove("dragging");
-      clearAllDropIndicators();
-    });
+    el.draggable = draggable;
+    if (draggable) {
+      el.addEventListener("dragstart", (e) => {
+        drag = { itemId: folder.id, dropTarget: null };
+        el.classList.add("dragging");
+        e.dataTransfer.effectAllowed = "move";
+      });
+      el.addEventListener("dragend", () => {
+        drag = null;
+        el.classList.remove("dragging");
+        clearAllDropIndicators();
+      });
+    }
 
     return el;
   }
 
   // ── Link icon ──────────────────────────────────────────────────────────────
 
-  function makeLinkIcon(link) {
+  function makeLinkIcon(link, opts = {}) {
+    const { draggable = true } = opts;
     const el = document.createElement("div");
     el.className = "icon-item";
     el.dataset.id = link.id;
@@ -778,17 +861,19 @@
     });
 
     // Drag source
-    el.draggable = true;
-    el.addEventListener("dragstart", (e) => {
-      drag = { itemId: link.id, dropTarget: null };
-      el.classList.add("dragging");
-      e.dataTransfer.effectAllowed = "move";
-    });
-    el.addEventListener("dragend", () => {
-      drag = null;
-      el.classList.remove("dragging");
-      clearAllDropIndicators();
-    });
+    el.draggable = draggable;
+    if (draggable) {
+      el.addEventListener("dragstart", (e) => {
+        drag = { itemId: link.id, dropTarget: null };
+        el.classList.add("dragging");
+        e.dataTransfer.effectAllowed = "move";
+      });
+      el.addEventListener("dragend", () => {
+        drag = null;
+        el.classList.remove("dragging");
+        clearAllDropIndicators();
+      });
+    }
 
     return el;
   }
