@@ -676,42 +676,51 @@
     hideContextMenu();
   });
 
-  // ── Confirm delete modal ─────────────────────────────────────────────────
+  // ── Confirm delete modal (generic destructive action) ─────────────────────
 
   const deleteConfirmModal = document.getElementById("delete-confirm-modal");
   const deleteModalTitle = document.getElementById("delete-modal-title");
   const deleteModalMessage = document.getElementById("delete-modal-message");
-  let pendingDeleteId = null;
+  const deleteConfirmBtn = document.getElementById("delete-confirm");
+  let pendingConfirmAction = null;
+
+  function openDestructiveConfirm({ title, message, confirmLabel = "Confirm", action }) {
+    pendingConfirmAction = action;
+    deleteModalTitle.textContent = title;
+    deleteModalMessage.textContent = message;
+    deleteConfirmBtn.textContent = confirmLabel;
+    deleteConfirmModal.hidden = false;
+  }
 
   function openDeleteConfirm(id) {
     const r = findItem(data.items, id);
     if (!r) return;
-    pendingDeleteId = id;
     const item = r.item;
+    let title, message;
     if (item.type === "link") {
       const label = item.title || hostname(item.url);
-      deleteModalTitle.textContent = "Delete bookmark?";
-      deleteModalMessage.textContent = `Permanently delete "${label}"?`;
+      title = "Delete bookmark?";
+      message = `Permanently delete "${label}"?`;
     } else {
       const n = item.children.length;
       const itemWord = n === 1 ? "item" : "items";
-      deleteModalTitle.textContent = "Delete folder?";
-      deleteModalMessage.textContent =
-        `Permanently delete the folder "${item.name}" and all ${n} ${itemWord} inside it?`;
+      title = "Delete folder?";
+      message = `Permanently delete the folder "${item.name}" and all ${n} ${itemWord} inside it?`;
     }
-    deleteConfirmModal.hidden = false;
+    openDestructiveConfirm({ title, message, confirmLabel: "Delete", action: () => deleteItem(id) });
   }
 
   function closeDeleteConfirm() {
     deleteConfirmModal.hidden = true;
-    pendingDeleteId = null;
+    pendingConfirmAction = null;
   }
 
   document.getElementById("delete-modal-close").addEventListener("click", closeDeleteConfirm);
   document.getElementById("delete-cancel").addEventListener("click", closeDeleteConfirm);
-  document.getElementById("delete-confirm").addEventListener("click", () => {
-    if (pendingDeleteId) deleteItem(pendingDeleteId);
+  deleteConfirmBtn.addEventListener("click", () => {
+    const action = pendingConfirmAction;
     closeDeleteConfirm();
+    if (action) action();
   });
   deleteConfirmModal.addEventListener("click", (e) => {
     if (e.target === deleteConfirmModal) closeDeleteConfirm();
@@ -1280,6 +1289,96 @@
       if (!aiProviderCustom.contains(e.target)) closeAiProviderDropdown();
     });
   }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // DATA IMPORT / EXPORT / DELETE ALL
+  // ══════════════════════════════════════════════════════════════════════════
+
+  function exportData() {
+    const payload = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      bookmarks: data,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "tabstract_export.json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function applyImport(imported) {
+    data = imported;
+    saveData();
+    currentPath = [];
+    render();
+  }
+
+  function handleImportFile(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      let parsed;
+      try {
+        const raw = JSON.parse(e.target.result);
+        if (raw && raw.version === 1 && raw.bookmarks) {
+          parsed = raw.bookmarks;
+        } else if (raw && Array.isArray(raw.items)) {
+          parsed = raw;
+        } else {
+          throw new Error("Unrecognised format");
+        }
+        if (!Array.isArray(parsed.items)) throw new Error("Missing items");
+        if (!Array.isArray(parsed.favorites)) parsed.favorites = [];
+      } catch {
+        alert("Could not read the file. Make sure it's a valid Tabstract export.");
+        return;
+      }
+      const importedData = parsed;
+      openDestructiveConfirm({
+        title: "Replace all data?",
+        message: "This will permanently replace all your current bookmarks and favorites with the imported file. This cannot be undone.",
+        confirmLabel: "Replace",
+        action: () => {
+          applyImport(importedData);
+          closeSettingsModal();
+        },
+      });
+    };
+    reader.readAsText(file);
+  }
+
+  function deleteAllData() {
+    openDestructiveConfirm({
+      title: "Delete all data?",
+      message: "This will permanently delete all your bookmarks and favorites. This cannot be undone.",
+      confirmLabel: "Delete All",
+      action: () => {
+        data = { items: [], favorites: [] };
+        saveData();
+        currentPath = [];
+        render();
+        closeSettingsModal();
+      },
+    });
+  }
+
+  document.getElementById("export-data-btn").addEventListener("click", exportData);
+
+  const importFileInput = document.getElementById("import-file-input");
+  document.getElementById("import-data-btn").addEventListener("click", () => {
+    importFileInput.value = "";
+    importFileInput.click();
+  });
+  importFileInput.addEventListener("change", () => {
+    handleImportFile(importFileInput.files[0]);
+  });
+
+  document.getElementById("delete-all-data-btn").addEventListener("click", deleteAllData);
 
   // ── Global keyboard ────────────────────────────────────────────────────────
 

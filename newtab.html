@@ -215,6 +215,25 @@
             </ul>
           </div>
         </div>
+
+        <div class="settings-section-divider"></div>
+
+        <div class="settings-intro">
+          <h4 class="settings-section-title">Data</h4>
+        </div>
+        <div class="settings-row">
+          <span class="settings-row-label">Export bookmarks</span>
+          <button type="button" class="btn-secondary settings-data-btn" id="export-data-btn">Export</button>
+        </div>
+        <div class="settings-row">
+          <span class="settings-row-label">Import bookmarks</span>
+          <button type="button" class="btn-secondary settings-data-btn" id="import-data-btn">Import</button>
+          <input type="file" id="import-file-input" accept=".json" hidden />
+        </div>
+        <div class="settings-row">
+          <span class="settings-row-label">Delete all bookmarks &amp; favorites</span>
+          <button type="button" class="btn-danger settings-data-btn" id="delete-all-data-btn">Delete All</button>
+        </div>
       </div>
       <div class="modal-footer modal-footer--settings">
         <button class="btn-primary" id="settings-modal-done" type="button">Done</button>
@@ -239,7 +258,7 @@
       </div>
       <div class="modal-footer">
         <button class="btn-secondary" id="delete-cancel" type="button">Cancel</button>
-        <button class="btn-primary" id="delete-confirm" type="button">Delete</button>
+        <button class="btn-primary" id="delete-confirm" type="button">Confirm</button>
       </div>
     </div>
   </div>

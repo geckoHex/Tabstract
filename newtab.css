@@ -1273,3 +1273,35 @@ body {
   background: #fff;
 }
 
+.btn-danger {
+  background: rgba(220, 53, 69, 0.12);
+  border: 1px solid rgba(220, 53, 69, 0.28);
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-size: 0.8125rem;
+  font-family: inherit;
+  color: #ff6b7a;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.btn-danger:hover {
+  background: rgba(220, 53, 69, 0.22);
+  border-color: rgba(220, 53, 69, 0.5);
+  color: #ff8a96;
+}
+
+.settings-section-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.07);
+  margin: 2px 0;
+}
+
+.settings-data-btn {
+  flex-shrink: 0;
+  width: 8rem;
+  max-width: 100%;
+  text-align: center;
+  box-sizing: border-box;
+}
+
