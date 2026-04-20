@@ -761,7 +761,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 22px;
+  gap: 32px;
 }
 
 .modal-footer--settings {
@@ -797,6 +797,11 @@ body {
   min-width: 0;
 }
 
+/* When "AI search box" is off, hide provider row (JS toggles class + hidden). */
+#ai-provider-settings-row.settings-ai-provider-row--collapsed {
+  display: none !important;
+}
+
 .settings-row-label {
   font-size: 0.875rem;
   font-weight: 400;
@@ -812,16 +817,6 @@ body {
   border-radius: 10px;
   margin: -6px -8px;
   padding: 6px 8px;
-  transition: background var(--transition);
-}
-
-.settings-row--toggle:hover {
-  background: rgba(255, 255, 255, 0.04);
-}
-
-.settings-row--toggle:focus-within {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 .settings-toggle {
@@ -880,8 +875,8 @@ body {
 }
 
 .settings-toggle-input:focus-visible + .settings-toggle-track {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.18);
 }
 
 .custom-select--settings {

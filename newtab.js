@@ -105,6 +105,7 @@
   const aiProviderTriggerText = document.getElementById("ai-provider-trigger-text");
   const aiProviderList = document.getElementById("ai-provider-list");
   const aiSearchEnabledInput = document.getElementById("ai-search-enabled");
+  const aiProviderSettingsRow = document.getElementById("ai-provider-settings-row");
 
   let aiProviderId = "chatgpt";
 
@@ -131,9 +132,17 @@
     } catch {}
   }
 
+  function setAiSearchProviderSettingRowVisible(visible) {
+    if (!aiProviderSettingsRow) return;
+    aiProviderSettingsRow.classList.toggle("settings-ai-provider-row--collapsed", !visible);
+    aiProviderSettingsRow.toggleAttribute("hidden", !visible);
+    if (!visible) closeAiProviderDropdown();
+  }
+
   function applyAiSearchBoxVisibility(enabled) {
     aiSearchForm.hidden = !enabled;
     if (aiSearchEnabledInput) aiSearchEnabledInput.checked = enabled;
+    setAiSearchProviderSettingRowVisible(enabled);
   }
 
   function providerOrDefault(id) {
