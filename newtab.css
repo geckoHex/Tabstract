@@ -542,6 +542,10 @@ body {
   padding-top: 12px;
 }
 
+.favorites-section[hidden] {
+  display: none;
+}
+
 .favorites-heading {
   font-size: 0.6875rem;
   font-weight: 600;
