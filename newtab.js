@@ -55,7 +55,8 @@
 
   // ── Drag state ─────────────────────────────────────────────────────────────
 
-  let drag = null; // { itemId }
+  let drag = null;    // { itemId, dropTarget } — bookmark grid
+  let favDrag = null; // { favId, dropTarget }  — favorites grid
 
   // ══════════════════════════════════════════════════════════════════════════
   // CLOCK
@@ -758,6 +759,19 @@
         item.type === "folder"
           ? makeFolderIcon(item, { draggable: false, navigateFromRoot: true })
           : makeLinkIcon(item, { draggable: false });
+
+      node.draggable = true;
+      node.addEventListener("dragstart", (e) => {
+        favDrag = { favId: id, dropTarget: null };
+        node.classList.add("dragging");
+        e.dataTransfer.effectAllowed = "move";
+      });
+      node.addEventListener("dragend", () => {
+        favDrag = null;
+        node.classList.remove("dragging");
+        clearAllDropIndicators();
+      });
+
       favoritesGrid.appendChild(node);
     }
   }
@@ -975,6 +989,75 @@
       reorderItemBefore(itemId, dt.id);
     } else if (dt.mode === "after") {
       reorderItemAfter(itemId, dt.id);
+    }
+  });
+
+  // ── Favorites drag-to-reorder ──────────────────────────────────────────────
+
+  function reorderFavoriteBefore(favId, beforeId) {
+    const fromIdx = data.favorites.indexOf(favId);
+    const arr = data.favorites;
+    arr.splice(fromIdx, 1);
+    const toIdx = arr.indexOf(beforeId);
+    arr.splice(toIdx === -1 ? arr.length : toIdx, 0, favId);
+    saveData();
+    renderFavorites();
+  }
+
+  function reorderFavoriteAfter(favId, afterId) {
+    const fromIdx = data.favorites.indexOf(favId);
+    const arr = data.favorites;
+    arr.splice(fromIdx, 1);
+    const toIdx = arr.indexOf(afterId);
+    arr.splice(toIdx === -1 ? arr.length : toIdx + 1, 0, favId);
+    saveData();
+    renderFavorites();
+  }
+
+  favoritesGrid.addEventListener("dragover", (e) => {
+    if (!favDrag) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+
+    const target = e.target.closest(".icon-item");
+    if (!target || target.dataset.id === favDrag.favId) {
+      clearAllDropIndicators();
+      favDrag.dropTarget = null;
+      return;
+    }
+
+    const targetId = target.dataset.id;
+    const rect = target.getBoundingClientRect();
+    const midX = rect.left + rect.width / 2;
+
+    clearAllDropIndicators();
+
+    if (e.clientX < midX) {
+      target.classList.add("drop-before");
+      favDrag.dropTarget = { mode: "before", id: targetId };
+    } else {
+      target.classList.add("drop-after");
+      favDrag.dropTarget = { mode: "after", id: targetId };
+    }
+  });
+
+  favoritesGrid.addEventListener("dragleave", (e) => {
+    if (!favDrag || favoritesGrid.contains(e.relatedTarget)) return;
+    clearAllDropIndicators();
+    favDrag.dropTarget = null;
+  });
+
+  favoritesGrid.addEventListener("drop", (e) => {
+    e.preventDefault();
+    if (!favDrag) return;
+    clearAllDropIndicators();
+    const dt = favDrag.dropTarget;
+    const favId = favDrag.favId;
+    if (!dt) return;
+    if (dt.mode === "before") {
+      reorderFavoriteBefore(favId, dt.id);
+    } else if (dt.mode === "after") {
+      reorderFavoriteAfter(favId, dt.id);
     }
   });
 
