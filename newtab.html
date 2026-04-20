@@ -171,17 +171,18 @@
     <div class="modal modal--settings">
       <div class="modal-header">
         <h3>Settings</h3>
-        <button class="modal-close" id="settings-modal-close" aria-label="Close">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
       </div>
       <div class="modal-body modal-body--settings">
         <div class="settings-intro">
           <h4 class="settings-section-title">Search Options</h4>
         </div>
+        <label class="settings-row settings-row--toggle">
+          <span class="settings-row-label">AI search box</span>
+          <span class="settings-toggle">
+            <input type="checkbox" id="ai-search-enabled" class="settings-toggle-input" checked />
+            <span class="settings-toggle-track" aria-hidden="true"></span>
+          </span>
+        </label>
         <div class="settings-row">
           <label class="settings-row-label" for="ai-provider-trigger" id="ai-provider-label">AI Search Provider</label>
           <div class="custom-select custom-select--settings" id="ai-provider-custom-select">

@@ -2,6 +2,7 @@
   const SEARCH_URL = "https://www.google.com/search?q=";
   const STORAGE_KEY = "tabstract_bookmarks_v2";
   const AI_PROVIDER_KEY = "tabstract_ai_search_provider";
+  const AI_SEARCH_ENABLED_KEY = "tabstract_ai_search_enabled";
 
   const AI_PROVIDERS = {
     chatgpt: {
@@ -103,6 +104,7 @@
   const aiProviderTrigger = document.getElementById("ai-provider-trigger");
   const aiProviderTriggerText = document.getElementById("ai-provider-trigger-text");
   const aiProviderList = document.getElementById("ai-provider-list");
+  const aiSearchEnabledInput = document.getElementById("ai-search-enabled");
 
   let aiProviderId = "chatgpt";
 
@@ -112,6 +114,26 @@
       if (v === "claude" || v === "chatgpt") return v;
     } catch {}
     return "chatgpt";
+  }
+
+  function getStoredAiSearchEnabled() {
+    try {
+      const v = localStorage.getItem(AI_SEARCH_ENABLED_KEY);
+      if (v === null) return true;
+      return v === "true";
+    } catch {}
+    return true;
+  }
+
+  function setStoredAiSearchEnabled(on) {
+    try {
+      localStorage.setItem(AI_SEARCH_ENABLED_KEY, on ? "true" : "false");
+    } catch {}
+  }
+
+  function applyAiSearchBoxVisibility(enabled) {
+    aiSearchForm.hidden = !enabled;
+    if (aiSearchEnabledInput) aiSearchEnabledInput.checked = enabled;
   }
 
   function providerOrDefault(id) {
@@ -923,6 +945,7 @@
   const settingsModal = document.getElementById("settings-modal");
 
   function openSettingsModal() {
+    applyAiSearchBoxVisibility(getStoredAiSearchEnabled());
     syncAiProviderCustomSelect();
     closeAiProviderDropdown();
     settingsModal.hidden = false;
@@ -934,11 +957,18 @@
   }
 
   document.getElementById("settings-btn").addEventListener("click", openSettingsModal);
-  document.getElementById("settings-modal-close").addEventListener("click", closeSettingsModal);
   document.getElementById("settings-modal-done").addEventListener("click", closeSettingsModal);
   settingsModal.addEventListener("click", (e) => {
     if (e.target === settingsModal) closeSettingsModal();
   });
+
+  if (aiSearchEnabledInput) {
+    aiSearchEnabledInput.addEventListener("change", () => {
+      const on = aiSearchEnabledInput.checked;
+      setStoredAiSearchEnabled(on);
+      applyAiSearchBoxVisibility(on);
+    });
+  }
 
   if (aiProviderTrigger && aiProviderList) {
     aiProviderTrigger.addEventListener("click", (e) => {
@@ -1032,6 +1062,7 @@
     setInterval(updateClock, 60000);
   }, msUntilNextMinute);
   initAiSearchProvider();
+  applyAiSearchBoxVisibility(getStoredAiSearchEnabled());
   searchInput.focus();
   render();
 })();

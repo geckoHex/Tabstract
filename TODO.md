@@ -1,6 +1,4 @@
-- [ ] Space out settings menu
 - [ ] Add favorites section on the left for fav apps
-- [ ] Add todo list
 - [ ] Add data import/ export
 - [ ] Rounds line connectors in top left and remove bit extending above the top of the horizontal line from the vertical line
 - [ ] Pick a nicer font
