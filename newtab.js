@@ -723,31 +723,14 @@
     // Drag & drop (as drag source)
     el.draggable = true;
     el.addEventListener("dragstart", (e) => {
-      drag = { itemId: folder.id };
+      drag = { itemId: folder.id, dropTarget: null };
       el.classList.add("dragging");
       e.dataTransfer.effectAllowed = "move";
     });
     el.addEventListener("dragend", () => {
       drag = null;
       el.classList.remove("dragging");
-      document.querySelectorAll(".drop-target").forEach(t => t.classList.remove("drop-target"));
-    });
-
-    // Drop target: receive dragged items INTO this folder
-    el.addEventListener("dragover", (e) => {
-      if (!drag || drag.itemId === folder.id) return;
-      e.preventDefault();
-      e.dataTransfer.dropEffect = "move";
-      el.classList.add("drop-target");
-    });
-    el.addEventListener("dragleave", (e) => {
-      if (!el.contains(e.relatedTarget)) el.classList.remove("drop-target");
-    });
-    el.addEventListener("drop", (e) => {
-      e.preventDefault();
-      el.classList.remove("drop-target");
-      if (!drag || drag.itemId === folder.id) return;
-      moveIntoFolder(drag.itemId, folder.id);
+      clearAllDropIndicators();
     });
 
     return el;
@@ -797,14 +780,14 @@
     // Drag source
     el.draggable = true;
     el.addEventListener("dragstart", (e) => {
-      drag = { itemId: link.id };
+      drag = { itemId: link.id, dropTarget: null };
       el.classList.add("dragging");
       e.dataTransfer.effectAllowed = "move";
     });
     el.addEventListener("dragend", () => {
       drag = null;
       el.classList.remove("dragging");
-      document.querySelectorAll(".drop-target").forEach(t => t.classList.remove("drop-target"));
+      clearAllDropIndicators();
     });
 
     return el;
@@ -816,6 +799,99 @@
     span.textContent = (link.title || hostname(link.url) || "?")[0].toUpperCase();
     return span;
   }
+
+  // ── Drag-to-reorder ────────────────────────────────────────────────────────
+
+  function clearAllDropIndicators() {
+    document.querySelectorAll(".drop-target, .drop-before, .drop-after")
+      .forEach(el => el.classList.remove("drop-target", "drop-before", "drop-after"));
+  }
+
+  function reorderItemBefore(id, beforeId) {
+    const item = extractItem(id);
+    if (!item) return;
+    const items = currentItems();
+    const idx = items.findIndex(i => i.id === beforeId);
+    items.splice(idx === -1 ? items.length : idx, 0, item);
+    saveData();
+    render();
+  }
+
+  function reorderItemAfter(id, afterId) {
+    const item = extractItem(id);
+    if (!item) return;
+    const items = currentItems();
+    const idx = items.findIndex(i => i.id === afterId);
+    items.splice(idx === -1 ? items.length : idx + 1, 0, item);
+    saveData();
+    render();
+  }
+
+  grid.addEventListener("dragover", (e) => {
+    if (!drag) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+
+    const target = e.target.closest(".icon-item");
+    if (!target || target.dataset.id === drag.itemId) {
+      clearAllDropIndicators();
+      drag.dropTarget = null;
+      return;
+    }
+
+    const targetId = target.dataset.id;
+    const rect = target.getBoundingClientRect();
+    const midX = rect.left + rect.width / 2;
+    const isFolder = !!currentItems().find(i => i.id === targetId && i.type === "folder");
+
+    clearAllDropIndicators();
+
+    if (isFolder) {
+      const inset = rect.width * 0.28;
+      if (e.clientX >= rect.left + inset && e.clientX <= rect.right - inset) {
+        target.classList.add("drop-target");
+        drag.dropTarget = { mode: "into", id: targetId };
+      } else if (e.clientX < midX) {
+        target.classList.add("drop-before");
+        drag.dropTarget = { mode: "before", id: targetId };
+      } else {
+        target.classList.add("drop-after");
+        drag.dropTarget = { mode: "after", id: targetId };
+      }
+    } else {
+      if (e.clientX < midX) {
+        target.classList.add("drop-before");
+        drag.dropTarget = { mode: "before", id: targetId };
+      } else {
+        target.classList.add("drop-after");
+        drag.dropTarget = { mode: "after", id: targetId };
+      }
+    }
+  });
+
+  grid.addEventListener("dragleave", (e) => {
+    if (!drag || grid.contains(e.relatedTarget)) return;
+    clearAllDropIndicators();
+    drag.dropTarget = null;
+  });
+
+  grid.addEventListener("drop", (e) => {
+    e.preventDefault();
+    if (!drag) return;
+    clearAllDropIndicators();
+    const dt = drag.dropTarget;
+    const itemId = drag.itemId;
+    if (!dt) {
+      const item = extractItem(itemId);
+      if (item) { currentItems().push(item); saveData(); render(); }
+    } else if (dt.mode === "into") {
+      moveIntoFolder(itemId, dt.id);
+    } else if (dt.mode === "before") {
+      reorderItemBefore(itemId, dt.id);
+    } else if (dt.mode === "after") {
+      reorderItemAfter(itemId, dt.id);
+    }
+  });
 
   // ══════════════════════════════════════════════════════════════════════════
   // MODAL: ADD LINK
