@@ -757,42 +757,57 @@
   // ══════════════════════════════════════════════════════════════════════════
 
   const grid = document.getElementById("icon-grid");
+  const gridScroll = document.getElementById("grid-scroll");
   const favoritesGrid = document.getElementById("favorites-grid");
+  const favoritesScroll = document.getElementById("favorites-scroll");
   const itemContextMenu = document.getElementById("item-context-menu");
+  const gridContextMenu = document.getElementById("grid-context-menu");
   const ctxFavorite = document.getElementById("ctx-favorite");
   const ctxFavoriteIcon = document.getElementById("ctx-favorite-icon");
   const ctxFavoriteLabel = document.getElementById("ctx-favorite-label");
   const ctxCustomize = document.getElementById("ctx-customize");
   const ctxEdit = document.getElementById("ctx-edit");
   const ctxDelete = document.getElementById("ctx-delete");
+  const ctxGridNewLink = document.getElementById("ctx-grid-new-link");
+  const ctxGridNewFolder = document.getElementById("ctx-grid-new-folder");
 
   let contextItemId = null;
   let contextItemType = null; // "folder" | "link"
 
-  function hideContextMenu() {
+  function hideItemContextMenu() {
     itemContextMenu.hidden = true;
     contextItemId = null;
     contextItemType = null;
   }
 
-  function positionContextMenu(e) {
+  function hideGridContextMenu() {
+    gridContextMenu.hidden = true;
+  }
+
+  function hideAllContextMenus() {
+    hideItemContextMenu();
+    hideGridContextMenu();
+  }
+
+  function positionContextMenu(menu, e) {
     const pad = 8;
     let x = e.clientX;
     let y = e.clientY;
-    itemContextMenu.hidden = false;
-    itemContextMenu.style.left = `${x}px`;
-    itemContextMenu.style.top = `${y}px`;
-    const rect = itemContextMenu.getBoundingClientRect();
+    menu.hidden = false;
+    menu.style.left = `${x}px`;
+    menu.style.top = `${y}px`;
+    const rect = menu.getBoundingClientRect();
     if (rect.right > window.innerWidth - pad) x = window.innerWidth - rect.width - pad;
     if (rect.bottom > window.innerHeight - pad) y = window.innerHeight - rect.height - pad;
     if (x < pad) x = pad;
     if (y < pad) y = pad;
-    itemContextMenu.style.left = `${x}px`;
-    itemContextMenu.style.top = `${y}px`;
+    menu.style.left = `${x}px`;
+    menu.style.top = `${y}px`;
   }
 
   function showItemContextMenu(e, id, type) {
     e.preventDefault();
+    hideGridContextMenu();
     contextItemId = id;
     contextItemType = type;
     ctxCustomize.hidden = type !== "link";
@@ -806,20 +821,26 @@
       ctxFavoriteIcon.src = "icons/push-pin.svg";
       ctxFavorite.disabled = data.favorites.length >= MAX_FAVORITES;
     }
-    positionContextMenu(e);
+    positionContextMenu(itemContextMenu, e);
+  }
+
+  function showGridContextMenu(e) {
+    e.preventDefault();
+    hideItemContextMenu();
+    positionContextMenu(gridContextMenu, e);
   }
 
   document.addEventListener("mousedown", (e) => {
-    if (itemContextMenu.hidden) return;
-    if (!itemContextMenu.contains(e.target)) hideContextMenu();
+    if (!itemContextMenu.hidden && !itemContextMenu.contains(e.target)) hideItemContextMenu();
+    if (!gridContextMenu.hidden && !gridContextMenu.contains(e.target)) hideGridContextMenu();
   });
 
-  document.getElementById("grid-scroll").addEventListener("scroll", () => {
-    if (!itemContextMenu.hidden) hideContextMenu();
+  gridScroll.addEventListener("scroll", () => {
+    if (!itemContextMenu.hidden || !gridContextMenu.hidden) hideAllContextMenus();
   });
 
-  document.getElementById("favorites-scroll").addEventListener("scroll", () => {
-    if (!itemContextMenu.hidden) hideContextMenu();
+  favoritesScroll.addEventListener("scroll", () => {
+    if (!itemContextMenu.hidden || !gridContextMenu.hidden) hideAllContextMenus();
   });
 
   async function handleFavoriteToggle() {
@@ -832,7 +853,7 @@
       data.favorites.push(id);
     }
     await saveData();
-    hideContextMenu();
+    hideItemContextMenu();
     render();
   }
 
@@ -843,10 +864,10 @@
   ctxEdit.addEventListener("click", () => {
     if (!contextItemId) return;
     const r = findItem(data.items, contextItemId);
-    if (!r) { hideContextMenu(); return; }
+    if (!r) { hideItemContextMenu(); return; }
     if (contextItemType === "link" && r.item.type === "link") openLinkModalForEdit(r.item);
     else if (contextItemType === "folder" && r.item.type === "folder") openFolderModalForEdit(r.item);
-    hideContextMenu();
+    hideItemContextMenu();
   });
 
   // ── Modal: customize icon ────────────────────────────────────────────────
@@ -1022,7 +1043,7 @@
   ctxCustomize.addEventListener("click", () => {
     if (!contextItemId || contextItemType !== "link") return;
     const r = findItem(data.items, contextItemId);
-    hideContextMenu();
+    hideItemContextMenu();
     if (!r || r.item.type !== "link") return;
     openIconCustomizeModal(r.item);
   });
@@ -1161,10 +1182,25 @@
   });
 
   ctxDelete.addEventListener("click", () => {
-    if (!contextItemId) { hideContextMenu(); return; }
+    if (!contextItemId) { hideItemContextMenu(); return; }
     const id = contextItemId;
-    hideContextMenu();
+    hideItemContextMenu();
     openDeleteConfirm(id);
+  });
+
+  gridScroll.addEventListener("contextmenu", (e) => {
+    if (e.target.closest(".icon-item")) return;
+    showGridContextMenu(e);
+  });
+
+  ctxGridNewLink.addEventListener("click", () => {
+    hideGridContextMenu();
+    openLinkModal();
+  });
+
+  ctxGridNewFolder.addEventListener("click", () => {
+    hideGridContextMenu();
+    openFolderModal();
   });
 
   function render() {
@@ -1851,7 +1887,7 @@
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
-      if (!itemContextMenu.hidden) { hideContextMenu(); return; }
+      if (!itemContextMenu.hidden || !gridContextMenu.hidden) { hideAllContextMenus(); return; }
       if (!deleteConfirmModal.hidden) { closeDeleteConfirm(); return; }
       if (!iconCustomizeModal.hidden) { closeIconCustomizeModal(); return; }
       if (!settingsModal.hidden) {
