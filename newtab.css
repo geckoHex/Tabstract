@@ -1010,7 +1010,7 @@ body {
 }
 
 .settings-toggle-input:checked + .settings-toggle-track::after {
-  transform: translate(20px, -50%);
+  transform: translate(18px, -50%);
   background: var(--text-primary);
 }
 
