@@ -1183,12 +1183,6 @@ body {
   border: 0;
 }
 
-.icon-customize-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
 .icon-customize-help {
   font-size: 0.8125rem;
   line-height: 1.5;
@@ -1210,13 +1204,8 @@ body {
   height: 240px;
   border-radius: 20px;
   overflow: hidden;
-  background:
-    linear-gradient(45deg, rgba(255,255,255,0.04) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.04) 75%),
-    linear-gradient(45deg, rgba(255,255,255,0.04) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.04) 75%);
-  background-position: 0 0, 10px 10px;
-  background-size: 20px 20px;
+  background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
   cursor: grab;
   touch-action: none;
 }
@@ -1225,10 +1214,80 @@ body {
   cursor: grabbing;
 }
 
+.icon-crop-stage.is-empty {
+  border-style: dashed;
+  border-width: 1.5px;
+  border-color: rgba(255, 255, 255, 0.18);
+  cursor: default;
+}
+
+.icon-upload-dropzone {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: color var(--transition), background var(--transition);
+}
+
+.icon-upload-dropzone:hover,
+.icon-upload-dropzone:focus-visible {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.03);
+  outline: none;
+}
+
+.icon-upload-dropzone[hidden] {
+  display: none;
+}
+
+.icon-remove-overlay {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(26, 26, 30, 0.8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition), opacity var(--transition);
+}
+
+.icon-remove-overlay:hover,
+.icon-remove-overlay:focus-visible {
+  background: rgba(44, 44, 48, 0.96);
+  border-color: rgba(255, 255, 255, 0.22);
+  outline: none;
+}
+
+.icon-remove-overlay img {
+  display: block;
+  filter: invert(1);
+  opacity: 0.85;
+}
+
+.icon-remove-overlay[hidden] {
+  display: none;
+}
+
 .icon-crop-stage canvas {
   width: 100%;
   height: 100%;
   display: block;
+}
+
+.icon-crop-stage.is-empty canvas {
+  display: none;
 }
 
 .settings-section-title {

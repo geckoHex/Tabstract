@@ -917,16 +917,7 @@
 
   function drawIconCropPreview() {
     iconCropCtx.clearRect(0, 0, iconCropCanvas.width, iconCropCanvas.height);
-    if (!iconCropState.image) {
-      iconCropCtx.fillStyle = "rgba(255,255,255,0.08)";
-      iconCropCtx.fillRect(0, 0, iconCropCanvas.width, iconCropCanvas.height);
-      iconCropCtx.fillStyle = "rgba(255,255,255,0.45)";
-      iconCropCtx.font = '500 14px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-      iconCropCtx.textAlign = "center";
-      iconCropCtx.textBaseline = "middle";
-      iconCropCtx.fillText("Upload an image", iconCropCanvas.width / 2, iconCropCanvas.height / 2);
-      return;
-    }
+    if (!iconCropState.image) return;
     const metrics = getIconCropMetrics();
     if (!metrics) return;
     iconCropCtx.drawImage(metrics.image, metrics.x, metrics.y, metrics.drawnWidth, metrics.drawnHeight);
@@ -934,9 +925,12 @@
 
   function syncIconCustomizeControls() {
     const active = Boolean(iconCropState.image);
+    const showUploadState = !active;
     iconZoomInput.disabled = !active;
     iconCustomizeSaveBtn.disabled = !active && !removeCustomIconOnSave;
-    iconRemoveBtn.disabled = !active && !removeCustomIconOnSave;
+    iconCropStage.classList.toggle("is-empty", showUploadState);
+    iconUploadBtn.hidden = !showUploadState;
+    iconRemoveBtn.hidden = !active;
     if (removeCustomIconOnSave) {
       iconCustomizeHelp.textContent = "The custom icon will be removed when you save.";
     } else if (active) {
@@ -1054,6 +1048,14 @@
     resetIconCropState();
     removeCustomIconOnSave = true;
     syncIconCustomizeControls();
+  });
+
+  iconRemoveBtn.addEventListener("pointerdown", (e) => {
+    e.stopPropagation();
+  });
+
+  iconRemoveBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
   });
 
   iconZoomInput.addEventListener("input", () => {

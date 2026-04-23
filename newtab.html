@@ -186,13 +186,13 @@
         </button>
       </div>
       <div class="modal-body modal-body--icon-customize">
-        <div class="icon-customize-actions">
-          <button type="button" class="btn-secondary" id="icon-upload-btn">Upload Image</button>
-          <button type="button" class="btn-secondary" id="icon-remove-btn">Remove Custom Icon</button>
-          <input type="file" id="icon-upload-input" accept="image/*" hidden />
-        </div>
+        <input type="file" id="icon-upload-input" accept="image/*" hidden />
         <p class="icon-customize-help" id="icon-customize-help">Upload an image, then drag to reposition and use the slider to zoom.</p>
         <div class="icon-crop-stage" id="icon-crop-stage" aria-label="Icon crop preview">
+          <button type="button" class="icon-upload-dropzone" id="icon-upload-btn">Click to upload</button>
+          <button type="button" class="icon-remove-overlay" id="icon-remove-btn" aria-label="Remove custom image" hidden>
+            <img src="icons/trash.svg" alt="" width="16" height="16" />
+          </button>
           <canvas id="icon-crop-canvas" width="240" height="240"></canvas>
         </div>
         <div class="field">
