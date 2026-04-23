@@ -2,4 +2,3 @@
 - [ ] Add custom search filters like transparent images, large images, etc
 - [ ] Add named greeting
 - [ ] Add greeting messages
-- [ ] Fix the toggle "on" state in settings
