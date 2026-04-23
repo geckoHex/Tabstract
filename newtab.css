@@ -1127,15 +1127,60 @@ body {
 }
 
 .field input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
   height: auto;
   padding: 0;
   background: transparent;
   border: none;
   border-radius: 0;
+  box-shadow: none;
+  outline: none;
 }
 
 .field input[type="range"]:focus {
   border-color: transparent;
+  box-shadow: none;
+  outline: none;
+}
+
+.field input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.14);
+  border: none;
+  border-radius: 999px;
+}
+
+.field input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: -5px;
+  background: #d5d5dc;
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
+.field input[type="range"]::-moz-range-track {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.14);
+  border: none;
+  border-radius: 999px;
+}
+
+.field input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  background: #d5d5dc;
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
+.field input[type="range"]::-moz-focus-outer {
+  border: 0;
 }
 
 .icon-customize-actions {
