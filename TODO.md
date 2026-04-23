@@ -1,4 +1,3 @@
-- [ ] Add data import/ export
 - [ ] Rounds line connectors in top left and remove bit extending above the top of the horizontal line from the vertical line
 - [ ] Pick a nicer font
 - [ ] Add image customization for background
@@ -6,7 +5,6 @@
 - [ ] Add color theming
 - [ ] Add custom icons in chrome web store view
 - [ ] Publish to chrome web store??
-- [ ] Allow custom icons (and a preset ist of custom icon options)
 - [ ] Test on different screen sizes
 - [ ] Add different search providers for web search
 - [ ] Add custom search filters like transparent images, large images, etc
