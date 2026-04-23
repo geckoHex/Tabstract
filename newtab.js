@@ -41,6 +41,7 @@
     return {
       aiProvider: "chatgpt",
       aiSearchEnabled: true,
+      bookmarkSearchResultLimit: 8,
     };
   }
 
@@ -156,6 +157,12 @@
       }
       if (record.key === "aiSearchEnabled") {
         settings.aiSearchEnabled = Boolean(record.value);
+      }
+      if (record.key === "bookmarkSearchResultLimit") {
+        const value = Number(record.value);
+        if (Number.isInteger(value) && value >= 1 && value <= 8) {
+          settings.bookmarkSearchResultLimit = value;
+        }
       }
     }
     return settings;
@@ -278,6 +285,7 @@
   const aiProviderTrigger = document.getElementById("ai-provider-trigger");
   const aiProviderTriggerText = document.getElementById("ai-provider-trigger-text");
   const aiProviderList = document.getElementById("ai-provider-list");
+  const bookmarkSearchLimitInput = document.getElementById("bookmark-search-limit-input");
   const aiSearchEnabledInput = document.getElementById("ai-search-enabled");
   const aiProviderSettingsRow = document.getElementById("ai-provider-settings-row");
 
@@ -291,9 +299,18 @@
     return settings.aiSearchEnabled;
   }
 
+  function getStoredBookmarkSearchResultLimit() {
+    return settings.bookmarkSearchResultLimit;
+  }
+
   async function setStoredAiSearchEnabled(on) {
     settings.aiSearchEnabled = on;
     await saveSetting("aiSearchEnabled", on);
+  }
+
+  async function setStoredBookmarkSearchResultLimit(limit) {
+    settings.bookmarkSearchResultLimit = limit;
+    await saveSetting("bookmarkSearchResultLimit", limit);
   }
 
   function setAiSearchProviderSettingRowVisible(visible) {
@@ -367,6 +384,23 @@
           : opts.length - 1
         : Math.min(Math.max(ix + dir, 0), opts.length - 1);
     opts[next].focus();
+  }
+
+  function syncBookmarkSearchLimitInput() {
+    if (!bookmarkSearchLimitInput) return;
+    bookmarkSearchLimitInput.value = String(getStoredBookmarkSearchResultLimit());
+  }
+
+  async function applyBookmarkSearchResultLimit(limit, { persist } = {}) {
+    const normalized = Number(limit);
+    if (!Number.isInteger(normalized) || normalized < 1 || normalized > 8) return;
+    if (persist) {
+      await setStoredBookmarkSearchResultLimit(normalized);
+    } else {
+      settings.bookmarkSearchResultLimit = normalized;
+    }
+    syncBookmarkSearchLimitInput();
+    updateBookmarkSearchResults();
   }
 
   async function initAiSearchProvider() {
@@ -495,7 +529,7 @@
       if (s >= 0) ranked.push({ entry, score: s });
     }
     ranked.sort((a, b) => b.score - a.score);
-    const top = ranked.slice(0, 8);
+    const top = ranked.slice(0, getStoredBookmarkSearchResultLimit());
 
     bookmarkSearchResults.innerHTML = "";
     if (top.length === 0) {
@@ -1709,6 +1743,7 @@
   function openSettingsModal() {
     applyAiSearchBoxVisibility(getStoredAiSearchEnabled());
     syncAiProviderCustomSelect();
+    syncBookmarkSearchLimitInput();
     closeAiProviderDropdown();
     settingsModal.hidden = false;
   }
@@ -1797,6 +1832,17 @@
       if (!isAiProviderDropdownOpen() || !aiProviderCustom) return;
       if (!aiProviderCustom.contains(e.target)) closeAiProviderDropdown();
     });
+  }
+
+  if (bookmarkSearchLimitInput) {
+    const persistBookmarkSearchLimitInput = () => {
+      const raw = Number(bookmarkSearchLimitInput.value);
+      const normalized = Number.isFinite(raw) ? Math.min(8, Math.max(1, Math.round(raw))) : getStoredBookmarkSearchResultLimit();
+      void applyBookmarkSearchResultLimit(normalized, { persist: true }).catch(reportStorageError);
+    };
+
+    bookmarkSearchLimitInput.addEventListener("change", persistBookmarkSearchLimitInput);
+    bookmarkSearchLimitInput.addEventListener("blur", persistBookmarkSearchLimitInput);
   }
 
   // ══════════════════════════════════════════════════════════════════════════

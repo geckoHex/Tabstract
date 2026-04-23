@@ -1056,6 +1056,27 @@ body {
   min-width: 160px;
 }
 
+.settings-number-input {
+  flex-shrink: 0;
+  width: 84px;
+  height: 38px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0 10px;
+  font: inherit;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  text-align: center;
+  outline: none;
+  transition: border-color var(--transition), background var(--transition);
+}
+
+.settings-number-input:focus {
+  border-color: var(--accent);
+  background: var(--surface-hover);
+}
+
 .modal-overlay-elevated {
   z-index: 110;
 }
