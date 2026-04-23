@@ -406,6 +406,7 @@
   const bookmarkSearchInput = document.getElementById("bookmark-search-input");
   const bookmarkClearBtn = document.getElementById("bookmark-clear-btn");
   const bookmarkSearchResults = document.getElementById("bookmark-search-results");
+  const bookmarkSearchBox = document.querySelector(".bookmark-search-box");
   const favoritesSection = document.getElementById("favorites-section");
 
   function collectAllLinks(items, folderNames, out = []) {
@@ -476,9 +477,14 @@
     bookmarkClearBtn.classList.toggle("visible", q.length > 0);
     favoritesSection.hidden = q.length > 0;
 
+    const setResultsVisible = (visible) => {
+      bookmarkSearchResults.hidden = !visible;
+      bookmarkSearchBox.classList.toggle("has-results", visible);
+    };
+
     if (!q) {
       bookmarkSearchResults.innerHTML = "";
-      bookmarkSearchResults.hidden = true;
+      setResultsVisible(false);
       return;
     }
 
@@ -489,11 +495,11 @@
       if (s >= 0) ranked.push({ entry, score: s });
     }
     ranked.sort((a, b) => b.score - a.score);
-    const top = ranked.slice(0, 5);
+    const top = ranked.slice(0, 8);
 
     bookmarkSearchResults.innerHTML = "";
     if (top.length === 0) {
-      bookmarkSearchResults.hidden = true;
+      setResultsVisible(false);
       return;
     }
 
@@ -540,7 +546,7 @@
       li.appendChild(btn);
       bookmarkSearchResults.appendChild(li);
     }
-    bookmarkSearchResults.hidden = false;
+    setResultsVisible(true);
   }
 
   function makeBookmarkSearchFallback(link) {

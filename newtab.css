@@ -238,14 +238,16 @@ body {
 
 .bookmark-search-form {
   width: 100%;
+  position: relative;
+  z-index: 1;
 }
 
 .bookmark-search-results {
   position: absolute;
   left: 0;
   right: 0;
-  top: 100%;
-  margin-top: 6px;
+  top: calc(100% - 1px);
+  margin-top: 0;
   z-index: 2;
   list-style: none;
   width: 100%;
@@ -255,7 +257,8 @@ body {
   flex-direction: column;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-top: 0;
+  border-radius: 0 0 14px 14px;
   overflow: hidden;
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
   pointer-events: auto;
@@ -350,6 +353,16 @@ body {
   color: var(--text-tertiary);
   line-height: 1.35;
   word-break: break-word;
+}
+
+.bookmark-search-box.has-results .search-input {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.bookmark-search-box.has-results:focus-within .search-input,
+.bookmark-search-box.has-results:focus-within .bookmark-search-results {
+  border-color: var(--accent);
 }
 
 /* ══════════════════════════════════════════════════════════════════════
