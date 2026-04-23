@@ -760,6 +760,7 @@
   const favoritesGrid = document.getElementById("favorites-grid");
   const itemContextMenu = document.getElementById("item-context-menu");
   const ctxFavorite = document.getElementById("ctx-favorite");
+  const ctxFavoriteIcon = document.getElementById("ctx-favorite-icon");
   const ctxFavoriteLabel = document.getElementById("ctx-favorite-label");
   const ctxCustomize = document.getElementById("ctx-customize");
   const ctxEdit = document.getElementById("ctx-edit");
@@ -797,10 +798,12 @@
     ctxCustomize.hidden = type !== "link";
     const already = data.favorites.includes(id);
     if (already) {
-      ctxFavoriteLabel.textContent = "Unfavorite";
+      ctxFavoriteLabel.textContent = "Unpin";
+      ctxFavoriteIcon.src = "icons/push-pin-slash.svg";
       ctxFavorite.disabled = false;
     } else {
-      ctxFavoriteLabel.textContent = "Favorite";
+      ctxFavoriteLabel.textContent = "Pin";
+      ctxFavoriteIcon.src = "icons/push-pin.svg";
       ctxFavorite.disabled = data.favorites.length >= MAX_FAVORITES;
     }
     positionContextMenu(e);
