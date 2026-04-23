@@ -742,6 +742,10 @@ body {
   transition: background var(--transition), color var(--transition);
 }
 
+.context-menu-item[hidden] {
+  display: none;
+}
+
 .context-menu-item:hover {
   background: var(--surface-hover);
 }
