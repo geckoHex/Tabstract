@@ -1,4 +1,1 @@
-- [ ] Add different search providers for web search
 - [ ] Add custom search filters like transparent images, large images, etc
-- [ ] Add named greeting
-- [ ] Add greeting messages
