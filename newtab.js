@@ -1,8 +1,10 @@
 (() => {
   const SEARCH_URL = "https://www.google.com/search?q=";
-  const STORAGE_KEY = "tabstract_bookmarks_v2";
-  const AI_PROVIDER_KEY = "tabstract_ai_search_provider";
-  const AI_SEARCH_ENABLED_KEY = "tabstract_ai_search_enabled";
+  const DB_NAME = "TabstractDB";
+  const DB_VERSION = 1;
+  const ITEMS_STORE = "items";
+  const FAVORITES_STORE = "favorites";
+  const SETTINGS_STORE = "settings";
 
   const AI_PROVIDERS = {
     chatgpt: {
@@ -29,25 +31,187 @@
   // ── Storage ────────────────────────────────────────────────────────────────
 
   const MAX_FAVORITES = 16;
+  let dbPromise = null;
 
-  function loadData() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const d = JSON.parse(raw);
-        if (!Array.isArray(d.items)) d.items = [];
-        if (!Array.isArray(d.favorites)) d.favorites = [];
-        return d;
-      }
-    } catch {}
+  function defaultData() {
     return { items: [], favorites: [] };
   }
 
-  function saveData() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  function defaultSettings() {
+    return {
+      aiProvider: "chatgpt",
+      aiSearchEnabled: true,
+    };
   }
 
-  let data = loadData();
+  function requestToPromise(request) {
+    return new Promise((resolve, reject) => {
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  function transactionToPromise(transaction) {
+    return new Promise((resolve, reject) => {
+      transaction.oncomplete = () => resolve();
+      transaction.onabort = () => reject(transaction.error);
+      transaction.onerror = () => reject(transaction.error);
+    });
+  }
+
+  function openDatabase() {
+    if (dbPromise) return dbPromise;
+    dbPromise = new Promise((resolve, reject) => {
+      const request = indexedDB.open(DB_NAME, DB_VERSION);
+      request.onupgradeneeded = () => {
+        const db = request.result;
+        if (!db.objectStoreNames.contains(ITEMS_STORE)) {
+          const items = db.createObjectStore(ITEMS_STORE, { keyPath: "id" });
+          items.createIndex("parentId", "parentId", { unique: false });
+        }
+        if (!db.objectStoreNames.contains(FAVORITES_STORE)) {
+          db.createObjectStore(FAVORITES_STORE, { keyPath: "id" });
+        }
+        if (!db.objectStoreNames.contains(SETTINGS_STORE)) {
+          db.createObjectStore(SETTINGS_STORE, { keyPath: "key" });
+        }
+      };
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    return dbPromise;
+  }
+
+  function flattenItems(items, parentId = null, out = []) {
+    items.forEach((item, position) => {
+      if (item.type === "folder") {
+        out.push({
+          id: item.id,
+          type: "folder",
+          name: item.name,
+          parentId,
+          position,
+        });
+        flattenItems(item.children, item.id, out);
+      } else if (item.type === "link") {
+        out.push({
+          id: item.id,
+          type: "link",
+          title: item.title,
+          url: item.url,
+          parentId,
+          position,
+        });
+      }
+    });
+    return out;
+  }
+
+  function hydrateItems(records) {
+    const childrenByParent = new Map();
+    for (const record of records) {
+      const bucket = childrenByParent.get(record.parentId) || [];
+      bucket.push(record);
+      childrenByParent.set(record.parentId, bucket);
+    }
+
+    function build(parentId = null) {
+      const children = childrenByParent.get(parentId) || [];
+      children.sort((a, b) => a.position - b.position);
+      return children.map((record) => {
+        if (record.type === "folder") {
+          return {
+            type: "folder",
+            id: record.id,
+            name: record.name || "Untitled Folder",
+            children: build(record.id),
+          };
+        }
+        return {
+          type: "link",
+          id: record.id,
+          title: record.title || "",
+          url: record.url || "",
+        };
+      });
+    }
+
+    return build(null);
+  }
+
+  function hydrateFavorites(records) {
+    return records
+      .slice()
+      .sort((a, b) => a.position - b.position)
+      .map((record) => record.id);
+  }
+
+  function hydrateSettings(records) {
+    const settings = defaultSettings();
+    for (const record of records) {
+      if (record.key === "aiProvider" && (record.value === "chatgpt" || record.value === "claude")) {
+        settings.aiProvider = record.value;
+      }
+      if (record.key === "aiSearchEnabled") {
+        settings.aiSearchEnabled = Boolean(record.value);
+      }
+    }
+    return settings;
+  }
+
+  async function loadPersistedState() {
+    const db = await openDatabase();
+    const tx = db.transaction([ITEMS_STORE, FAVORITES_STORE, SETTINGS_STORE], "readonly");
+    const itemsRequest = tx.objectStore(ITEMS_STORE).getAll();
+    const favoritesRequest = tx.objectStore(FAVORITES_STORE).getAll();
+    const settingsRequest = tx.objectStore(SETTINGS_STORE).getAll();
+    const [itemRecords, favoriteRecords, settingRecords] = await Promise.all([
+      requestToPromise(itemsRequest),
+      requestToPromise(favoritesRequest),
+      requestToPromise(settingsRequest),
+      transactionToPromise(tx),
+    ]);
+    return {
+      data: {
+        items: hydrateItems(itemRecords),
+        favorites: hydrateFavorites(favoriteRecords),
+      },
+      settings: hydrateSettings(settingRecords),
+    };
+  }
+
+  async function saveData() {
+    const db = await openDatabase();
+    const tx = db.transaction([ITEMS_STORE, FAVORITES_STORE], "readwrite");
+    const itemStore = tx.objectStore(ITEMS_STORE);
+    const favoriteStore = tx.objectStore(FAVORITES_STORE);
+
+    itemStore.clear();
+    favoriteStore.clear();
+
+    for (const record of flattenItems(data.items)) {
+      itemStore.put(record);
+    }
+    data.favorites.forEach((id, position) => {
+      favoriteStore.put({ id, position });
+    });
+
+    await transactionToPromise(tx);
+  }
+
+  async function saveSetting(key, value) {
+    const db = await openDatabase();
+    const tx = db.transaction(SETTINGS_STORE, "readwrite");
+    tx.objectStore(SETTINGS_STORE).put({ key, value });
+    await transactionToPromise(tx);
+  }
+
+  function reportStorageError(error) {
+    console.error("IndexedDB operation failed", error);
+  }
+
+  let data = defaultData();
+  let settings = defaultSettings();
 
   // ── Navigation state: array of folder IDs from root to current ────────────
 
@@ -118,26 +282,16 @@
   let aiProviderId = "chatgpt";
 
   function getStoredAiProvider() {
-    try {
-      const v = localStorage.getItem(AI_PROVIDER_KEY);
-      if (v === "claude" || v === "chatgpt") return v;
-    } catch {}
-    return "chatgpt";
+    return settings.aiProvider;
   }
 
   function getStoredAiSearchEnabled() {
-    try {
-      const v = localStorage.getItem(AI_SEARCH_ENABLED_KEY);
-      if (v === null) return true;
-      return v === "true";
-    } catch {}
-    return true;
+    return settings.aiSearchEnabled;
   }
 
-  function setStoredAiSearchEnabled(on) {
-    try {
-      localStorage.setItem(AI_SEARCH_ENABLED_KEY, on ? "true" : "false");
-    } catch {}
+  async function setStoredAiSearchEnabled(on) {
+    settings.aiSearchEnabled = on;
+    await saveSetting("aiSearchEnabled", on);
   }
 
   function setAiSearchProviderSettingRowVisible(visible) {
@@ -157,13 +311,12 @@
     return AI_PROVIDERS[id] || AI_PROVIDERS.chatgpt;
   }
 
-  function applyAiSearchProvider(id, { persist } = {}) {
+  async function applyAiSearchProvider(id, { persist } = {}) {
     const p = providerOrDefault(id);
     aiProviderId = p.id;
     if (persist) {
-      try {
-        localStorage.setItem(AI_PROVIDER_KEY, aiProviderId);
-      } catch {}
+      settings.aiProvider = aiProviderId;
+      await saveSetting("aiProvider", aiProviderId);
     }
     aiSearchIcon.src = `icons/${p.icon}`;
     aiSearchInput.placeholder = p.placeholder;
@@ -214,8 +367,8 @@
     opts[next].focus();
   }
 
-  function initAiSearchProvider() {
-    applyAiSearchProvider(getStoredAiProvider(), { persist: false });
+  async function initAiSearchProvider() {
+    await applyAiSearchProvider(getStoredAiProvider(), { persist: false });
   }
 
   function navigateToAi(prompt) {
@@ -499,7 +652,7 @@
     const next = data.favorites.filter((id) => findItem(data.items, id));
     if (next.length !== data.favorites.length) {
       data.favorites = next;
-      saveData();
+      void saveData().catch(reportStorageError);
     }
   }
 
@@ -523,15 +676,15 @@
   }
 
   // Delete any item by id (folders: children are lost)
-  function deleteItem(id) {
+  async function deleteItem(id) {
     extractItem(id);
     data.favorites = data.favorites.filter((fid) => fid !== id);
-    saveData();
+    await saveData();
     render();
   }
 
   // Move `id` into `targetFolderId`, appended at end
-  function moveIntoFolder(id, targetFolderId) {
+  async function moveIntoFolder(id, targetFolderId) {
     const item = extractItem(id);
     if (!item) return;
     const r = findItem(data.items, targetFolderId);
@@ -541,7 +694,7 @@
       // fallback: restore at root
       data.items.push(item);
     }
-    saveData();
+    await saveData();
     render();
   }
 
@@ -653,7 +806,7 @@
     if (!itemContextMenu.hidden) hideContextMenu();
   });
 
-  ctxFavorite.addEventListener("click", () => {
+  async function handleFavoriteToggle() {
     if (!contextItemId || ctxFavorite.disabled) return;
     const id = contextItemId;
     const ix = data.favorites.indexOf(id);
@@ -662,9 +815,13 @@
     } else if (data.favorites.length < MAX_FAVORITES) {
       data.favorites.push(id);
     }
-    saveData();
+    await saveData();
     hideContextMenu();
     render();
+  }
+
+  ctxFavorite.addEventListener("click", () => {
+    void handleFavoriteToggle().catch(reportStorageError);
   });
 
   ctxEdit.addEventListener("click", () => {
@@ -707,7 +864,7 @@
       title = "Delete folder?";
       message = `Permanently delete the folder "${item.name}" and all ${n} ${itemWord} inside it?`;
     }
-    openDestructiveConfirm({ title, message, confirmLabel: "Delete", action: () => deleteItem(id) });
+    openDestructiveConfirm({ title, message, confirmLabel: "Delete", action: async () => deleteItem(id) });
   }
 
   function closeDeleteConfirm() {
@@ -717,10 +874,16 @@
 
   document.getElementById("delete-modal-close").addEventListener("click", closeDeleteConfirm);
   document.getElementById("delete-cancel").addEventListener("click", closeDeleteConfirm);
-  deleteConfirmBtn.addEventListener("click", () => {
+  async function runPendingConfirmAction() {
     const action = pendingConfirmAction;
     closeDeleteConfirm();
-    if (action) action();
+    if (action) {
+      await action();
+    }
+  }
+
+  deleteConfirmBtn.addEventListener("click", () => {
+    void runPendingConfirmAction().catch(reportStorageError);
   });
   deleteConfirmModal.addEventListener("click", (e) => {
     if (e.target === deleteConfirmModal) closeDeleteConfirm();
@@ -917,23 +1080,23 @@
       .forEach(el => el.classList.remove("drop-target", "drop-before", "drop-after"));
   }
 
-  function reorderItemBefore(id, beforeId) {
+  async function reorderItemBefore(id, beforeId) {
     const item = extractItem(id);
     if (!item) return;
     const items = currentItems();
     const idx = items.findIndex(i => i.id === beforeId);
     items.splice(idx === -1 ? items.length : idx, 0, item);
-    saveData();
+    await saveData();
     render();
   }
 
-  function reorderItemAfter(id, afterId) {
+  async function reorderItemAfter(id, afterId) {
     const item = extractItem(id);
     if (!item) return;
     const items = currentItems();
     const idx = items.findIndex(i => i.id === afterId);
     items.splice(idx === -1 ? items.length : idx + 1, 0, item);
-    saveData();
+    await saveData();
     render();
   }
 
@@ -985,7 +1148,7 @@
     drag.dropTarget = null;
   });
 
-  grid.addEventListener("drop", (e) => {
+  async function handleGridDrop(e) {
     e.preventDefault();
     if (!drag) return;
     clearAllDropIndicators();
@@ -993,35 +1156,43 @@
     const itemId = drag.itemId;
     if (!dt) {
       const item = extractItem(itemId);
-      if (item) { currentItems().push(item); saveData(); render(); }
+      if (item) {
+        currentItems().push(item);
+        await saveData();
+        render();
+      }
     } else if (dt.mode === "into") {
-      moveIntoFolder(itemId, dt.id);
+      await moveIntoFolder(itemId, dt.id);
     } else if (dt.mode === "before") {
-      reorderItemBefore(itemId, dt.id);
+      await reorderItemBefore(itemId, dt.id);
     } else if (dt.mode === "after") {
-      reorderItemAfter(itemId, dt.id);
+      await reorderItemAfter(itemId, dt.id);
     }
+  }
+
+  grid.addEventListener("drop", (e) => {
+    void handleGridDrop(e).catch(reportStorageError);
   });
 
   // ── Favorites drag-to-reorder ──────────────────────────────────────────────
 
-  function reorderFavoriteBefore(favId, beforeId) {
+  async function reorderFavoriteBefore(favId, beforeId) {
     const fromIdx = data.favorites.indexOf(favId);
     const arr = data.favorites;
     arr.splice(fromIdx, 1);
     const toIdx = arr.indexOf(beforeId);
     arr.splice(toIdx === -1 ? arr.length : toIdx, 0, favId);
-    saveData();
+    await saveData();
     renderFavorites();
   }
 
-  function reorderFavoriteAfter(favId, afterId) {
+  async function reorderFavoriteAfter(favId, afterId) {
     const fromIdx = data.favorites.indexOf(favId);
     const arr = data.favorites;
     arr.splice(fromIdx, 1);
     const toIdx = arr.indexOf(afterId);
     arr.splice(toIdx === -1 ? arr.length : toIdx + 1, 0, favId);
-    saveData();
+    await saveData();
     renderFavorites();
   }
 
@@ -1058,7 +1229,7 @@
     favDrag.dropTarget = null;
   });
 
-  favoritesGrid.addEventListener("drop", (e) => {
+  async function handleFavoritesDrop(e) {
     e.preventDefault();
     if (!favDrag) return;
     clearAllDropIndicators();
@@ -1066,10 +1237,14 @@
     const favId = favDrag.favId;
     if (!dt) return;
     if (dt.mode === "before") {
-      reorderFavoriteBefore(favId, dt.id);
+      await reorderFavoriteBefore(favId, dt.id);
     } else if (dt.mode === "after") {
-      reorderFavoriteAfter(favId, dt.id);
+      await reorderFavoriteAfter(favId, dt.id);
     }
+  }
+
+  favoritesGrid.addEventListener("drop", (e) => {
+    void handleFavoritesDrop(e).catch(reportStorageError);
   });
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -1117,7 +1292,7 @@
     linkSaveBtn.textContent = "Add Bookmark";
   }
 
-  function saveLinkModal() {
+  async function saveLinkModal() {
     const url = normaliseUrl(linkUrlInput.value.trim());
     if (!url) { linkUrlInput.focus(); return; }
     const title = linkTitleInput.value.trim() || hostname(url);
@@ -1131,7 +1306,7 @@
     } else {
       currentItems().push({ type: "link", id: uid(), title, url });
     }
-    saveData();
+    await saveData();
     render();
     closeLinkModal();
   }
@@ -1139,10 +1314,16 @@
   document.getElementById("add-link-btn").addEventListener("click", openLinkModal);
   document.getElementById("link-modal-close").addEventListener("click", closeLinkModal);
   document.getElementById("link-cancel").addEventListener("click", closeLinkModal);
-  document.getElementById("link-save").addEventListener("click", saveLinkModal);
+  document.getElementById("link-save").addEventListener("click", () => {
+    void saveLinkModal().catch(reportStorageError);
+  });
   linkModal.addEventListener("click", (e) => { if (e.target === linkModal) closeLinkModal(); });
-  linkUrlInput.addEventListener("keydown", (e) => { if (e.key === "Enter") saveLinkModal(); });
-  linkTitleInput.addEventListener("keydown", (e) => { if (e.key === "Enter") saveLinkModal(); });
+  linkUrlInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") void saveLinkModal().catch(reportStorageError);
+  });
+  linkTitleInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") void saveLinkModal().catch(reportStorageError);
+  });
 
   // ══════════════════════════════════════════════════════════════════════════
   // MODAL: NEW FOLDER
@@ -1180,7 +1361,7 @@
     folderSaveBtn.textContent = "Create";
   }
 
-  function saveFolderModal() {
+  async function saveFolderModal() {
     const name = folderNameInput.value.trim();
     if (!name) { folderNameInput.focus(); return; }
 
@@ -1190,7 +1371,7 @@
     } else {
       currentItems().push({ type: "folder", id: uid(), name, children: [] });
     }
-    saveData();
+    await saveData();
     render();
     closeFolderModal();
   }
@@ -1198,9 +1379,13 @@
   document.getElementById("add-folder-btn").addEventListener("click", openFolderModal);
   document.getElementById("folder-modal-close").addEventListener("click", closeFolderModal);
   document.getElementById("folder-cancel").addEventListener("click", closeFolderModal);
-  document.getElementById("folder-save").addEventListener("click", saveFolderModal);
+  document.getElementById("folder-save").addEventListener("click", () => {
+    void saveFolderModal().catch(reportStorageError);
+  });
   folderModal.addEventListener("click", (e) => { if (e.target === folderModal) closeFolderModal(); });
-  folderNameInput.addEventListener("keydown", (e) => { if (e.key === "Enter") saveFolderModal(); });
+  folderNameInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") void saveFolderModal().catch(reportStorageError);
+  });
 
   // ══════════════════════════════════════════════════════════════════════════
   // MODAL: SETTINGS
@@ -1229,7 +1414,7 @@
   if (aiSearchEnabledInput) {
     aiSearchEnabledInput.addEventListener("change", () => {
       const on = aiSearchEnabledInput.checked;
-      setStoredAiSearchEnabled(on);
+      void setStoredAiSearchEnabled(on).catch(reportStorageError);
       applyAiSearchBoxVisibility(on);
     });
   }
@@ -1270,16 +1455,27 @@
         e.preventDefault();
         const v = document.activeElement.getAttribute("data-value");
         if (v) {
-          applyAiSearchProvider(v, { persist: true });
-          closeAiProviderDropdown();
-          aiProviderTrigger.focus();
+          void applyAiSearchProvider(v, { persist: true })
+            .then(() => {
+              closeAiProviderDropdown();
+              aiProviderTrigger.focus();
+            })
+            .catch(reportStorageError);
         }
       }
     });
     aiProviderList.querySelectorAll("[role='option']").forEach((opt) => {
       opt.addEventListener("click", () => {
         const v = opt.getAttribute("data-value");
-        if (v) applyAiSearchProvider(v, { persist: true });
+        if (v) {
+          void applyAiSearchProvider(v, { persist: true })
+            .then(() => {
+              closeAiProviderDropdown();
+              aiProviderTrigger.focus();
+            })
+            .catch(reportStorageError);
+          return;
+        }
         closeAiProviderDropdown();
         aiProviderTrigger.focus();
       });
@@ -1311,9 +1507,9 @@
     URL.revokeObjectURL(url);
   }
 
-  function applyImport(imported) {
+  async function applyImport(imported) {
     data = imported;
-    saveData();
+    await saveData();
     currentPath = [];
     render();
   }
@@ -1343,8 +1539,8 @@
         title: "Replace all data?",
         message: "This will permanently replace all your current bookmarks and favorites with the imported file. This cannot be undone.",
         confirmLabel: "Replace",
-        action: () => {
-          applyImport(importedData);
+        action: async () => {
+          await applyImport(importedData);
           closeSettingsModal();
         },
       });
@@ -1357,9 +1553,9 @@
       title: "Delete all data?",
       message: "This will permanently delete all your bookmarks and favorites. This cannot be undone.",
       confirmLabel: "Delete All",
-      action: () => {
+      action: async () => {
         data = { items: [], favorites: [] };
-        saveData();
+        await saveData();
         currentPath = [];
         render();
         closeSettingsModal();
@@ -1407,16 +1603,24 @@
 
   // ── Init ───────────────────────────────────────────────────────────────────
 
-  updateClock();
-  const now = new Date();
-  const msUntilNextMinute =
-    60000 - (now.getSeconds() * 1000 + now.getMilliseconds());
-  setTimeout(() => {
+  async function init() {
     updateClock();
-    setInterval(updateClock, 60000);
-  }, msUntilNextMinute);
-  initAiSearchProvider();
-  applyAiSearchBoxVisibility(getStoredAiSearchEnabled());
-  searchInput.focus();
-  render();
+    const now = new Date();
+    const msUntilNextMinute =
+      60000 - (now.getSeconds() * 1000 + now.getMilliseconds());
+    setTimeout(() => {
+      updateClock();
+      setInterval(updateClock, 60000);
+    }, msUntilNextMinute);
+
+    const persisted = await loadPersistedState();
+    data = persisted.data;
+    settings = persisted.settings;
+    await initAiSearchProvider();
+    applyAiSearchBoxVisibility(getStoredAiSearchEnabled());
+    searchInput.focus();
+    render();
+  }
+
+  init().catch(reportStorageError);
 })();
