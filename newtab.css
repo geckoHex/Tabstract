@@ -1122,6 +1122,66 @@ body {
   color: var(--text-secondary);
 }
 
+.field input[type="range"] {
+  height: auto;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+}
+
+.field input[type="range"]:focus {
+  border-color: transparent;
+}
+
+.icon-customize-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.icon-customize-help {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.modal--icon-customize {
+  width: 420px;
+}
+
+.modal-body--icon-customize {
+  gap: 16px;
+}
+
+.icon-crop-stage {
+  position: relative;
+  align-self: center;
+  width: 240px;
+  height: 240px;
+  border-radius: 20px;
+  overflow: hidden;
+  background:
+    linear-gradient(45deg, rgba(255,255,255,0.04) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.04) 75%),
+    linear-gradient(45deg, rgba(255,255,255,0.04) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.04) 75%);
+  background-position: 0 0, 10px 10px;
+  background-size: 20px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
+  cursor: grab;
+  touch-action: none;
+}
+
+.icon-crop-stage.is-dragging {
+  cursor: grabbing;
+}
+
+.icon-crop-stage canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
 .settings-section-title {
   font-size: 0.6875rem;
   font-weight: 700;
@@ -1304,4 +1364,3 @@ body {
   text-align: center;
   box-sizing: border-box;
 }
-

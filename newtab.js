@@ -99,6 +99,7 @@
           type: "link",
           title: item.title,
           url: item.url,
+          customIcon: item.customIcon || null,
           parentId,
           position,
         });
@@ -132,6 +133,7 @@
           id: record.id,
           title: record.title || "",
           url: record.url || "",
+          customIcon: typeof record.customIcon === "string" ? record.customIcon : null,
         };
       });
     }
@@ -498,7 +500,7 @@
     for (const { entry } of top) {
       const link = entry.link;
       const title = link.title || hostname(link.url);
-      const fav = faviconSrc(link.url);
+      const fav = linkIconSrc(link);
 
       const li = document.createElement("li");
       li.setAttribute("role", "presentation");
@@ -618,6 +620,15 @@
     try {
       return `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=64`;
     } catch { return null; }
+  }
+
+  function linkIconSrc(link) {
+    if (link?.customIcon) return link.customIcon;
+    return faviconSrc(link?.url);
+  }
+
+  function linkHasCustomIcon(link) {
+    return Boolean(link?.customIcon);
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -750,6 +761,7 @@
   const itemContextMenu = document.getElementById("item-context-menu");
   const ctxFavorite = document.getElementById("ctx-favorite");
   const ctxFavoriteLabel = document.getElementById("ctx-favorite-label");
+  const ctxCustomize = document.getElementById("ctx-customize");
   const ctxEdit = document.getElementById("ctx-edit");
   const ctxDelete = document.getElementById("ctx-delete");
 
@@ -782,6 +794,7 @@
     e.preventDefault();
     contextItemId = id;
     contextItemType = type;
+    ctxCustomize.hidden = type !== "link";
     const already = data.favorites.includes(id);
     if (already) {
       ctxFavoriteLabel.textContent = "Unfavorite";
@@ -831,6 +844,259 @@
     if (contextItemType === "link" && r.item.type === "link") openLinkModalForEdit(r.item);
     else if (contextItemType === "folder" && r.item.type === "folder") openFolderModalForEdit(r.item);
     hideContextMenu();
+  });
+
+  // ── Modal: customize icon ────────────────────────────────────────────────
+
+  const iconCustomizeModal = document.getElementById("icon-customize-modal");
+  const iconCustomizeCloseBtn = document.getElementById("icon-customize-close");
+  const iconCustomizeCancelBtn = document.getElementById("icon-customize-cancel");
+  const iconCustomizeSaveBtn = document.getElementById("icon-customize-save");
+  const iconUploadBtn = document.getElementById("icon-upload-btn");
+  const iconUploadInput = document.getElementById("icon-upload-input");
+  const iconRemoveBtn = document.getElementById("icon-remove-btn");
+  const iconCustomizeHelp = document.getElementById("icon-customize-help");
+  const iconCropStage = document.getElementById("icon-crop-stage");
+  const iconCropCanvas = document.getElementById("icon-crop-canvas");
+  const iconZoomInput = document.getElementById("icon-zoom");
+  const iconCropCtx = iconCropCanvas.getContext("2d");
+
+  let customizingLinkId = null;
+  let removeCustomIconOnSave = false;
+  const iconCropState = {
+    image: null,
+    imageSrc: "",
+    baseScale: 1,
+    zoom: 1,
+    offsetX: 0,
+    offsetY: 0,
+    dragging: false,
+    dragStartX: 0,
+    dragStartY: 0,
+    dragOriginX: 0,
+    dragOriginY: 0,
+  };
+
+  function resetIconCropState() {
+    iconCropState.image = null;
+    iconCropState.imageSrc = "";
+    iconCropState.baseScale = 1;
+    iconCropState.zoom = 1;
+    iconCropState.offsetX = 0;
+    iconCropState.offsetY = 0;
+    iconCropState.dragging = false;
+    iconZoomInput.value = "1";
+    drawIconCropPreview();
+    syncIconCustomizeControls();
+  }
+
+  function getIconCropMetrics(outputSize = iconCropCanvas.width) {
+    const image = iconCropState.image;
+    if (!image) return null;
+    const previewSize = iconCropCanvas.width;
+    const finalScale = iconCropState.baseScale * iconCropState.zoom;
+    const ratio = outputSize / previewSize;
+    const drawnWidth = image.width * finalScale * ratio;
+    const drawnHeight = image.height * finalScale * ratio;
+    const x = ((previewSize - image.width * finalScale) / 2 + iconCropState.offsetX) * ratio;
+    const y = ((previewSize - image.height * finalScale) / 2 + iconCropState.offsetY) * ratio;
+    return { image, drawnWidth, drawnHeight, x, y };
+  }
+
+  function clampIconCropOffsets() {
+    const metrics = getIconCropMetrics();
+    if (!metrics) return;
+    const maxX = Math.max(0, (metrics.drawnWidth - iconCropCanvas.width) / 2);
+    const maxY = Math.max(0, (metrics.drawnHeight - iconCropCanvas.height) / 2);
+    iconCropState.offsetX = Math.min(maxX, Math.max(-maxX, iconCropState.offsetX));
+    iconCropState.offsetY = Math.min(maxY, Math.max(-maxY, iconCropState.offsetY));
+  }
+
+  function drawIconCropPreview() {
+    iconCropCtx.clearRect(0, 0, iconCropCanvas.width, iconCropCanvas.height);
+    if (!iconCropState.image) {
+      iconCropCtx.fillStyle = "rgba(255,255,255,0.08)";
+      iconCropCtx.fillRect(0, 0, iconCropCanvas.width, iconCropCanvas.height);
+      iconCropCtx.fillStyle = "rgba(255,255,255,0.45)";
+      iconCropCtx.font = '500 14px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+      iconCropCtx.textAlign = "center";
+      iconCropCtx.textBaseline = "middle";
+      iconCropCtx.fillText("Upload an image", iconCropCanvas.width / 2, iconCropCanvas.height / 2);
+      return;
+    }
+    const metrics = getIconCropMetrics();
+    if (!metrics) return;
+    iconCropCtx.drawImage(metrics.image, metrics.x, metrics.y, metrics.drawnWidth, metrics.drawnHeight);
+  }
+
+  function syncIconCustomizeControls() {
+    const active = Boolean(iconCropState.image);
+    iconZoomInput.disabled = !active;
+    iconCustomizeSaveBtn.disabled = !active && !removeCustomIconOnSave;
+    iconRemoveBtn.disabled = !active && !removeCustomIconOnSave;
+    if (removeCustomIconOnSave) {
+      iconCustomizeHelp.textContent = "The custom icon will be removed when you save.";
+    } else if (active) {
+      iconCustomizeHelp.textContent = "Upload an image, then drag to reposition and use the slider to zoom.";
+    } else {
+      iconCustomizeHelp.textContent = "Upload an image to replace the default favicon.";
+    }
+  }
+
+  function loadImageElement(src) {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(new Error("Could not load image."));
+      image.src = src;
+    });
+  }
+
+  async function setIconCropImage(src) {
+    const image = await loadImageElement(src);
+    iconCropState.image = image;
+    iconCropState.imageSrc = src;
+    iconCropState.baseScale = Math.max(
+      iconCropCanvas.width / image.width,
+      iconCropCanvas.height / image.height,
+    );
+    iconCropState.zoom = 1;
+    iconCropState.offsetX = 0;
+    iconCropState.offsetY = 0;
+    iconZoomInput.value = "1";
+    removeCustomIconOnSave = false;
+    clampIconCropOffsets();
+    drawIconCropPreview();
+    syncIconCustomizeControls();
+  }
+
+  function renderCroppedIconDataUrl() {
+    const metrics = getIconCropMetrics(128);
+    if (!metrics) return null;
+    const out = document.createElement("canvas");
+    out.width = 128;
+    out.height = 128;
+    const ctx = out.getContext("2d");
+    ctx.clearRect(0, 0, out.width, out.height);
+    ctx.drawImage(metrics.image, metrics.x, metrics.y, metrics.drawnWidth, metrics.drawnHeight);
+    return out.toDataURL("image/png");
+  }
+
+  function closeIconCustomizeModal() {
+    iconCustomizeModal.hidden = true;
+    customizingLinkId = null;
+    removeCustomIconOnSave = false;
+    resetIconCropState();
+  }
+
+  function openIconCustomizeModal(link) {
+    customizingLinkId = link.id;
+    removeCustomIconOnSave = false;
+    iconCustomizeModal.hidden = false;
+    if (linkHasCustomIcon(link)) {
+      void setIconCropImage(link.customIcon).catch((error) => {
+        console.error(error);
+        resetIconCropState();
+      });
+    } else {
+      resetIconCropState();
+    }
+  }
+
+  async function saveIconCustomizeModal() {
+    if (!customizingLinkId) return;
+    const r = findItem(data.items, customizingLinkId);
+    if (!r || r.item.type !== "link") {
+      closeIconCustomizeModal();
+      return;
+    }
+    if (removeCustomIconOnSave) {
+      r.item.customIcon = null;
+    } else {
+      const croppedIcon = renderCroppedIconDataUrl();
+      if (!croppedIcon) return;
+      r.item.customIcon = croppedIcon;
+    }
+    await saveData();
+    closeIconCustomizeModal();
+    render();
+  }
+
+  ctxCustomize.addEventListener("click", () => {
+    if (!contextItemId || contextItemType !== "link") return;
+    const r = findItem(data.items, contextItemId);
+    hideContextMenu();
+    if (!r || r.item.type !== "link") return;
+    openIconCustomizeModal(r.item);
+  });
+
+  iconUploadBtn.addEventListener("click", () => {
+    iconUploadInput.value = "";
+    iconUploadInput.click();
+  });
+
+  iconUploadInput.addEventListener("change", () => {
+    const file = iconUploadInput.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      void setIconCropImage(String(reader.result)).catch(() => {
+        alert("Could not read that image. Try a different file.");
+      });
+    };
+    reader.readAsDataURL(file);
+  });
+
+  iconRemoveBtn.addEventListener("click", () => {
+    resetIconCropState();
+    removeCustomIconOnSave = true;
+    syncIconCustomizeControls();
+  });
+
+  iconZoomInput.addEventListener("input", () => {
+    iconCropState.zoom = Number(iconZoomInput.value);
+    clampIconCropOffsets();
+    drawIconCropPreview();
+  });
+
+  iconCropStage.addEventListener("pointerdown", (e) => {
+    if (!iconCropState.image) return;
+    iconCropState.dragging = true;
+    iconCropState.dragStartX = e.clientX;
+    iconCropState.dragStartY = e.clientY;
+    iconCropState.dragOriginX = iconCropState.offsetX;
+    iconCropState.dragOriginY = iconCropState.offsetY;
+    iconCropStage.classList.add("is-dragging");
+    iconCropStage.setPointerCapture(e.pointerId);
+  });
+
+  iconCropStage.addEventListener("pointermove", (e) => {
+    if (!iconCropState.dragging) return;
+    iconCropState.offsetX = iconCropState.dragOriginX + (e.clientX - iconCropState.dragStartX);
+    iconCropState.offsetY = iconCropState.dragOriginY + (e.clientY - iconCropState.dragStartY);
+    clampIconCropOffsets();
+    drawIconCropPreview();
+  });
+
+  function endIconCropDrag(e) {
+    if (!iconCropState.dragging) return;
+    iconCropState.dragging = false;
+    iconCropStage.classList.remove("is-dragging");
+    if (typeof e.pointerId === "number" && iconCropStage.hasPointerCapture(e.pointerId)) {
+      iconCropStage.releasePointerCapture(e.pointerId);
+    }
+  }
+
+  iconCropStage.addEventListener("pointerup", endIconCropDrag);
+  iconCropStage.addEventListener("pointercancel", endIconCropDrag);
+
+  iconCustomizeCloseBtn.addEventListener("click", closeIconCustomizeModal);
+  iconCustomizeCancelBtn.addEventListener("click", closeIconCustomizeModal);
+  iconCustomizeSaveBtn.addEventListener("click", () => {
+    void saveIconCustomizeModal().catch(reportStorageError);
+  });
+  iconCustomizeModal.addEventListener("click", (e) => {
+    if (e.target === iconCustomizeModal) closeIconCustomizeModal();
   });
 
   // ── Confirm delete modal (generic destructive action) ─────────────────────
@@ -1018,7 +1284,7 @@
     const wrap = document.createElement("div");
     wrap.className = "link-icon-wrap";
 
-    const favSrc = faviconSrc(link.url);
+    const favSrc = linkIconSrc(link);
     if (favSrc) {
       const img = document.createElement("img");
       img.className = "favicon";
@@ -1582,6 +1848,7 @@
     if (e.key === "Escape") {
       if (!itemContextMenu.hidden) { hideContextMenu(); return; }
       if (!deleteConfirmModal.hidden) { closeDeleteConfirm(); return; }
+      if (!iconCustomizeModal.hidden) { closeIconCustomizeModal(); return; }
       if (!settingsModal.hidden) {
         if (isAiProviderDropdownOpen()) {
           closeAiProviderDropdown();
@@ -1595,7 +1862,8 @@
     }
     // Backspace/ArrowLeft when no modal is open → go up one level
     if ((e.key === "Backspace" || e.key === "ArrowLeft") &&
-        linkModal.hidden && folderModal.hidden && deleteConfirmModal.hidden && settingsModal.hidden &&
+        linkModal.hidden && folderModal.hidden && deleteConfirmModal.hidden &&
+        iconCustomizeModal.hidden && settingsModal.hidden &&
         document.activeElement === document.body) {
       if (currentPath.length > 0) { currentPath.pop(); render(); }
     }

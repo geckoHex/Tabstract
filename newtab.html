@@ -173,6 +173,40 @@
     </div>
   </div>
 
+  <!-- ── Modal: Customize Icon ─────────────────────────────────────── -->
+  <div class="modal-overlay" id="icon-customize-modal" hidden>
+    <div class="modal modal--icon-customize">
+      <div class="modal-header">
+        <h3>Customize Icon</h3>
+        <button class="modal-close" id="icon-customize-close" aria-label="Close">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body modal-body--icon-customize">
+        <div class="icon-customize-actions">
+          <button type="button" class="btn-secondary" id="icon-upload-btn">Upload Image</button>
+          <button type="button" class="btn-secondary" id="icon-remove-btn">Remove Custom Icon</button>
+          <input type="file" id="icon-upload-input" accept="image/*" hidden />
+        </div>
+        <p class="icon-customize-help" id="icon-customize-help">Upload an image, then drag to reposition and use the slider to zoom.</p>
+        <div class="icon-crop-stage" id="icon-crop-stage" aria-label="Icon crop preview">
+          <canvas id="icon-crop-canvas" width="240" height="240"></canvas>
+        </div>
+        <div class="field">
+          <label for="icon-zoom">Zoom</label>
+          <input type="range" id="icon-zoom" min="1" max="3" step="0.01" value="1" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="icon-customize-cancel" type="button">Cancel</button>
+        <button class="btn-primary" id="icon-customize-save" type="button">Save</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ── Modal: Settings ─────────────────────────────────────────────── -->
   <div class="modal-overlay modal-overlay--settings" id="settings-modal" hidden>
     <div class="modal modal--settings">
@@ -268,6 +302,10 @@
     <button type="button" class="context-menu-item" id="ctx-favorite" role="menuitem">
       <img class="context-menu-icon" src="icons/star.svg" alt="" width="14" height="14" />
       <span id="ctx-favorite-label">Favorite</span>
+    </button>
+    <button type="button" class="context-menu-item" id="ctx-customize" role="menuitem">
+      <img class="context-menu-icon" src="icons/image-square.svg" alt="" width="14" height="14" />
+      Customize
     </button>
     <button type="button" class="context-menu-item" id="ctx-edit" role="menuitem">
       <img class="context-menu-icon" src="icons/pencil.svg" alt="" width="14" height="14" />
