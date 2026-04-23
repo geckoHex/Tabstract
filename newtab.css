@@ -253,7 +253,11 @@ body {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
   pointer-events: auto;
 }
 
@@ -261,26 +265,40 @@ body {
   display: none;
 }
 
+.bookmark-search-results li {
+  position: relative;
+}
+
+.bookmark-search-results li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 0;
+  height: 1px;
+  background: var(--border);
+  pointer-events: none;
+}
+
 .bookmark-search-hit {
   display: flex;
   align-items: flex-start;
   gap: 10px;
   width: 100%;
-  padding: 8px 10px;
-  border-radius: 12px;
-  background: var(--surface);
-  border: 1px solid var(--border);
+  padding: 10px 12px;
+  border-radius: 0;
+  background: transparent;
+  border: 0;
   cursor: pointer;
   text-align: left;
   font: inherit;
   color: inherit;
-  transition: background var(--transition), border-color var(--transition);
+  transition: background var(--transition);
 }
 
 .bookmark-search-hit:hover,
 .bookmark-search-hit:focus-visible {
   background: var(--surface-hover);
-  border-color: rgba(255, 255, 255, 0.12);
   outline: none;
 }
 
