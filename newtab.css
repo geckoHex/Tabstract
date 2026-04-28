@@ -918,6 +918,7 @@ body {
   flex: 1 1 auto;
   padding: 26px 32px 22px;
   gap: 0;
+  overflow: hidden;
 }
 
 .modal--settings .modal-header {
@@ -928,6 +929,7 @@ body {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 20px 0 8px;
   display: flex;
   flex-direction: column;
