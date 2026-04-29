@@ -557,6 +557,9 @@ body {
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
+  background:
+    linear-gradient(rgba(44, 44, 48, 0.28), rgba(44, 44, 48, 0.52)),
+    url("backgrounds/Mountains.png") center / cover no-repeat;
 }
 
 .grid-scroll::-webkit-scrollbar {
