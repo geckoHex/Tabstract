@@ -205,6 +205,45 @@
     </div>
   </div>
 
+  <!-- ── Modal: Routes ─────────────────────────────────────────────── -->
+  <div class="modal-overlay" id="routes-modal" hidden>
+    <div class="modal modal--routes">
+      <div class="modal-header">
+        <h3 id="routes-modal-title">Routes</h3>
+        <button class="modal-close" id="routes-modal-close" aria-label="Close">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body modal-body--routes">
+        <label class="settings-row settings-row--toggle routes-toggle-row">
+          <span class="settings-row-label">Use Routes for this bookmark</span>
+          <span class="settings-toggle">
+            <input type="checkbox" id="routes-enabled" class="settings-toggle-input" />
+            <span class="settings-toggle-track" aria-hidden="true"></span>
+          </span>
+        </label>
+        <div class="routes-table-header" aria-hidden="true">
+          <span></span>
+          <span>Title</span>
+          <span>URL</span>
+          <span></span>
+        </div>
+        <div class="routes-list" id="routes-list" aria-label="Bookmark routes"></div>
+        <button type="button" class="btn-secondary routes-add-btn" id="routes-add">
+          <img src="icons/plus.svg" alt="" width="14" height="14" />
+          Add Route
+        </button>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="routes-cancel" type="button">Cancel</button>
+        <button class="btn-primary" id="routes-save" type="button">Save</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ── Modal: Settings ─────────────────────────────────────────────── -->
   <div class="modal-overlay modal-overlay--settings" id="settings-modal" hidden>
     <div class="modal modal--settings">
@@ -309,6 +348,22 @@
     </div>
   </div>
 
+  <!-- ── Modal: Choose Route ───────────────────────────────────────── -->
+  <div class="modal-overlay" id="route-choice-modal" hidden>
+    <div class="modal modal--route-choice">
+      <div class="modal-header">
+        <h3 id="route-choice-title">Open Route</h3>
+        <button class="modal-close" id="route-choice-close" aria-label="Close">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body route-choice-list" id="route-choice-list" role="menu" aria-label="Bookmark routes"></div>
+    </div>
+  </div>
+
   <!-- Context menu for bookmark icons (right-click) -->
   <div class="context-menu" id="item-context-menu" hidden role="menu" aria-label="Bookmark actions">
     <button type="button" class="context-menu-item" id="ctx-favorite" role="menuitem">
@@ -318,6 +373,10 @@
     <button type="button" class="context-menu-item" id="ctx-customize" role="menuitem">
       <img class="context-menu-icon" src="icons/image-square.svg" alt="" width="14" height="14" />
       Customize
+    </button>
+    <button type="button" class="context-menu-item" id="ctx-routes" role="menuitem">
+      <img class="context-menu-icon" src="icons/path.svg" alt="" width="14" height="14" />
+      Routes
     </button>
     <button type="button" class="context-menu-item" id="ctx-edit" role="menuitem">
       <img class="context-menu-icon" src="icons/pencil.svg" alt="" width="14" height="14" />
