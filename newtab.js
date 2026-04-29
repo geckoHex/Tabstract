@@ -667,6 +667,17 @@
     return faviconSrc(link?.url);
   }
 
+  function titleFromHtml(html) {
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    return doc.querySelector("title")?.textContent?.replace(/\s+/g, " ").trim() || "";
+  }
+
+  async function fetchPageTitle(url) {
+    const response = await fetch(url, { method: "GET", credentials: "omit" });
+    if (!response.ok) return "";
+    return titleFromHtml(await response.text());
+  }
+
   function linkHasCustomIcon(link) {
     return Boolean(link?.customIcon);
   }
@@ -1605,9 +1616,38 @@
   const linkSaveBtn     = document.getElementById("link-save");
 
   let editingLinkId = null;
+  let pendingTitleAutofillUrl = "";
+  let titleAutofillRequestId = 0;
+
+  async function autofillTitleForUrlField() {
+    if (editingLinkId || linkModal.hidden || linkTitleInput.value.trim()) return;
+
+    const url = normaliseUrl(linkUrlInput.value.trim());
+    if (!url || pendingTitleAutofillUrl === url) return;
+
+    pendingTitleAutofillUrl = url;
+    const requestId = ++titleAutofillRequestId;
+    try {
+      const title = await fetchPageTitle(url);
+      if (
+        title &&
+        requestId === titleAutofillRequestId &&
+        !editingLinkId &&
+        !linkModal.hidden &&
+        normaliseUrl(linkUrlInput.value.trim()) === url &&
+        !linkTitleInput.value.trim()
+      ) {
+        linkTitleInput.value = title;
+      }
+    } catch {
+      if (pendingTitleAutofillUrl === url) pendingTitleAutofillUrl = "";
+    }
+  }
 
   function openLinkModal() {
     editingLinkId = null;
+    pendingTitleAutofillUrl = "";
+    titleAutofillRequestId += 1;
     linkModalTitle.textContent = "Add Bookmark";
     linkSaveBtn.textContent = "Add Bookmark";
     linkUrlInput.value = "";
@@ -1616,14 +1656,20 @@
     if (navigator.clipboard?.readText) {
       navigator.clipboard.readText().then((text) => {
         const url = urlFromClipboardText(text);
-        if (url) linkUrlInput.value = url;
+        if (!url) return;
+        linkUrlInput.value = url;
+        return autofillTitleForUrlField();
       }).catch(() => {});
     }
     setTimeout(() => linkTitleInput.focus(), 0);
+    setTimeout(() => { void autofillTitleForUrlField(); }, 100);
+    setTimeout(() => { void autofillTitleForUrlField(); }, 500);
   }
 
   function openLinkModalForEdit(link) {
     editingLinkId = link.id;
+    pendingTitleAutofillUrl = "";
+    titleAutofillRequestId += 1;
     linkModalTitle.textContent = "Edit Bookmark";
     linkSaveBtn.textContent = "Save";
     linkUrlInput.value = link.url;
@@ -1635,6 +1681,8 @@
   function closeLinkModal() {
     linkModal.hidden = true;
     editingLinkId = null;
+    pendingTitleAutofillUrl = "";
+    titleAutofillRequestId += 1;
     linkModalTitle.textContent = "Add Bookmark";
     linkSaveBtn.textContent = "Add Bookmark";
   }
@@ -1668,8 +1716,19 @@
   linkUrlInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") void saveLinkModal().catch(reportStorageError);
   });
+  linkUrlInput.addEventListener("input", () => {
+    pendingTitleAutofillUrl = "";
+    void autofillTitleForUrlField();
+  });
+  linkUrlInput.addEventListener("change", () => {
+    pendingTitleAutofillUrl = "";
+    void autofillTitleForUrlField();
+  });
   linkTitleInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") void saveLinkModal().catch(reportStorageError);
+  });
+  linkTitleInput.addEventListener("click", () => {
+    linkTitleInput.select();
   });
 
   // ══════════════════════════════════════════════════════════════════════════

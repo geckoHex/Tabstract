@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "description": "A clean, minimal new tab with a focused search experience.",
   "permissions": ["clipboardRead"],
+  "host_permissions": ["http://*/*", "https://*/*"],
   "chrome_url_overrides": {
     "newtab": "newtab.html"
   },
