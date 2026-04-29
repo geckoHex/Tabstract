@@ -1,4 +1,3 @@
 - [ ] Add custom search filters like transparent images, large images, etc
 - [ ] Add a reading list
-- [ ] Add a custom router
 - [ ] Add custom backgrounds
