@@ -468,29 +468,36 @@ body {
 
 .toolbar-actions {
   display: flex;
-  gap: 8px;
+  align-items: stretch;
   flex-shrink: 0;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
 }
 
 .action-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  color: rgba(255, 255, 255, 0.82);
-  font-size: 0.8125rem;
+  justify-content: center;
+  width: 42px;
+  min-height: 32px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
   font-family: inherit;
-  padding: 6px 12px;
+  padding: 0;
   cursor: pointer;
   transition: all var(--transition);
-  white-space: nowrap;
+}
+
+.action-btn + .action-btn {
+  border-left: 1px solid var(--border);
 }
 
 .toolbar-icon {
-  width: 13px;
-  height: 13px;
+  width: 15px;
+  height: 15px;
   flex-shrink: 0;
   object-fit: contain;
   display: block;
@@ -508,8 +515,6 @@ body {
 
 .action-btn:hover {
   background: var(--surface-hover);
-  color: var(--text-primary);
-  border-color: rgba(255,255,255,0.12);
 }
 
 /* ══════════════════════════════════════════════════════════════════════

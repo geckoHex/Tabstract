@@ -760,7 +760,7 @@
     // Root segment
     const rootBtn = document.createElement("button");
     rootBtn.className = "path-segment" + (currentPath.length === 0 ? " current" : "");
-    rootBtn.innerHTML = `<img class="path-icon" src="${iconSrc("house.svg")}" alt="" width="16" height="16" /><span class="path-root-label">Bookmarks</span>`;
+    rootBtn.innerHTML = `<span class="path-root-label">Bookmarks</span>`;
     rootBtn.addEventListener("click", () => { currentPath = []; render(); });
     bar.appendChild(rootBtn);
 
