@@ -1,10 +1,11 @@
 (() => {
   const SEARCH_URL = "https://www.google.com/search?q=";
   const DB_NAME = "TabstractDB";
-  const DB_VERSION = 1;
+  const DB_VERSION = 2;
   const ITEMS_STORE = "items";
   const FAVORITES_STORE = "favorites";
   const SETTINGS_STORE = "settings";
+  const SAVES_STORE = "saves";
 
   const AI_PROVIDERS = {
     chatgpt: {
@@ -34,7 +35,7 @@
   let dbPromise = null;
 
   function defaultData() {
-    return { items: [], favorites: [] };
+    return { items: [], favorites: [], saves: [] };
   }
 
   function defaultSettings() {
@@ -75,6 +76,10 @@
         }
         if (!db.objectStoreNames.contains(SETTINGS_STORE)) {
           db.createObjectStore(SETTINGS_STORE, { keyPath: "key" });
+        }
+        if (!db.objectStoreNames.contains(SAVES_STORE)) {
+          const saves = db.createObjectStore(SAVES_STORE, { keyPath: "id" });
+          saves.createIndex("savedAt", "savedAt", { unique: false });
         }
       };
       request.onsuccess = () => resolve(request.result);
@@ -172,22 +177,39 @@
     return settings;
   }
 
+  function hydrateSaves(records) {
+    return records
+      .slice()
+      .sort((a, b) => String(b.savedAt || "").localeCompare(String(a.savedAt || "")))
+      .map((record) => ({
+        id: typeof record.id === "string" && record.id ? record.id : uid(),
+        url: normaliseUrl(String(record.url || "").trim()),
+        title: String(record.title || "").trim(),
+        faviconUrl: String(record.faviconUrl || "").trim(),
+        savedAt: String(record.savedAt || new Date().toISOString()),
+      }))
+      .filter((record) => record.url);
+  }
+
   async function loadPersistedState() {
     const db = await openDatabase();
-    const tx = db.transaction([ITEMS_STORE, FAVORITES_STORE, SETTINGS_STORE], "readonly");
+    const tx = db.transaction([ITEMS_STORE, FAVORITES_STORE, SETTINGS_STORE, SAVES_STORE], "readonly");
     const itemsRequest = tx.objectStore(ITEMS_STORE).getAll();
     const favoritesRequest = tx.objectStore(FAVORITES_STORE).getAll();
     const settingsRequest = tx.objectStore(SETTINGS_STORE).getAll();
-    const [itemRecords, favoriteRecords, settingRecords] = await Promise.all([
+    const savesRequest = tx.objectStore(SAVES_STORE).getAll();
+    const [itemRecords, favoriteRecords, settingRecords, saveRecords] = await Promise.all([
       requestToPromise(itemsRequest),
       requestToPromise(favoritesRequest),
       requestToPromise(settingsRequest),
+      requestToPromise(savesRequest),
       transactionToPromise(tx),
     ]);
     return {
       data: {
         items: hydrateItems(itemRecords),
         favorites: hydrateFavorites(favoriteRecords),
+        saves: hydrateSaves(saveRecords),
       },
       settings: hydrateSettings(settingRecords),
     };
@@ -195,12 +217,14 @@
 
   async function saveData() {
     const db = await openDatabase();
-    const tx = db.transaction([ITEMS_STORE, FAVORITES_STORE], "readwrite");
+    const tx = db.transaction([ITEMS_STORE, FAVORITES_STORE, SAVES_STORE], "readwrite");
     const itemStore = tx.objectStore(ITEMS_STORE);
     const favoriteStore = tx.objectStore(FAVORITES_STORE);
+    const savesStore = tx.objectStore(SAVES_STORE);
 
     itemStore.clear();
     favoriteStore.clear();
+    savesStore.clear();
 
     for (const record of flattenItems(data.items)) {
       itemStore.put(record);
@@ -208,6 +232,9 @@
     data.favorites.forEach((id, position) => {
       favoriteStore.put({ id, position });
     });
+    for (const save of data.saves || []) {
+      savesStore.put(save);
+    }
 
     await transactionToPromise(tx);
   }
@@ -699,6 +726,10 @@
     return faviconSrc(link?.url);
   }
 
+  function savedLinkFaviconSrc(url) {
+    return faviconSrc(url) || "";
+  }
+
   function titleFromHtml(html) {
     const doc = new DOMParser().parseFromString(html, "text/html");
     return doc.querySelector("title")?.textContent?.replace(/\s+/g, " ").trim() || "";
@@ -708,6 +739,19 @@
     const response = await fetch(url, { method: "GET", credentials: "omit" });
     if (!response.ok) return "";
     return titleFromHtml(await response.text());
+  }
+
+  async function fetchSavedLinkMetadata(url) {
+    let title = "";
+    try {
+      title = await fetchPageTitle(url);
+    } catch {
+      title = "";
+    }
+    return {
+      title: title || hostname(url),
+      faviconUrl: savedLinkFaviconSrc(url),
+    };
   }
 
   function linkHasCustomIcon(link) {
@@ -1872,6 +1916,151 @@
   });
 
   // ══════════════════════════════════════════════════════════════════════════
+  // MODAL: SAVES
+  // ══════════════════════════════════════════════════════════════════════════
+
+  const savesModal = document.getElementById("saves-modal");
+  const savesUrlInput = document.getElementById("saves-url-input");
+  const savesAddBtn = document.getElementById("saves-add-btn");
+  const savesStatus = document.getElementById("saves-status");
+  const savesList = document.getElementById("saves-list");
+
+  let saveUrlInFlight = "";
+
+  function setSavesStatus(message) {
+    savesStatus.textContent = message;
+  }
+
+  function renderSavesList() {
+    const saves = data.saves || [];
+    savesList.innerHTML = "";
+    if (saves.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "saves-empty";
+      empty.textContent = "No saved links yet.";
+      savesList.appendChild(empty);
+      return;
+    }
+
+    for (const save of saves) {
+      const item = document.createElement("div");
+      item.className = "saves-item";
+
+      const favicon = document.createElement("img");
+      favicon.className = "saves-item-favicon";
+      favicon.src = save.faviconUrl || savedLinkFaviconSrc(save.url);
+      favicon.alt = "";
+      favicon.width = 28;
+      favicon.height = 28;
+      favicon.addEventListener("error", () => {
+        favicon.hidden = true;
+      });
+
+      const link = document.createElement("a");
+      link.className = "saves-item-link";
+      link.href = save.url;
+      link.rel = "noreferrer";
+
+      const title = document.createElement("span");
+      title.className = "saves-item-title";
+      title.textContent = save.title || hostname(save.url);
+
+      const url = document.createElement("span");
+      url.className = "saves-item-url";
+      url.textContent = save.url;
+
+      link.append(title, url);
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.type = "button";
+      deleteBtn.className = "saves-item-delete";
+      deleteBtn.setAttribute("aria-label", `Delete ${save.title || hostname(save.url)}`);
+      const deleteIcon = document.createElement("img");
+      deleteIcon.src = iconSrc("trash.svg");
+      deleteIcon.alt = "";
+      deleteIcon.width = 15;
+      deleteIcon.height = 15;
+      deleteBtn.appendChild(deleteIcon);
+      deleteBtn.addEventListener("click", () => {
+        void deleteSave(save.id).catch(reportStorageError);
+      });
+
+      item.append(favicon, link, deleteBtn);
+      savesList.appendChild(item);
+    }
+  }
+
+  function openSavesModal() {
+    setSavesStatus("");
+    savesUrlInput.value = "";
+    renderSavesList();
+    savesModal.hidden = false;
+    setTimeout(() => savesUrlInput.focus(), 0);
+  }
+
+  function closeSavesModal() {
+    savesModal.hidden = true;
+    saveUrlInFlight = "";
+    setSavesStatus("");
+    savesUrlInput.value = "";
+  }
+
+  async function savePastedLink(rawUrl) {
+    const url = urlFromClipboardText(rawUrl);
+    if (!url) {
+      savesUrlInput.focus();
+      return;
+    }
+    if (saveUrlInFlight === url) return;
+    if ((data.saves || []).some((save) => save.url === url)) {
+      savesUrlInput.value = "";
+      setSavesStatus("Already saved.");
+      return;
+    }
+
+    saveUrlInFlight = url;
+    savesAddBtn.disabled = true;
+    setSavesStatus("Saving...");
+    try {
+      const metadata = await fetchSavedLinkMetadata(url);
+      data.saves = data.saves || [];
+      data.saves.unshift({
+        id: uid(),
+        url,
+        title: metadata.title,
+        faviconUrl: metadata.faviconUrl,
+        savedAt: new Date().toISOString(),
+      });
+      await saveData();
+      savesUrlInput.value = "";
+      setSavesStatus("");
+      renderSavesList();
+    } finally {
+      saveUrlInFlight = "";
+      savesAddBtn.disabled = false;
+    }
+  }
+
+  async function deleteSave(id) {
+    data.saves = (data.saves || []).filter((save) => save.id !== id);
+    await saveData();
+    renderSavesList();
+  }
+
+  document.getElementById("saves-btn").addEventListener("click", openSavesModal);
+  document.getElementById("saves-modal-close").addEventListener("click", closeSavesModal);
+  savesModal.addEventListener("click", (e) => { if (e.target === savesModal) closeSavesModal(); });
+  document.getElementById("saves-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    void savePastedLink(savesUrlInput.value).catch(reportStorageError);
+  });
+  savesUrlInput.addEventListener("paste", () => {
+    setTimeout(() => {
+      void savePastedLink(savesUrlInput.value).catch(reportStorageError);
+    }, 0);
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
   // MODAL: ADD LINK
   // ══════════════════════════════════════════════════════════════════════════
 
@@ -2176,7 +2365,7 @@
 
   function exportData() {
     const payload = {
-      version: 1,
+      version: 2,
       exportedAt: new Date().toISOString(),
       bookmarks: data,
     };
@@ -2207,6 +2396,8 @@
         const raw = JSON.parse(e.target.result);
         if (raw && raw.version === 1 && raw.bookmarks) {
           parsed = raw.bookmarks;
+        } else if (raw && raw.version === 2 && raw.bookmarks) {
+          parsed = raw.bookmarks;
         } else if (raw && Array.isArray(raw.items)) {
           parsed = raw;
         } else {
@@ -2214,6 +2405,7 @@
         }
         if (!Array.isArray(parsed.items)) throw new Error("Missing items");
         if (!Array.isArray(parsed.favorites)) parsed.favorites = [];
+        if (!Array.isArray(parsed.saves)) parsed.saves = [];
       } catch {
         alert("Could not read the file. Make sure it's a valid Tabstract export.");
         return;
@@ -2221,7 +2413,7 @@
       const importedData = parsed;
       openDestructiveConfirm({
         title: "Replace all data?",
-        message: "This will permanently replace all your current bookmarks and favorites with the imported file. This cannot be undone.",
+        message: "This will permanently replace all your current bookmarks, favorites, and saves with the imported file. This cannot be undone.",
         confirmLabel: "Replace",
         action: async () => {
           await applyImport(importedData);
@@ -2235,10 +2427,10 @@
   function deleteAllData() {
     openDestructiveConfirm({
       title: "Delete all data?",
-      message: "This will permanently delete all your bookmarks and favorites. This cannot be undone.",
+      message: "This will permanently delete all your bookmarks, favorites, and saves. This cannot be undone.",
       confirmLabel: "Delete All",
       action: async () => {
-        data = { items: [], favorites: [] };
+        data = defaultData();
         await saveData();
         currentPath = [];
         render();
@@ -2269,6 +2461,7 @@
       if (!deleteConfirmModal.hidden) { closeDeleteConfirm(); return; }
       if (!routesModal.hidden) { closeRoutesModal(); return; }
       if (!iconCustomizeModal.hidden) { closeIconCustomizeModal(); return; }
+      if (!savesModal.hidden) { closeSavesModal(); return; }
       if (!settingsModal.hidden) {
         if (isAiProviderDropdownOpen()) {
           closeAiProviderDropdown();
@@ -2283,7 +2476,7 @@
     // Backspace/ArrowLeft when no modal is open → go up one level
     if ((e.key === "Backspace" || e.key === "ArrowLeft") &&
         linkModal.hidden && folderModal.hidden && deleteConfirmModal.hidden &&
-        iconCustomizeModal.hidden && routesModal.hidden && routeChoiceModal.hidden && settingsModal.hidden &&
+        iconCustomizeModal.hidden && routesModal.hidden && routeChoiceModal.hidden && savesModal.hidden && settingsModal.hidden &&
         document.activeElement === document.body) {
       if (currentPath.length > 0) { currentPath.pop(); render(); }
     }

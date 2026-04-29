@@ -517,6 +517,37 @@ body {
   background: var(--surface-hover);
 }
 
+.saves-toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 0 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.saves-toolbar-btn:hover,
+.saves-toolbar-btn:focus-visible {
+  background: var(--surface-hover);
+  border-color: rgba(255, 255, 255, 0.16);
+  outline: none;
+}
+
+.saves-toolbar-icon {
+  filter: invert(1);
+  opacity: 0.82;
+}
+
 /* ══════════════════════════════════════════════════════════════════════
    ICON GRID
    ══════════════════════════════════════════════════════════════════════ */
@@ -915,6 +946,12 @@ body {
   align-items: stretch;
 }
 
+.modal-overlay--saves {
+  box-sizing: border-box;
+  padding: 10vh 12vw;
+  align-items: stretch;
+}
+
 .modal--settings {
   width: 100%;
   max-width: none;
@@ -924,6 +961,179 @@ body {
   padding: 26px 32px 22px;
   gap: 0;
   overflow: hidden;
+}
+
+.modal--saves {
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  min-height: 0;
+  flex: 1 1 auto;
+  padding: 26px 32px 28px;
+  gap: 18px;
+  overflow: hidden;
+}
+
+.modal--saves .modal-header {
+  flex-shrink: 0;
+}
+
+.modal-body--saves {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  gap: 14px;
+}
+
+.saves-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.saves-url-input {
+  user-select: text;
+  width: 100%;
+  height: 42px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 0 13px;
+  font-size: 0.9375rem;
+  font-family: inherit;
+  color: var(--text-primary);
+  outline: none;
+  caret-color: var(--accent);
+  transition: border-color var(--transition), background var(--transition);
+}
+
+.saves-url-input:focus {
+  border-color: var(--accent);
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.saves-url-input::placeholder {
+  color: var(--text-secondary);
+}
+
+.saves-add-btn {
+  min-width: 84px;
+}
+
+.saves-status {
+  min-height: 18px;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.saves-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-right: 4px;
+}
+
+.saves-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.saves-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.saves-list::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.08);
+  border-radius: 4px;
+}
+
+.saves-item {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) 34px;
+  align-items: center;
+  gap: 12px;
+  min-height: 58px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.saves-item-favicon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.saves-item-link {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.saves-item-link:hover .saves-item-title,
+.saves-item-link:focus-visible .saves-item-title {
+  color: #fff;
+}
+
+.saves-item-title,
+.saves-item-url {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.saves-item-title {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.saves-item-url {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.saves-item-delete {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  opacity: 0.55;
+  transition: background var(--transition), opacity var(--transition);
+}
+
+.saves-item-delete img {
+  filter: invert(1);
+}
+
+.saves-item-delete:hover,
+.saves-item-delete:focus-visible {
+  background: var(--surface-hover);
+  opacity: 0.92;
+  outline: none;
+}
+
+.saves-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 180px;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
 }
 
 .modal--settings .modal-header {
@@ -1643,6 +1853,11 @@ body {
 
 .btn-primary:hover {
   background: #fff;
+}
+
+.btn-primary:disabled {
+  cursor: default;
+  opacity: 0.55;
 }
 
 .btn-danger {

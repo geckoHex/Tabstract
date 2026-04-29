@@ -108,6 +108,10 @@
         </button>
       </div>
       <nav class="path-bar" id="path-bar" aria-label="Bookmark path"></nav>
+      <button type="button" class="saves-toolbar-btn" id="saves-btn">
+        <img class="toolbar-icon saves-toolbar-icon" src="icons/eyeglasses.svg" alt="" width="16" height="16" />
+        <span>Saves</span>
+      </button>
     </div>
 
     <!-- Icon grid -->
@@ -115,6 +119,36 @@
       <div class="icon-grid" id="icon-grid"></div>
     </div>
 
+  </div>
+
+  <!-- ── Modal: Saves ──────────────────────────────────────────────── -->
+  <div class="modal-overlay modal-overlay--saves" id="saves-modal" hidden>
+    <div class="modal modal--saves">
+      <div class="modal-header">
+        <h3>Saves</h3>
+        <button class="modal-close" id="saves-modal-close" aria-label="Close">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body modal-body--saves">
+        <form class="saves-form" id="saves-form" autocomplete="off">
+          <input
+            type="url"
+            id="saves-url-input"
+            class="saves-url-input"
+            placeholder="Paste a link..."
+            spellcheck="false"
+            aria-label="Paste a link to save"
+          />
+          <button type="submit" class="btn-primary saves-add-btn" id="saves-add-btn">Save</button>
+        </form>
+        <p class="saves-status" id="saves-status" aria-live="polite"></p>
+        <div class="saves-list" id="saves-list" aria-label="Saved links"></div>
+      </div>
+    </div>
   </div>
 
   <!-- ── Modal: Add Bookmark ────────────────────────────────────────── -->
@@ -307,16 +341,16 @@
           <h4 class="settings-section-title">Data</h4>
         </div>
         <div class="settings-row">
-          <span class="settings-row-label">Export bookmarks</span>
+          <span class="settings-row-label">Export data</span>
           <button type="button" class="btn-secondary settings-data-btn" id="export-data-btn">Export</button>
         </div>
         <div class="settings-row">
-          <span class="settings-row-label">Import bookmarks</span>
+          <span class="settings-row-label">Import data</span>
           <button type="button" class="btn-secondary settings-data-btn" id="import-data-btn">Import</button>
           <input type="file" id="import-file-input" accept=".json" hidden />
         </div>
         <div class="settings-row">
-          <span class="settings-row-label">Delete all bookmarks &amp; favorites</span>
+          <span class="settings-row-label">Delete all bookmarks, favorites, and saves</span>
           <button type="button" class="btn-danger settings-data-btn" id="delete-all-data-btn">Delete All</button>
         </div>
       </div>
