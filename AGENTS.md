@@ -1,0 +1,1 @@
+Use IndexedDB for all data storage. Never use localstorage. Ensure data can be imported and exported via the import/ export feature.
