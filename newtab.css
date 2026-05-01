@@ -557,9 +557,31 @@ body {
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
+  background: var(--bg);
+}
+
+.grid-scroll--wallpaper-city {
+  background:
+    linear-gradient(rgba(44, 44, 48, 0.28), rgba(44, 44, 48, 0.52)),
+    url("backgrounds/City.png") center / cover no-repeat;
+}
+
+.grid-scroll--wallpaper-farm {
+  background:
+    linear-gradient(rgba(44, 44, 48, 0.28), rgba(44, 44, 48, 0.52)),
+    url("backgrounds/Farm.png") center / cover no-repeat;
+}
+
+.grid-scroll--wallpaper-mountains {
   background:
     linear-gradient(rgba(44, 44, 48, 0.28), rgba(44, 44, 48, 0.52)),
     url("backgrounds/Mountains.png") center / cover no-repeat;
+}
+
+.grid-scroll--wallpaper-ponds {
+  background:
+    linear-gradient(rgba(44, 44, 48, 0.28), rgba(44, 44, 48, 0.52)),
+    url("backgrounds/Ponds.png") center / cover no-repeat;
 }
 
 .grid-scroll::-webkit-scrollbar {

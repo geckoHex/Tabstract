@@ -27,6 +27,13 @@
       clearAria: "Clear Claude prompt",
     },
   };
+  const WALLPAPERS = {
+    off: { id: "off", label: "Off" },
+    city: { id: "city", label: "City" },
+    farm: { id: "farm", label: "Farm" },
+    mountains: { id: "mountains", label: "Mountains" },
+    ponds: { id: "ponds", label: "Ponds" },
+  };
   const iconSrc = (file) => chrome.runtime.getURL(`icons/${file}`);
 
   // ── Storage ────────────────────────────────────────────────────────────────
@@ -43,6 +50,7 @@
       aiProvider: "chatgpt",
       aiSearchEnabled: true,
       bookmarkSearchResultLimit: 8,
+      wallpaper: "mountains",
     };
   }
 
@@ -173,6 +181,9 @@
           settings.bookmarkSearchResultLimit = value;
         }
       }
+      if (record.key === "wallpaper" && WALLPAPERS[record.value]) {
+        settings.wallpaper = record.value;
+      }
     }
     return settings;
   }
@@ -243,6 +254,16 @@
     const db = await openDatabase();
     const tx = db.transaction(SETTINGS_STORE, "readwrite");
     tx.objectStore(SETTINGS_STORE).put({ key, value });
+    await transactionToPromise(tx);
+  }
+
+  async function saveSettings(nextSettings) {
+    const db = await openDatabase();
+    const tx = db.transaction(SETTINGS_STORE, "readwrite");
+    const store = tx.objectStore(SETTINGS_STORE);
+    for (const [key, value] of Object.entries(nextSettings)) {
+      store.put({ key, value });
+    }
     await transactionToPromise(tx);
   }
 
@@ -319,8 +340,13 @@
   const bookmarkSearchLimitInput = document.getElementById("bookmark-search-limit-input");
   const aiSearchEnabledInput = document.getElementById("ai-search-enabled");
   const aiProviderSettingsRow = document.getElementById("ai-provider-settings-row");
+  const wallpaperCustom = document.getElementById("wallpaper-custom-select");
+  const wallpaperTrigger = document.getElementById("wallpaper-trigger");
+  const wallpaperTriggerText = document.getElementById("wallpaper-trigger-text");
+  const wallpaperList = document.getElementById("wallpaper-list");
 
   let aiProviderId = "chatgpt";
+  let wallpaperId = "mountains";
 
   function getStoredAiProvider() {
     return settings.aiProvider;
@@ -332,6 +358,10 @@
 
   function getStoredBookmarkSearchResultLimit() {
     return settings.bookmarkSearchResultLimit;
+  }
+
+  function getStoredWallpaper() {
+    return settings.wallpaper;
   }
 
   async function setStoredAiSearchEnabled(on) {
@@ -361,6 +391,10 @@
     return AI_PROVIDERS[id] || AI_PROVIDERS.chatgpt;
   }
 
+  function wallpaperOrDefault(id) {
+    return WALLPAPERS[id] || WALLPAPERS.off;
+  }
+
   async function applyAiSearchProvider(id, { persist } = {}) {
     const p = providerOrDefault(id);
     aiProviderId = p.id;
@@ -386,12 +420,24 @@
     });
   }
 
+  function syncWallpaperCustomSelect() {
+    if (!wallpaperTriggerText || !wallpaperList) return;
+    const wallpaper = wallpaperOrDefault(wallpaperId);
+    wallpaperTriggerText.textContent = wallpaper.label;
+    wallpaperList.querySelectorAll("[role='option']").forEach((opt) => {
+      const on = opt.getAttribute("data-value") === wallpaperId;
+      opt.setAttribute("aria-selected", on ? "true" : "false");
+      opt.classList.toggle("is-selected", on);
+    });
+  }
+
   function isAiProviderDropdownOpen() {
     return aiProviderTrigger && aiProviderTrigger.getAttribute("aria-expanded") === "true";
   }
 
   function setAiProviderDropdownOpen(open) {
     if (!aiProviderTrigger || !aiProviderList) return;
+    if (open) closeWallpaperDropdown();
     aiProviderList.hidden = !open;
     aiProviderTrigger.setAttribute("aria-expanded", open ? "true" : "false");
   }
@@ -402,6 +448,38 @@
 
   function openAiProviderDropdown() {
     setAiProviderDropdownOpen(true);
+  }
+
+  function isWallpaperDropdownOpen() {
+    return wallpaperTrigger && wallpaperTrigger.getAttribute("aria-expanded") === "true";
+  }
+
+  function setWallpaperDropdownOpen(open) {
+    if (!wallpaperTrigger || !wallpaperList) return;
+    if (open) closeAiProviderDropdown();
+    wallpaperList.hidden = !open;
+    wallpaperTrigger.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+
+  function closeWallpaperDropdown() {
+    setWallpaperDropdownOpen(false);
+  }
+
+  function openWallpaperDropdown() {
+    setWallpaperDropdownOpen(true);
+  }
+
+  function focusWallpaperOption(dir) {
+    const opts = [...wallpaperList.querySelectorAll("[role='option']")];
+    if (!opts.length) return;
+    const ix = opts.findIndex((o) => o === document.activeElement);
+    const next =
+      ix < 0
+        ? dir === 1
+          ? 0
+          : opts.length - 1
+        : Math.min(Math.max(ix + dir, 0), opts.length - 1);
+    opts[next].focus();
   }
 
   function focusAiProviderOption(dir) {
@@ -432,6 +510,24 @@
     }
     syncBookmarkSearchLimitInput();
     updateBookmarkSearchResults();
+  }
+
+  async function applyWallpaper(id, { persist } = {}) {
+    const wallpaper = wallpaperOrDefault(id);
+    wallpaperId = wallpaper.id;
+    settings.wallpaper = wallpaperId;
+    if (gridScroll) {
+      Object.keys(WALLPAPERS).forEach((key) => {
+        if (key !== "off") gridScroll.classList.remove(`grid-scroll--wallpaper-${key}`);
+      });
+      if (wallpaperId !== "off") {
+        gridScroll.classList.add(`grid-scroll--wallpaper-${wallpaperId}`);
+      }
+    }
+    if (persist) {
+      await saveSetting("wallpaper", wallpaperId);
+    }
+    syncWallpaperCustomSelect();
   }
 
   async function initAiSearchProvider() {
@@ -2257,13 +2353,16 @@
   function openSettingsModal() {
     applyAiSearchBoxVisibility(getStoredAiSearchEnabled());
     syncAiProviderCustomSelect();
+    syncWallpaperCustomSelect();
     syncBookmarkSearchLimitInput();
     closeAiProviderDropdown();
+    closeWallpaperDropdown();
     settingsModal.hidden = false;
   }
 
   function closeSettingsModal() {
     closeAiProviderDropdown();
+    closeWallpaperDropdown();
     settingsModal.hidden = true;
   }
 
@@ -2348,6 +2447,73 @@
     });
   }
 
+  if (wallpaperTrigger && wallpaperList) {
+    wallpaperTrigger.addEventListener("click", (e) => {
+      e.stopPropagation();
+      setWallpaperDropdownOpen(!isWallpaperDropdownOpen());
+    });
+    wallpaperTrigger.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        if (!isWallpaperDropdownOpen()) openWallpaperDropdown();
+        focusWallpaperOption(1);
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        if (!isWallpaperDropdownOpen()) openWallpaperDropdown();
+        focusWallpaperOption(-1);
+      } else if (e.key === "Escape" && isWallpaperDropdownOpen()) {
+        e.preventDefault();
+        e.stopPropagation();
+        closeWallpaperDropdown();
+      }
+    });
+    wallpaperList.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        closeWallpaperDropdown();
+        wallpaperTrigger.focus();
+      } else if (e.key === "ArrowDown") {
+        e.preventDefault();
+        focusWallpaperOption(1);
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        focusWallpaperOption(-1);
+      } else if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        const v = document.activeElement.getAttribute("data-value");
+        if (v) {
+          void applyWallpaper(v, { persist: true })
+            .then(() => {
+              closeWallpaperDropdown();
+              wallpaperTrigger.focus();
+            })
+            .catch(reportStorageError);
+        }
+      }
+    });
+    wallpaperList.querySelectorAll("[role='option']").forEach((opt) => {
+      opt.addEventListener("click", () => {
+        const v = opt.getAttribute("data-value");
+        if (v) {
+          void applyWallpaper(v, { persist: true })
+            .then(() => {
+              closeWallpaperDropdown();
+              wallpaperTrigger.focus();
+            })
+            .catch(reportStorageError);
+          return;
+        }
+        closeWallpaperDropdown();
+        wallpaperTrigger.focus();
+      });
+    });
+    document.addEventListener("click", (e) => {
+      if (!isWallpaperDropdownOpen() || !wallpaperCustom) return;
+      if (!wallpaperCustom.contains(e.target)) closeWallpaperDropdown();
+    });
+  }
+
   if (bookmarkSearchLimitInput) {
     const persistBookmarkSearchLimitInput = () => {
       const raw = Number(bookmarkSearchLimitInput.value);
@@ -2365,9 +2531,10 @@
 
   function exportData() {
     const payload = {
-      version: 2,
+      version: 3,
       exportedAt: new Date().toISOString(),
       bookmarks: data,
+      settings,
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -2380,11 +2547,25 @@
     URL.revokeObjectURL(url);
   }
 
-  async function applyImport(imported) {
+  async function applyImport(imported, importedSettings = null) {
     data = imported;
     await saveData();
+    if (importedSettings) {
+      settings = importedSettings;
+      await saveSettings(settings);
+      await initAiSearchProvider();
+      await applyWallpaper(getStoredWallpaper(), { persist: false });
+      applyAiSearchBoxVisibility(getStoredAiSearchEnabled());
+      syncBookmarkSearchLimitInput();
+    }
     currentPath = [];
     render();
+  }
+
+  function sanitizeImportedSettings(importedSettings) {
+    if (!importedSettings || typeof importedSettings !== "object") return null;
+    const records = Object.entries(importedSettings).map(([key, value]) => ({ key, value }));
+    return hydrateSettings(records);
   }
 
   function handleImportFile(file) {
@@ -2392,12 +2573,17 @@
     const reader = new FileReader();
     reader.onload = (e) => {
       let parsed;
+      let parsedSettings = null;
       try {
         const raw = JSON.parse(e.target.result);
         if (raw && raw.version === 1 && raw.bookmarks) {
           parsed = raw.bookmarks;
         } else if (raw && raw.version === 2 && raw.bookmarks) {
           parsed = raw.bookmarks;
+          parsedSettings = sanitizeImportedSettings(raw.settings);
+        } else if (raw && raw.version === 3 && raw.bookmarks) {
+          parsed = raw.bookmarks;
+          parsedSettings = sanitizeImportedSettings(raw.settings);
         } else if (raw && Array.isArray(raw.items)) {
           parsed = raw;
         } else {
@@ -2411,12 +2597,13 @@
         return;
       }
       const importedData = parsed;
+      const importedSettings = parsedSettings;
       openDestructiveConfirm({
         title: "Replace all data?",
-        message: "This will permanently replace all your current bookmarks, favorites, and saves with the imported file. This cannot be undone.",
+        message: "This will permanently replace all your current bookmarks, favorites, saves, and any exported settings with the imported file. This cannot be undone.",
         confirmLabel: "Replace",
         action: async () => {
-          await applyImport(importedData);
+          await applyImport(importedData, importedSettings);
           closeSettingsModal();
         },
       });
@@ -2467,6 +2654,10 @@
           closeAiProviderDropdown();
           return;
         }
+        if (isWallpaperDropdownOpen()) {
+          closeWallpaperDropdown();
+          return;
+        }
         closeSettingsModal();
         return;
       }
@@ -2498,6 +2689,7 @@
     data = persisted.data;
     settings = persisted.settings;
     await initAiSearchProvider();
+    await applyWallpaper(getStoredWallpaper(), { persist: false });
     applyAiSearchBoxVisibility(getStoredAiSearchEnabled());
     searchInput.focus();
     render();
