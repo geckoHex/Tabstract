@@ -285,107 +285,119 @@
         <h3>Settings</h3>
       </div>
       <div class="modal-body modal-body--settings">
-        <div class="settings-intro">
-          <h4 class="settings-section-title">Theme</h4>
-        </div>
-        <div class="settings-row" id="wallpaper-settings-row">
-          <label class="settings-row-label" for="wallpaper-trigger" id="wallpaper-label">Wallpaper</label>
-          <div class="custom-select custom-select--settings" id="wallpaper-custom-select">
-            <button
-              type="button"
-              class="custom-select-trigger"
-              id="wallpaper-trigger"
-              aria-haspopup="listbox"
-              aria-expanded="false"
-              aria-controls="wallpaper-list"
-              aria-labelledby="wallpaper-label wallpaper-trigger-text"
-            >
-              <span class="custom-select-value" id="wallpaper-trigger-text">Mountains</span>
-              <span class="custom-select-chevron" aria-hidden="true">
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-              </span>
-            </button>
-            <ul class="custom-select-menu" id="wallpaper-list" role="listbox" aria-labelledby="wallpaper-label" hidden>
-              <li class="custom-select-option" role="option" tabindex="-1" data-value="off">Off</li>
-              <li class="custom-select-option" role="option" tabindex="-1" data-value="city">City</li>
-              <li class="custom-select-option" role="option" tabindex="-1" data-value="farm">Farm</li>
-              <li class="custom-select-option" role="option" tabindex="-1" data-value="mountains">Mountains</li>
-              <li class="custom-select-option" role="option" tabindex="-1" data-value="ponds">Ponds</li>
-            </ul>
+        <div class="settings-shell">
+          <div class="settings-sidebar" role="tablist" aria-label="Settings sections" aria-orientation="vertical">
+            <button type="button" class="settings-tab is-active" id="settings-tab-theme" role="tab" aria-selected="true" aria-controls="settings-panel-theme" data-settings-tab="theme">Theme</button>
+            <button type="button" class="settings-tab" id="settings-tab-search" role="tab" aria-selected="false" aria-controls="settings-panel-search" data-settings-tab="search" tabindex="-1">Search</button>
+            <button type="button" class="settings-tab" id="settings-tab-data" role="tab" aria-selected="false" aria-controls="settings-panel-data" data-settings-tab="data" tabindex="-1">Data</button>
           </div>
-        </div>
 
-        <div class="settings-section-divider"></div>
+          <div class="settings-panels">
+            <section class="settings-panel is-active" id="settings-panel-theme" role="tabpanel" aria-labelledby="settings-tab-theme" data-settings-panel="theme">
+              <div class="settings-intro">
+                <h4 class="settings-section-title">Theme</h4>
+              </div>
+              <div class="settings-row" id="wallpaper-settings-row">
+                <label class="settings-row-label" for="wallpaper-trigger" id="wallpaper-label">Wallpaper</label>
+                <div class="custom-select custom-select--settings" id="wallpaper-custom-select">
+                  <button
+                    type="button"
+                    class="custom-select-trigger"
+                    id="wallpaper-trigger"
+                    aria-haspopup="listbox"
+                    aria-expanded="false"
+                    aria-controls="wallpaper-list"
+                    aria-labelledby="wallpaper-label wallpaper-trigger-text"
+                  >
+                    <span class="custom-select-value" id="wallpaper-trigger-text">Mountains</span>
+                    <span class="custom-select-chevron" aria-hidden="true">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                      </svg>
+                    </span>
+                  </button>
+                  <ul class="custom-select-menu" id="wallpaper-list" role="listbox" aria-labelledby="wallpaper-label" hidden>
+                    <li class="custom-select-option" role="option" tabindex="-1" data-value="off">Off</li>
+                    <li class="custom-select-option" role="option" tabindex="-1" data-value="city">City</li>
+                    <li class="custom-select-option" role="option" tabindex="-1" data-value="farm">Farm</li>
+                    <li class="custom-select-option" role="option" tabindex="-1" data-value="mountains">Mountains</li>
+                    <li class="custom-select-option" role="option" tabindex="-1" data-value="ponds">Ponds</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
 
-        <div class="settings-intro">
-          <h4 class="settings-section-title">Search Options</h4>
-        </div>
-        <label class="settings-row settings-row--toggle">
-          <span class="settings-row-label">AI search box</span>
-          <span class="settings-toggle">
-            <input type="checkbox" id="ai-search-enabled" class="settings-toggle-input" checked />
-            <span class="settings-toggle-track" aria-hidden="true"></span>
-          </span>
-        </label>
-        <div class="settings-row" id="ai-provider-settings-row">
-          <label class="settings-row-label" for="ai-provider-trigger" id="ai-provider-label">AI Search Provider</label>
-          <div class="custom-select custom-select--settings" id="ai-provider-custom-select">
-            <button
-              type="button"
-              class="custom-select-trigger"
-              id="ai-provider-trigger"
-              aria-haspopup="listbox"
-              aria-expanded="false"
-              aria-controls="ai-provider-list"
-              aria-labelledby="ai-provider-label ai-provider-trigger-text"
-            >
-              <span class="custom-select-value" id="ai-provider-trigger-text">ChatGPT</span>
-              <span class="custom-select-chevron" aria-hidden="true">
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-              </span>
-            </button>
-            <ul class="custom-select-menu" id="ai-provider-list" role="listbox" aria-labelledby="ai-provider-label" hidden>
-              <li class="custom-select-option" role="option" tabindex="-1" data-value="chatgpt">ChatGPT</li>
-              <li class="custom-select-option" role="option" tabindex="-1" data-value="claude">Claude</li>
-            </ul>
+            <section class="settings-panel" id="settings-panel-search" role="tabpanel" aria-labelledby="settings-tab-search" data-settings-panel="search" hidden>
+              <div class="settings-intro">
+                <h4 class="settings-section-title">Search Options</h4>
+              </div>
+              <label class="settings-row settings-row--toggle">
+                <span class="settings-row-label">AI search box</span>
+                <span class="settings-toggle">
+                  <input type="checkbox" id="ai-search-enabled" class="settings-toggle-input" checked />
+                  <span class="settings-toggle-track" aria-hidden="true"></span>
+                </span>
+              </label>
+              <div class="settings-row" id="ai-provider-settings-row">
+                <label class="settings-row-label" for="ai-provider-trigger" id="ai-provider-label">AI Search Provider</label>
+                <div class="custom-select custom-select--settings" id="ai-provider-custom-select">
+                  <button
+                    type="button"
+                    class="custom-select-trigger"
+                    id="ai-provider-trigger"
+                    aria-haspopup="listbox"
+                    aria-expanded="false"
+                    aria-controls="ai-provider-list"
+                    aria-labelledby="ai-provider-label ai-provider-trigger-text"
+                  >
+                    <span class="custom-select-value" id="ai-provider-trigger-text">ChatGPT</span>
+                    <span class="custom-select-chevron" aria-hidden="true">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                      </svg>
+                    </span>
+                  </button>
+                  <ul class="custom-select-menu" id="ai-provider-list" role="listbox" aria-labelledby="ai-provider-label" hidden>
+                    <li class="custom-select-option" role="option" tabindex="-1" data-value="chatgpt">ChatGPT</li>
+                    <li class="custom-select-option" role="option" tabindex="-1" data-value="claude">Claude</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="settings-row" id="bookmark-search-limit-settings-row">
+                <label class="settings-row-label" for="bookmark-search-limit-input" id="bookmark-search-limit-label">Bookmark Search Results</label>
+                <input
+                  type="number"
+                  id="bookmark-search-limit-input"
+                  class="settings-number-input"
+                  min="1"
+                  max="8"
+                  step="1"
+                  inputmode="numeric"
+                  value="8"
+                  aria-labelledby="bookmark-search-limit-label"
+                />
+              </div>
+            </section>
+
+            <section class="settings-panel" id="settings-panel-data" role="tabpanel" aria-labelledby="settings-tab-data" data-settings-panel="data" hidden>
+              <div class="settings-intro">
+                <h4 class="settings-section-title">Data</h4>
+              </div>
+              <div class="settings-row">
+                <span class="settings-row-label">Export data</span>
+                <button type="button" class="btn-secondary settings-data-btn" id="export-data-btn">Export</button>
+              </div>
+              <div class="settings-row">
+                <span class="settings-row-label">Import data</span>
+                <button type="button" class="btn-secondary settings-data-btn" id="import-data-btn">Import</button>
+                <input type="file" id="import-file-input" accept=".json" hidden />
+              </div>
+              <div class="settings-row">
+                <span class="settings-row-label">Delete all bookmarks, favorites, and saves</span>
+                <button type="button" class="btn-danger settings-data-btn" id="delete-all-data-btn">Delete All</button>
+              </div>
+            </section>
           </div>
-        </div>
-        <div class="settings-row" id="bookmark-search-limit-settings-row">
-          <label class="settings-row-label" for="bookmark-search-limit-input" id="bookmark-search-limit-label">Bookmark Search Results</label>
-          <input
-            type="number"
-            id="bookmark-search-limit-input"
-            class="settings-number-input"
-            min="1"
-            max="8"
-            step="1"
-            inputmode="numeric"
-            value="8"
-            aria-labelledby="bookmark-search-limit-label"
-          />
-        </div>
-
-        <div class="settings-section-divider"></div>
-
-        <div class="settings-intro">
-          <h4 class="settings-section-title">Data</h4>
-        </div>
-        <div class="settings-row">
-          <span class="settings-row-label">Export data</span>
-          <button type="button" class="btn-secondary settings-data-btn" id="export-data-btn">Export</button>
-        </div>
-        <div class="settings-row">
-          <span class="settings-row-label">Import data</span>
-          <button type="button" class="btn-secondary settings-data-btn" id="import-data-btn">Import</button>
-          <input type="file" id="import-file-input" accept=".json" hidden />
-        </div>
-        <div class="settings-row">
-          <span class="settings-row-label">Delete all bookmarks, favorites, and saves</span>
-          <button type="button" class="btn-danger settings-data-btn" id="delete-all-data-btn">Delete All</button>
         </div>
       </div>
       <div class="modal-footer modal-footer--settings">

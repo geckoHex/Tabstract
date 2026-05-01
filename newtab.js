@@ -2349,12 +2349,56 @@
   // ══════════════════════════════════════════════════════════════════════════
 
   const settingsModal = document.getElementById("settings-modal");
+  const settingsTabs = Array.from(document.querySelectorAll("[data-settings-tab]"));
+  const settingsPanels = Array.from(document.querySelectorAll("[data-settings-panel]"));
+
+  function activateSettingsTab(sectionId, focusTab = false) {
+    if (!sectionId) return;
+    closeAiProviderDropdown();
+    closeWallpaperDropdown();
+
+    settingsTabs.forEach((tab) => {
+      const active = tab.dataset.settingsTab === sectionId;
+      tab.classList.toggle("is-active", active);
+      tab.setAttribute("aria-selected", active ? "true" : "false");
+      tab.tabIndex = active ? 0 : -1;
+      if (active && focusTab) tab.focus();
+    });
+
+    settingsPanels.forEach((panel) => {
+      const active = panel.dataset.settingsPanel === sectionId;
+      panel.classList.toggle("is-active", active);
+      panel.toggleAttribute("hidden", !active);
+    });
+  }
+
+  function handleSettingsTabKeydown(e) {
+    const currentIndex = settingsTabs.indexOf(e.currentTarget);
+    if (currentIndex === -1) return;
+
+    let nextIndex = currentIndex;
+    if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+      nextIndex = (currentIndex + 1) % settingsTabs.length;
+    } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+      nextIndex = (currentIndex - 1 + settingsTabs.length) % settingsTabs.length;
+    } else if (e.key === "Home") {
+      nextIndex = 0;
+    } else if (e.key === "End") {
+      nextIndex = settingsTabs.length - 1;
+    } else {
+      return;
+    }
+
+    e.preventDefault();
+    activateSettingsTab(settingsTabs[nextIndex].dataset.settingsTab, true);
+  }
 
   function openSettingsModal() {
     applyAiSearchBoxVisibility(getStoredAiSearchEnabled());
     syncAiProviderCustomSelect();
     syncWallpaperCustomSelect();
     syncBookmarkSearchLimitInput();
+    activateSettingsTab("theme");
     closeAiProviderDropdown();
     closeWallpaperDropdown();
     settingsModal.hidden = false;
@@ -2370,6 +2414,12 @@
   document.getElementById("settings-modal-done").addEventListener("click", closeSettingsModal);
   settingsModal.addEventListener("click", (e) => {
     if (e.target === settingsModal) closeSettingsModal();
+  });
+  settingsTabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      activateSettingsTab(tab.dataset.settingsTab);
+    });
+    tab.addEventListener("keydown", handleSettingsTabKeydown);
   });
 
   if (aiSearchEnabledInput) {
