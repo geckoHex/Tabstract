@@ -1,7 +1,4 @@
 - [ ] Add custom search filters like transparent images, large images, etc
-- [ ] Add custom backgrounds
-- [ ] Add more background options
-- [ ] Add sections with sidebar in settings menu
 - [ ] Add folders to saved for later for project organizations
 - [ ] Add auto archive function to saved for later links
 - [ ] Add renaming to saved for later links
