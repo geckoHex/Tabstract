@@ -6,6 +6,7 @@
   const FAVORITES_STORE = "favorites";
   const SETTINGS_STORE = "settings";
   const SAVES_STORE = "saves";
+  const SAVE_ARCHIVE_AFTER_MS = 24 * 60 * 60 * 1000;
 
   const AI_PROVIDERS = {
     chatgpt: {
@@ -198,8 +199,30 @@
         title: String(record.title || "").trim(),
         faviconUrl: String(record.faviconUrl || "").trim(),
         savedAt: String(record.savedAt || new Date().toISOString()),
+        archivedAt: typeof record.archivedAt === "string" && record.archivedAt ? record.archivedAt : null,
       }))
       .filter((record) => record.url);
+  }
+
+  function saveExpiryTime(save) {
+    const savedAt = Date.parse(save.savedAt || "");
+    return Number.isFinite(savedAt) ? savedAt + SAVE_ARCHIVE_AFTER_MS : Date.now() + SAVE_ARCHIVE_AFTER_MS;
+  }
+
+  function isSaveArchived(save) {
+    return Boolean(save.archivedAt);
+  }
+
+  async function archiveExpiredSaves({ persist = true } = {}) {
+    const now = Date.now();
+    let changed = false;
+    data.saves = (data.saves || []).map((save) => {
+      if (isSaveArchived(save) || saveExpiryTime(save) > now) return save;
+      changed = true;
+      return { ...save, archivedAt: new Date(now).toISOString() };
+    });
+    if (changed && persist) await saveData();
+    return changed;
   }
 
   async function loadPersistedState() {
@@ -2018,22 +2041,25 @@
   const savesModal = document.getElementById("saves-modal");
   const savesUrlInput = document.getElementById("saves-url-input");
   const savesAddBtn = document.getElementById("saves-add-btn");
+  const savesArchiveToggle = document.getElementById("saves-archive-toggle");
   const savesStatus = document.getElementById("saves-status");
   const savesList = document.getElementById("saves-list");
 
   let saveUrlInFlight = "";
+  let viewingSavesArchive = false;
 
   function setSavesStatus(message) {
     savesStatus.textContent = message;
   }
 
   function renderSavesList() {
-    const saves = data.saves || [];
+    const saves = (data.saves || []).filter((save) => isSaveArchived(save) === viewingSavesArchive);
+    savesArchiveToggle.querySelector("span").textContent = viewingSavesArchive ? "Back to saves" : "View archive";
     savesList.innerHTML = "";
     if (saves.length === 0) {
       const empty = document.createElement("div");
       empty.className = "saves-empty";
-      empty.textContent = "No saved links yet.";
+      empty.textContent = viewingSavesArchive ? "No archived links yet." : "No saved links yet.";
       savesList.appendChild(empty);
       return;
     }
@@ -2041,6 +2067,7 @@
     for (const save of saves) {
       const item = document.createElement("div");
       item.className = "saves-item";
+      item.classList.toggle("saves-item--archived", viewingSavesArchive);
 
       const favicon = document.createElement("img");
       favicon.className = "saves-item-favicon";
@@ -2067,26 +2094,32 @@
 
       link.append(title, url);
 
-      const deleteBtn = document.createElement("button");
-      deleteBtn.type = "button";
-      deleteBtn.className = "saves-item-delete";
-      deleteBtn.setAttribute("aria-label", `Delete ${save.title || hostname(save.url)}`);
-      const deleteIcon = document.createElement("img");
-      deleteIcon.src = iconSrc("trash.svg");
-      deleteIcon.alt = "";
-      deleteIcon.width = 15;
-      deleteIcon.height = 15;
-      deleteBtn.appendChild(deleteIcon);
-      deleteBtn.addEventListener("click", () => {
-        void deleteSave(save.id).catch(reportStorageError);
-      });
+      if (viewingSavesArchive) {
+        item.append(favicon, link);
+      } else {
+        const archiveBtn = document.createElement("button");
+        archiveBtn.type = "button";
+        archiveBtn.className = "saves-item-archive";
+        archiveBtn.setAttribute("aria-label", `Archive ${save.title || hostname(save.url)}`);
+        const archiveIcon = document.createElement("img");
+        archiveIcon.src = iconSrc("check.svg");
+        archiveIcon.alt = "";
+        archiveIcon.width = 15;
+        archiveIcon.height = 15;
+        archiveBtn.appendChild(archiveIcon);
+        archiveBtn.addEventListener("click", () => {
+          void archiveSave(save.id).catch(reportStorageError);
+        });
 
-      item.append(favicon, link, deleteBtn);
+        item.append(favicon, link, archiveBtn);
+      }
       savesList.appendChild(item);
     }
   }
 
-  function openSavesModal() {
+  async function openSavesModal() {
+    await archiveExpiredSaves();
+    viewingSavesArchive = false;
     setSavesStatus("");
     savesUrlInput.value = "";
     renderSavesList();
@@ -2097,6 +2130,7 @@
   function closeSavesModal() {
     savesModal.hidden = true;
     saveUrlInFlight = "";
+    viewingSavesArchive = false;
     setSavesStatus("");
     savesUrlInput.value = "";
   }
@@ -2108,7 +2142,8 @@
       return;
     }
     if (saveUrlInFlight === url) return;
-    if ((data.saves || []).some((save) => save.url === url)) {
+    const existing = (data.saves || []).find((save) => save.url === url);
+    if (existing && !isSaveArchived(existing)) {
       savesUrlInput.value = "";
       setSavesStatus("Already saved.");
       return;
@@ -2120,15 +2155,25 @@
     try {
       const metadata = await fetchSavedLinkMetadata(url);
       data.saves = data.saves || [];
-      data.saves.unshift({
-        id: uid(),
-        url,
-        title: metadata.title,
-        faviconUrl: metadata.faviconUrl,
-        savedAt: new Date().toISOString(),
-      });
+      if (existing) {
+        existing.title = metadata.title || existing.title;
+        existing.faviconUrl = metadata.faviconUrl || existing.faviconUrl;
+        existing.savedAt = new Date().toISOString();
+        existing.archivedAt = null;
+        data.saves = [existing, ...data.saves.filter((save) => save.id !== existing.id)];
+      } else {
+        data.saves.unshift({
+          id: uid(),
+          url,
+          title: metadata.title,
+          faviconUrl: metadata.faviconUrl,
+          savedAt: new Date().toISOString(),
+          archivedAt: null,
+        });
+      }
       await saveData();
       savesUrlInput.value = "";
+      viewingSavesArchive = false;
       setSavesStatus("");
       renderSavesList();
     } finally {
@@ -2137,15 +2182,24 @@
     }
   }
 
-  async function deleteSave(id) {
-    data.saves = (data.saves || []).filter((save) => save.id !== id);
+  async function archiveSave(id) {
+    const save = (data.saves || []).find((item) => item.id === id);
+    if (!save || isSaveArchived(save)) return;
+    save.archivedAt = new Date().toISOString();
     await saveData();
     renderSavesList();
   }
 
-  document.getElementById("saves-btn").addEventListener("click", openSavesModal);
+  document.getElementById("saves-btn").addEventListener("click", () => {
+    void openSavesModal().catch(reportStorageError);
+  });
   document.getElementById("saves-modal-close").addEventListener("click", closeSavesModal);
   savesModal.addEventListener("click", (e) => { if (e.target === savesModal) closeSavesModal(); });
+  savesArchiveToggle.addEventListener("click", () => {
+    viewingSavesArchive = !viewingSavesArchive;
+    setSavesStatus("");
+    renderSavesList();
+  });
   document.getElementById("saves-form").addEventListener("submit", (e) => {
     e.preventDefault();
     void savePastedLink(savesUrlInput.value).catch(reportStorageError);
@@ -2599,6 +2653,7 @@
 
   async function applyImport(imported, importedSettings = null) {
     data = imported;
+    await archiveExpiredSaves({ persist: false });
     await saveData();
     if (importedSettings) {
       settings = importedSettings;
@@ -2642,6 +2697,7 @@
         if (!Array.isArray(parsed.items)) throw new Error("Missing items");
         if (!Array.isArray(parsed.favorites)) parsed.favorites = [];
         if (!Array.isArray(parsed.saves)) parsed.saves = [];
+        parsed.saves = hydrateSaves(parsed.saves);
       } catch {
         alert("Could not read the file. Make sure it's a valid Tabstract export.");
         return;
@@ -2738,6 +2794,14 @@
     const persisted = await loadPersistedState();
     data = persisted.data;
     settings = persisted.settings;
+    await archiveExpiredSaves();
+    setInterval(() => {
+      archiveExpiredSaves()
+        .then((changed) => {
+          if (changed && !savesModal.hidden) renderSavesList();
+        })
+        .catch(reportStorageError);
+    }, 60000);
     await initAiSearchProvider();
     await applyWallpaper(getStoredWallpaper(), { persist: false });
     applyAiSearchBoxVisibility(getStoredAiSearchEnabled());

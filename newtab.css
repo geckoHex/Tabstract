@@ -1046,6 +1046,35 @@ body {
   min-width: 84px;
 }
 
+.saves-archive-toggle {
+  align-self: flex-start;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 8px;
+  padding: 0 10px;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.saves-archive-toggle img {
+  filter: invert(1);
+  opacity: 0.75;
+}
+
+.saves-archive-toggle:hover,
+.saves-archive-toggle:focus-visible {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+  outline: none;
+}
+
 .saves-status {
   min-height: 18px;
   font-size: 0.8125rem;
@@ -1085,6 +1114,10 @@ body {
   border: 1px solid var(--border);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.025);
+}
+
+.saves-item--archived {
+  grid-template-columns: 36px minmax(0, 1fr);
 }
 
 .saves-item-favicon {
@@ -1127,7 +1160,7 @@ body {
   color: var(--text-secondary);
 }
 
-.saves-item-delete {
+.saves-item-archive {
   width: 32px;
   height: 32px;
   display: inline-flex;
@@ -1141,12 +1174,12 @@ body {
   transition: background var(--transition), opacity var(--transition);
 }
 
-.saves-item-delete img {
+.saves-item-archive img {
   filter: invert(1);
 }
 
-.saves-item-delete:hover,
-.saves-item-delete:focus-visible {
+.saves-item-archive:hover,
+.saves-item-archive:focus-visible {
   background: var(--surface-hover);
   opacity: 0.92;
   outline: none;
