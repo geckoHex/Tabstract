@@ -50,7 +50,7 @@
       aiProvider: "chatgpt",
       aiSearchEnabled: true,
       bookmarkSearchResultLimit: 8,
-      wallpaper: "mountains",
+      wallpaper: "off",
     };
   }
 
@@ -346,7 +346,7 @@
   const wallpaperList = document.getElementById("wallpaper-list");
 
   let aiProviderId = "chatgpt";
-  let wallpaperId = "mountains";
+  let wallpaperId = "off";
 
   function getStoredAiProvider() {
     return settings.aiProvider;
