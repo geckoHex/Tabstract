@@ -1043,11 +1043,16 @@ body {
 }
 
 .saves-add-btn {
+  height: 42px;
   min-width: 84px;
+  padding: 0 16px;
+  font-size: 0.9375rem;
+  line-height: 1;
 }
 
 .saves-archive-toggle {
-  align-self: flex-start;
+  align-self: center;
+  flex-shrink: 0;
   min-height: 32px;
   display: inline-flex;
   align-items: center;
@@ -1186,12 +1191,16 @@ body {
 }
 
 .saves-empty {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 180px;
   color: var(--text-secondary);
-  font-size: 0.875rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  text-align: center;
 }
 
 .modal--settings .modal-header {

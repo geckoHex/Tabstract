@@ -2053,12 +2053,13 @@
 
   function renderSavesList() {
     const saves = (data.saves || []).filter((save) => isSaveArchived(save) === viewingSavesArchive);
-    savesArchiveToggle.querySelector("span").textContent = viewingSavesArchive ? "Back to saves" : "View archive";
+    const archivedSavesCount = (data.saves || []).filter(isSaveArchived).length;
+    savesArchiveToggle.querySelector("span").textContent = viewingSavesArchive ? "Back to saves" : `See archive (${archivedSavesCount})`;
     savesList.innerHTML = "";
     if (saves.length === 0) {
       const empty = document.createElement("div");
       empty.className = "saves-empty";
-      empty.textContent = viewingSavesArchive ? "No archived links yet." : "No saved links yet.";
+      empty.textContent = viewingSavesArchive ? "No archived links yet." : "No current saves";
       savesList.appendChild(empty);
       return;
     }
