@@ -182,10 +182,8 @@
           settings.bookmarkSearchResultLimit = value;
         }
       }
-      if (record.key === "wallpaper" && WALLPAPERS[record.value]) {
-        settings.wallpaper = record.value;
-      }
     }
+    settings.wallpaper = "off";
     return settings;
   }
 
@@ -384,7 +382,7 @@
   }
 
   function getStoredWallpaper() {
-    return settings.wallpaper;
+    return "off";
   }
 
   async function setStoredAiSearchEnabled(on) {
@@ -479,6 +477,7 @@
 
   function setWallpaperDropdownOpen(open) {
     if (!wallpaperTrigger || !wallpaperList) return;
+    if (open && wallpaperTrigger.disabled) return;
     if (open) closeAiProviderDropdown();
     wallpaperList.hidden = !open;
     wallpaperTrigger.setAttribute("aria-expanded", open ? "true" : "false");
@@ -536,7 +535,7 @@
   }
 
   async function applyWallpaper(id, { persist } = {}) {
-    const wallpaper = wallpaperOrDefault(id);
+    const wallpaper = wallpaperOrDefault("off");
     wallpaperId = wallpaper.id;
     settings.wallpaper = wallpaperId;
     if (gridScroll) {
@@ -2554,9 +2553,11 @@
   if (wallpaperTrigger && wallpaperList) {
     wallpaperTrigger.addEventListener("click", (e) => {
       e.stopPropagation();
+      if (wallpaperTrigger.disabled) return;
       setWallpaperDropdownOpen(!isWallpaperDropdownOpen());
     });
     wallpaperTrigger.addEventListener("keydown", (e) => {
+      if (wallpaperTrigger.disabled) return;
       if (e.key === "ArrowDown") {
         e.preventDefault();
         if (!isWallpaperDropdownOpen()) openWallpaperDropdown();
@@ -2659,7 +2660,7 @@
       settings = importedSettings;
       await saveSettings(settings);
       await initAiSearchProvider();
-      await applyWallpaper(getStoredWallpaper(), { persist: false });
+      await applyWallpaper(getStoredWallpaper(), { persist: true });
       applyAiSearchBoxVisibility(getStoredAiSearchEnabled());
       syncBookmarkSearchLimitInput();
     }
@@ -2803,7 +2804,7 @@
         .catch(reportStorageError);
     }, 60000);
     await initAiSearchProvider();
-    await applyWallpaper(getStoredWallpaper(), { persist: false });
+    await applyWallpaper(getStoredWallpaper(), { persist: true });
     applyAiSearchBoxVisibility(getStoredAiSearchEnabled());
     searchInput.focus();
     render();
