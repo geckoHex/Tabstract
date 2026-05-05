@@ -2046,20 +2046,49 @@
 
   let saveUrlInFlight = "";
   let viewingSavesArchive = false;
+  let savesArchiveSearchQuery = "";
 
   function setSavesStatus(message) {
     savesStatus.textContent = message;
   }
 
+  function setSavesInputMode() {
+    document.getElementById("saves-form").classList.toggle("saves-form--searching", viewingSavesArchive);
+    savesUrlInput.type = viewingSavesArchive ? "search" : "url";
+    savesUrlInput.placeholder = viewingSavesArchive ? "Search saved links..." : "Paste a link...";
+    savesUrlInput.setAttribute(
+      "aria-label",
+      viewingSavesArchive ? "Search archived saved links" : "Paste a link to save",
+    );
+    savesUrlInput.value = viewingSavesArchive ? savesArchiveSearchQuery : "";
+    savesAddBtn.hidden = viewingSavesArchive;
+    savesAddBtn.disabled = viewingSavesArchive || Boolean(saveUrlInFlight);
+  }
+
+  function saveMatchesSearch(save, query) {
+    if (!query) return true;
+    return [save.title, save.url, hostname(save.url)]
+      .filter(Boolean)
+      .some((value) => value.toLowerCase().includes(query));
+  }
+
   function renderSavesList() {
-    const saves = (data.saves || []).filter((save) => isSaveArchived(save) === viewingSavesArchive);
+    const archiveQuery = savesArchiveSearchQuery.trim().toLowerCase();
+    const saves = (data.saves || [])
+      .filter((save) => isSaveArchived(save) === viewingSavesArchive)
+      .filter((save) => !viewingSavesArchive || saveMatchesSearch(save, archiveQuery));
     const archivedSavesCount = (data.saves || []).filter(isSaveArchived).length;
     savesArchiveToggle.querySelector("span").textContent = viewingSavesArchive ? "Back to saves" : `See archive (${archivedSavesCount})`;
+    setSavesInputMode();
     savesList.innerHTML = "";
     if (saves.length === 0) {
       const empty = document.createElement("div");
       empty.className = "saves-empty";
-      empty.textContent = viewingSavesArchive ? "No archived links yet." : "No current saves";
+      if (viewingSavesArchive && archiveQuery) {
+        empty.textContent = "No archived links match your search.";
+      } else {
+        empty.textContent = viewingSavesArchive ? "No archived links yet." : "No current saves";
+      }
       savesList.appendChild(empty);
       return;
     }
@@ -2120,6 +2149,7 @@
   async function openSavesModal() {
     await archiveExpiredSaves();
     viewingSavesArchive = false;
+    savesArchiveSearchQuery = "";
     setSavesStatus("");
     savesUrlInput.value = "";
     renderSavesList();
@@ -2131,8 +2161,10 @@
     savesModal.hidden = true;
     saveUrlInFlight = "";
     viewingSavesArchive = false;
+    savesArchiveSearchQuery = "";
     setSavesStatus("");
     savesUrlInput.value = "";
+    setSavesInputMode();
   }
 
   async function savePastedLink(rawUrl) {
@@ -2198,13 +2230,22 @@
   savesArchiveToggle.addEventListener("click", () => {
     viewingSavesArchive = !viewingSavesArchive;
     setSavesStatus("");
+    if (!viewingSavesArchive) savesArchiveSearchQuery = "";
     renderSavesList();
+    savesUrlInput.focus();
   });
   document.getElementById("saves-form").addEventListener("submit", (e) => {
     e.preventDefault();
+    if (viewingSavesArchive) return;
     void savePastedLink(savesUrlInput.value).catch(reportStorageError);
   });
+  savesUrlInput.addEventListener("input", () => {
+    if (!viewingSavesArchive) return;
+    savesArchiveSearchQuery = savesUrlInput.value;
+    renderSavesList();
+  });
   savesUrlInput.addEventListener("paste", () => {
+    if (viewingSavesArchive) return;
     setTimeout(() => {
       void savePastedLink(savesUrlInput.value).catch(reportStorageError);
     }, 0);

@@ -1017,6 +1017,10 @@ body {
   flex-shrink: 0;
 }
 
+.saves-form--searching {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .saves-url-input {
   user-select: text;
   width: 100%;
