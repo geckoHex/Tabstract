@@ -650,6 +650,46 @@
   });
 
   // ══════════════════════════════════════════════════════════════════════════
+  // TOOLS
+  // ══════════════════════════════════════════════════════════════════════════
+
+  const powerSearchTool = document.getElementById("power-search-tool");
+  const powerSearchModal = document.getElementById("power-search-modal");
+  const powerSearchForm = document.getElementById("power-search-form");
+  const powerSearchInput = document.getElementById("power-search-input");
+
+  function openPowerSearchModal() {
+    powerSearchInput.value = "";
+    powerSearchModal.hidden = false;
+    setTimeout(() => powerSearchInput.focus(), 0);
+  }
+
+  function closePowerSearchModal() {
+    powerSearchModal.hidden = true;
+    powerSearchInput.value = "";
+  }
+
+  function submitPowerSearch() {
+    const q = powerSearchInput.value.trim();
+    if (!q) {
+      powerSearchInput.focus();
+      return;
+    }
+    window.location.href = `https://www.google.com/search?q=${encodeURIComponent(q)}`;
+  }
+
+  powerSearchTool.addEventListener("click", openPowerSearchModal);
+  document.getElementById("power-search-modal-close").addEventListener("click", closePowerSearchModal);
+  document.getElementById("power-search-cancel").addEventListener("click", closePowerSearchModal);
+  powerSearchModal.addEventListener("click", (e) => {
+    if (e.target === powerSearchModal) closePowerSearchModal();
+  });
+  powerSearchForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    submitPowerSearch();
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
   // BOOKMARK SEARCH (fuzzy, all folders)
   // ══════════════════════════════════════════════════════════════════════════
 
@@ -2996,6 +3036,7 @@
       if (!deleteConfirmModal.hidden) { closeDeleteConfirm(); return; }
       if (!routesModal.hidden) { closeRoutesModal(); return; }
       if (!iconCustomizeModal.hidden) { closeIconCustomizeModal(); return; }
+      if (!powerSearchModal.hidden) { closePowerSearchModal(); return; }
       if (!savesModal.hidden) { closeSavesModal(); return; }
       if (!settingsModal.hidden) {
         if (isAiProviderDropdownOpen()) {
@@ -3019,7 +3060,7 @@
     // Backspace/ArrowLeft when no modal is open → go up one level
     if ((e.key === "Backspace" || e.key === "ArrowLeft") &&
         linkModal.hidden && folderModal.hidden && deleteConfirmModal.hidden &&
-        iconCustomizeModal.hidden && routesModal.hidden && routeChoiceModal.hidden && savesModal.hidden && settingsModal.hidden &&
+        iconCustomizeModal.hidden && routesModal.hidden && routeChoiceModal.hidden && powerSearchModal.hidden && savesModal.hidden && settingsModal.hidden &&
         document.activeElement === document.body) {
       goUpFolder();
     }

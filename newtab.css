@@ -665,7 +665,62 @@ body {
 }
 
 .tools-grid {
-  min-height: 8px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 2px;
+  padding: 0 0 8px;
+  align-content: start;
+}
+
+.tools-grid .icon-item {
+  padding: 8px 4px 6px;
+}
+
+.tool-item {
+  width: 100%;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  appearance: none;
+  -webkit-user-drag: none;
+}
+
+.tool-item:focus-visible {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.3);
+  background: var(--surface);
+}
+
+.tool-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background var(--transition), transform var(--transition);
+}
+
+.tool-item:hover .tool-icon-wrap,
+.tool-item:focus-visible .tool-icon-wrap {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.tool-icon {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  display: block;
+  filter: invert(1);
+  opacity: 0.86;
+  transition: opacity var(--transition);
+}
+
+.tool-item:hover .tool-icon,
+.tool-item:focus-visible .tool-icon {
+  opacity: 1;
 }
 
 .favorites-section {

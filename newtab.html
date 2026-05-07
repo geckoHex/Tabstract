@@ -62,7 +62,14 @@
 
         <section class="tools-section" id="tools-section" aria-label="Tools">
           <h2 class="section-heading">Tools</h2>
-          <div class="tools-grid" id="tools-grid"></div>
+          <div class="tools-grid" id="tools-grid">
+            <button type="button" class="icon-item tool-item" id="power-search-tool" aria-label="Power search">
+              <span class="tool-icon-wrap">
+                <img class="tool-icon" src="icons/binoculars-fill.svg" alt="" width="36" height="36" />
+              </span>
+              <span class="icon-label">Power Search</span>
+            </button>
+          </div>
         </section>
 
         <section class="favorites-section" id="favorites-section" aria-label="Favorites">
@@ -105,6 +112,37 @@
       <div class="icon-grid" id="icon-grid"></div>
     </div>
 
+  </div>
+
+  <!-- ── Modal: Power Search ───────────────────────────────────────── -->
+  <div class="modal-overlay" id="power-search-modal" hidden>
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Power Search</h3>
+        <button class="modal-close" id="power-search-modal-close" aria-label="Close">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <form class="modal-body" id="power-search-form" autocomplete="off">
+        <div class="field">
+          <label for="power-search-input">Search</label>
+          <input
+            type="text"
+            id="power-search-input"
+            placeholder="Search Google..."
+            spellcheck="false"
+            aria-label="Search Google"
+          />
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" id="power-search-cancel" type="button">Cancel</button>
+          <button class="btn-primary" type="submit">Search</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <!-- ── Modal: Saves ──────────────────────────────────────────────── -->
