@@ -1057,6 +1057,12 @@ body {
   align-items: stretch;
 }
 
+.modal-overlay--power-search {
+  box-sizing: border-box;
+  padding: 10vh 10vw;
+  align-items: stretch;
+}
+
 .modal--settings {
   width: 100%;
   max-width: none;
@@ -1076,6 +1082,17 @@ body {
   flex: 1 1 auto;
   padding: 26px 32px 28px;
   gap: 18px;
+  overflow: hidden;
+}
+
+.modal--power-search {
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  min-height: 0;
+  flex: 1 1 auto;
+  padding: 28px 36px;
+  gap: 0;
   overflow: hidden;
 }
 
@@ -1635,6 +1652,32 @@ body {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.modal-body--power-search {
+  flex: 1 1 auto;
+  min-height: 0;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 16px;
+  padding-top: clamp(72px, 16vh, 150px);
+}
+
+.power-search-field {
+  width: min(720px, 100%);
+  gap: 10px;
+}
+
+.power-search-field input {
+  height: 56px;
+  border-radius: 999px;
+  padding: 0 22px;
+  font-size: 1rem;
+}
+
+.modal-body--power-search .modal-footer {
+  width: min(720px, 100%);
+  justify-content: flex-end;
 }
 
 .field {
