@@ -1189,6 +1189,23 @@ body {
   color: var(--text-primary);
 }
 
+.ai-chat-message--streaming::after {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-left: 5px;
+  background: var(--accent);
+  border-radius: 50%;
+  vertical-align: middle;
+  animation: streaming-cursor 1.1s ease-in-out infinite;
+}
+
+@keyframes streaming-cursor {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.85); }
+}
+
 .ai-chat-status {
   min-height: 18px;
   font-size: 0.8125rem;

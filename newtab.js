@@ -912,6 +912,8 @@
   const aiChatSendBtn = document.getElementById("ai-chat-send");
   const aiChatMessages = [];
   let aiChatPending = false;
+  let aiChatAbortController = null;
+  let aiChatStreamingBubble = null;
 
   function setAiChatStatus(message) {
     if (aiChatStatus) aiChatStatus.textContent = message;
@@ -935,6 +937,27 @@
     aiChatMessagesEl.scrollTop = aiChatMessagesEl.scrollHeight;
   }
 
+  function appendAiChatStreamingBubble() {
+    const bubble = document.createElement("div");
+    bubble.className = "ai-chat-message ai-chat-message--assistant ai-chat-message--streaming";
+    aiChatMessagesEl.appendChild(bubble);
+    aiChatMessagesEl.scrollTop = aiChatMessagesEl.scrollHeight;
+    return bubble;
+  }
+
+  function updateAiChatStreamingBubble(content) {
+    if (!aiChatStreamingBubble) return;
+    aiChatStreamingBubble.textContent = content;
+    aiChatMessagesEl.scrollTop = aiChatMessagesEl.scrollHeight;
+  }
+
+  function removeAiChatStreamingBubble() {
+    if (aiChatStreamingBubble) {
+      aiChatStreamingBubble.remove();
+      aiChatStreamingBubble = null;
+    }
+  }
+
   function openAiChatModal() {
     renderAiChatMessages();
     setAiChatStatus(getStoredOpenaiApiKey() ? "" : "Add an OpenAI API key in Settings > Configs.");
@@ -943,6 +966,9 @@
   }
 
   function closeAiChatModal() {
+    if (aiChatAbortController) {
+      aiChatAbortController.abort();
+    }
     aiChatModal.hidden = true;
     setAiChatStatus("");
   }
@@ -971,7 +997,9 @@
     aiChatMessages.push({ role: "user", content: prompt });
     renderAiChatMessages();
     setAiChatPending(true);
-    setAiChatStatus("Thinking...");
+    setAiChatStatus("");
+
+    aiChatAbortController = new AbortController();
 
     try {
       const response = await fetch(OPENAI_CHAT_ENDPOINT, {
@@ -983,24 +1011,87 @@
         body: JSON.stringify({
           model: OPENAI_CHAT_MODEL,
           messages: aiChatMessages.map(({ role, content }) => ({ role, content })),
+          stream: true,
         }),
+        signal: aiChatAbortController.signal,
       });
 
-      const payload = await response.json().catch(() => null);
       if (!response.ok) {
+        const payload = await response.json().catch(() => null);
         const message = payload?.error?.message || `OpenAI request failed with status ${response.status}.`;
         throw new Error(message);
       }
 
-      const answer = payload?.choices?.[0]?.message?.content?.trim();
-      if (!answer) throw new Error("OpenAI returned an empty response.");
-      aiChatMessages.push({ role: "assistant", content: answer });
+      if (!response.body) {
+        throw new Error("OpenAI returned an empty response.");
+      }
+
+      aiChatStreamingBubble = appendAiChatStreamingBubble();
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let buffer = "";
+      let fullContent = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop();
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed || !trimmed.startsWith("data: ")) continue;
+          const data = trimmed.slice(6);
+          if (data === "[DONE]") continue;
+
+          try {
+            const chunk = JSON.parse(data);
+            const delta = chunk?.choices?.[0]?.delta?.content;
+            if (typeof delta === "string") {
+              fullContent += delta;
+              updateAiChatStreamingBubble(fullContent);
+            }
+          } catch {
+            // ignore malformed JSON
+          }
+        }
+      }
+
+      if (buffer.trim()) {
+        const trimmed = buffer.trim();
+        if (trimmed.startsWith("data: ")) {
+          const data = trimmed.slice(6);
+          if (data !== "[DONE]") {
+            try {
+              const chunk = JSON.parse(data);
+              const delta = chunk?.choices?.[0]?.delta?.content;
+              if (typeof delta === "string") {
+                fullContent += delta;
+              }
+            } catch {
+              // ignore
+            }
+          }
+        }
+      }
+
+      if (!fullContent) throw new Error("OpenAI returned an empty response.");
+      aiChatMessages.push({ role: "assistant", content: fullContent });
+      removeAiChatStreamingBubble();
       renderAiChatMessages();
       setAiChatStatus("");
     } catch (error) {
-      console.error("OpenAI chat failed", error);
-      setAiChatStatus(error instanceof Error ? error.message : "OpenAI request failed.");
+      if (error.name === "AbortError") {
+        setAiChatStatus("Stopped.");
+      } else {
+        console.error("OpenAI chat failed", error);
+        setAiChatStatus(error instanceof Error ? error.message : "OpenAI request failed.");
+      }
+      removeAiChatStreamingBubble();
     } finally {
+      aiChatAbortController = null;
       setAiChatPending(false);
       aiChatInput.focus();
     }
