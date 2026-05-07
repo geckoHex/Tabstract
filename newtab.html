@@ -69,6 +69,12 @@
               </span>
               <span class="icon-label">Power Search</span>
             </button>
+            <button type="button" class="icon-item tool-item" id="ai-chat-tool" aria-label="AI Chat">
+              <span class="tool-icon-wrap">
+                <img class="tool-icon" src="icons/chat-left-fill.svg" alt="" width="36" height="36" />
+              </span>
+              <span class="icon-label">AI Chat</span>
+            </button>
           </div>
         </section>
 
@@ -170,6 +176,36 @@
           <button class="btn-primary" type="submit">Search</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- ── Modal: AI Chat ─────────────────────────────────────────────── -->
+  <div class="modal-overlay modal-overlay--ai-chat" id="ai-chat-modal" hidden>
+    <div class="modal modal--ai-chat">
+      <div class="modal-header">
+        <h3>AI Chat</h3>
+        <button class="modal-close" id="ai-chat-modal-close" aria-label="Close">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body modal-body--ai-chat">
+        <div class="ai-chat-messages" id="ai-chat-messages" aria-live="polite"></div>
+        <p class="ai-chat-status" id="ai-chat-status" aria-live="polite"></p>
+        <form class="ai-chat-form" id="ai-chat-form" autocomplete="off">
+          <textarea
+            id="ai-chat-input"
+            class="ai-chat-input"
+            rows="3"
+            placeholder="Ask anything..."
+            spellcheck="true"
+            aria-label="AI chat prompt"
+          ></textarea>
+          <button class="btn-primary ai-chat-send" id="ai-chat-send" type="submit">Send</button>
+        </form>
+      </div>
     </div>
   </div>
 
@@ -345,6 +381,7 @@
           <div class="settings-sidebar" role="tablist" aria-label="Settings sections" aria-orientation="vertical">
             <button type="button" class="settings-tab is-active" id="settings-tab-theme" role="tab" aria-selected="true" aria-controls="settings-panel-theme" data-settings-tab="theme">Theme</button>
             <button type="button" class="settings-tab" id="settings-tab-search" role="tab" aria-selected="false" aria-controls="settings-panel-search" data-settings-tab="search" tabindex="-1">Search</button>
+            <button type="button" class="settings-tab" id="settings-tab-configs" role="tab" aria-selected="false" aria-controls="settings-panel-configs" data-settings-tab="configs" tabindex="-1">Configs</button>
             <button type="button" class="settings-tab" id="settings-tab-automation" role="tab" aria-selected="false" aria-controls="settings-panel-automation" data-settings-tab="automation" tabindex="-1">Automation</button>
             <button type="button" class="settings-tab" id="settings-tab-data" role="tab" aria-selected="false" aria-controls="settings-panel-data" data-settings-tab="data" tabindex="-1">Data</button>
           </div>
@@ -437,6 +474,24 @@
                   inputmode="numeric"
                   value="8"
                   aria-labelledby="bookmark-search-limit-label"
+                />
+              </div>
+            </section>
+
+            <section class="settings-panel" id="settings-panel-configs" role="tabpanel" aria-labelledby="settings-tab-configs" data-settings-panel="configs" hidden>
+              <div class="settings-intro">
+                <h4 class="settings-section-title">Configs</h4>
+              </div>
+              <div class="settings-row">
+                <label class="settings-row-label" for="openai-api-key-input" id="openai-api-key-label">OpenAI API Key</label>
+                <input
+                  type="password"
+                  id="openai-api-key-input"
+                  class="settings-text-input"
+                  placeholder="sk-..."
+                  autocomplete="off"
+                  spellcheck="false"
+                  aria-labelledby="openai-api-key-label"
                 />
               </div>
             </section>

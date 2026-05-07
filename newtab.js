@@ -15,6 +15,8 @@
   };
   const DEFAULT_SAVE_ARCHIVE_AFTER_MS = 12 * HOUR_MS;
   const RECENT_FOLDER_RESTORE_MS = 10 * 1000;
+  const OPENAI_CHAT_MODEL = "gpt-4o";
+  const OPENAI_CHAT_ENDPOINT = "https://api.openai.com/v1/chat/completions";
 
   const AI_PROVIDERS = {
     chatgpt: {
@@ -60,6 +62,7 @@
       aiSearchEnabled: false,
       bookmarkSearchResultLimit: 8,
       lastFolderVisit: null,
+      openaiApiKey: "",
       saveArchiveAfterMs: DEFAULT_SAVE_ARCHIVE_AFTER_MS,
       wallpaper: "off",
     };
@@ -197,6 +200,9 @@
         if (SAVE_ARCHIVE_OPTIONS[value]) {
           settings.saveArchiveAfterMs = value;
         }
+      }
+      if (record.key === "openaiApiKey" && typeof record.value === "string") {
+        settings.openaiApiKey = record.value;
       }
       if (record.key === "lastFolderVisit") {
         const value = record.value;
@@ -495,6 +501,7 @@
   const aiProviderTriggerText = document.getElementById("ai-provider-trigger-text");
   const aiProviderList = document.getElementById("ai-provider-list");
   const bookmarkSearchLimitInput = document.getElementById("bookmark-search-limit-input");
+  const openaiApiKeyInput = document.getElementById("openai-api-key-input");
   const aiSearchEnabledInput = document.getElementById("ai-search-enabled");
   const aiProviderSettingsRow = document.getElementById("ai-provider-settings-row");
   const wallpaperCustom = document.getElementById("wallpaper-custom-select");
@@ -522,6 +529,10 @@
     return settings.bookmarkSearchResultLimit;
   }
 
+  function getStoredOpenaiApiKey() {
+    return typeof settings.openaiApiKey === "string" ? settings.openaiApiKey : "";
+  }
+
   function getStoredWallpaper() {
     return "off";
   }
@@ -540,6 +551,11 @@
   async function setStoredBookmarkSearchResultLimit(limit) {
     settings.bookmarkSearchResultLimit = limit;
     await saveSetting("bookmarkSearchResultLimit", limit);
+  }
+
+  async function setStoredOpenaiApiKey(apiKey) {
+    settings.openaiApiKey = apiKey;
+    await saveSetting("openaiApiKey", apiKey);
   }
 
   function setAiSearchProviderSettingRowVisible(visible) {
@@ -727,6 +743,11 @@
     bookmarkSearchLimitInput.value = String(getStoredBookmarkSearchResultLimit());
   }
 
+  function syncOpenaiApiKeyInput() {
+    if (!openaiApiKeyInput) return;
+    openaiApiKeyInput.value = getStoredOpenaiApiKey();
+  }
+
   async function applyBookmarkSearchResultLimit(limit, { persist } = {}) {
     const normalized = Number(limit);
     if (!Number.isInteger(normalized) || normalized < 1 || normalized > 8) return;
@@ -880,6 +901,125 @@
   powerSearchForm.addEventListener("submit", (e) => {
     e.preventDefault();
     submitPowerSearch();
+  });
+
+  const aiChatTool = document.getElementById("ai-chat-tool");
+  const aiChatModal = document.getElementById("ai-chat-modal");
+  const aiChatForm = document.getElementById("ai-chat-form");
+  const aiChatInput = document.getElementById("ai-chat-input");
+  const aiChatMessagesEl = document.getElementById("ai-chat-messages");
+  const aiChatStatus = document.getElementById("ai-chat-status");
+  const aiChatSendBtn = document.getElementById("ai-chat-send");
+  const aiChatMessages = [];
+  let aiChatPending = false;
+
+  function setAiChatStatus(message) {
+    if (aiChatStatus) aiChatStatus.textContent = message;
+  }
+
+  function renderAiChatMessages() {
+    aiChatMessagesEl.replaceChildren();
+    if (!aiChatMessages.length) {
+      const empty = document.createElement("div");
+      empty.className = "ai-chat-empty";
+      empty.textContent = "Start a conversation.";
+      aiChatMessagesEl.appendChild(empty);
+      return;
+    }
+    for (const message of aiChatMessages) {
+      const bubble = document.createElement("div");
+      bubble.className = `ai-chat-message ai-chat-message--${message.role === "user" ? "user" : "assistant"}`;
+      bubble.textContent = message.content;
+      aiChatMessagesEl.appendChild(bubble);
+    }
+    aiChatMessagesEl.scrollTop = aiChatMessagesEl.scrollHeight;
+  }
+
+  function openAiChatModal() {
+    renderAiChatMessages();
+    setAiChatStatus(getStoredOpenaiApiKey() ? "" : "Add an OpenAI API key in Settings > Configs.");
+    aiChatModal.hidden = false;
+    setTimeout(() => aiChatInput.focus(), 0);
+  }
+
+  function closeAiChatModal() {
+    aiChatModal.hidden = true;
+    setAiChatStatus("");
+  }
+
+  function setAiChatPending(pending) {
+    aiChatPending = pending;
+    aiChatSendBtn.disabled = pending;
+    aiChatInput.disabled = pending;
+  }
+
+  async function sendAiChatMessage() {
+    if (aiChatPending) return;
+    const prompt = aiChatInput.value.trim();
+    if (!prompt) {
+      aiChatInput.focus();
+      return;
+    }
+    const apiKey = getStoredOpenaiApiKey().trim();
+    if (!apiKey) {
+      setAiChatStatus("Add an OpenAI API key in Settings > Configs.");
+      aiChatInput.focus();
+      return;
+    }
+
+    aiChatInput.value = "";
+    aiChatMessages.push({ role: "user", content: prompt });
+    renderAiChatMessages();
+    setAiChatPending(true);
+    setAiChatStatus("Thinking...");
+
+    try {
+      const response = await fetch(OPENAI_CHAT_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: OPENAI_CHAT_MODEL,
+          messages: aiChatMessages.map(({ role, content }) => ({ role, content })),
+        }),
+      });
+
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        const message = payload?.error?.message || `OpenAI request failed with status ${response.status}.`;
+        throw new Error(message);
+      }
+
+      const answer = payload?.choices?.[0]?.message?.content?.trim();
+      if (!answer) throw new Error("OpenAI returned an empty response.");
+      aiChatMessages.push({ role: "assistant", content: answer });
+      renderAiChatMessages();
+      setAiChatStatus("");
+    } catch (error) {
+      console.error("OpenAI chat failed", error);
+      setAiChatStatus(error instanceof Error ? error.message : "OpenAI request failed.");
+    } finally {
+      setAiChatPending(false);
+      aiChatInput.focus();
+    }
+  }
+
+  aiChatTool.addEventListener("click", openAiChatModal);
+  document.getElementById("ai-chat-modal-close").addEventListener("click", closeAiChatModal);
+  aiChatModal.addEventListener("click", (e) => {
+    if (e.target === aiChatModal) closeAiChatModal();
+  });
+  aiChatForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    void sendAiChatMessage();
+  });
+  aiChatInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      void sendAiChatMessage();
+    }
   });
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -2927,6 +3067,7 @@
     applyAiSearchBoxVisibility(getStoredAiSearchEnabled());
     syncAiProviderCustomSelect();
     syncWallpaperCustomSelect();
+    syncOpenaiApiKeyInput();
     void applySaveArchiveAfter(getStoredSaveArchiveAfterMs(), { persist: false });
     syncBookmarkSearchLimitInput();
     activateSettingsTab("theme");
@@ -3176,6 +3317,15 @@
     bookmarkSearchLimitInput.addEventListener("blur", persistBookmarkSearchLimitInput);
   }
 
+  if (openaiApiKeyInput) {
+    const persistOpenaiApiKeyInput = () => {
+      void setStoredOpenaiApiKey(openaiApiKeyInput.value.trim()).catch(reportStorageError);
+    };
+
+    openaiApiKeyInput.addEventListener("change", persistOpenaiApiKeyInput);
+    openaiApiKeyInput.addEventListener("blur", persistOpenaiApiKeyInput);
+  }
+
   // ══════════════════════════════════════════════════════════════════════════
   // DATA IMPORT / EXPORT / DELETE ALL
   // ══════════════════════════════════════════════════════════════════════════
@@ -3218,6 +3368,7 @@
       await applySaveArchiveAfter(getStoredSaveArchiveAfterMs(), { persist: false });
       applyAiSearchBoxVisibility(getStoredAiSearchEnabled());
       syncBookmarkSearchLimitInput();
+      syncOpenaiApiKeyInput();
     }
     resetFolderNavigation();
     await clearLastFolderVisit();
@@ -3365,6 +3516,7 @@
       if (!routesModal.hidden) { closeRoutesModal(); return; }
       if (!iconCustomizeModal.hidden) { closeIconCustomizeModal(); return; }
       if (!powerSearchModal.hidden) { closePowerSearchModal(); return; }
+      if (!aiChatModal.hidden) { closeAiChatModal(); return; }
       if (!savesModal.hidden) { closeSavesModal(); return; }
       if (!settingsModal.hidden) {
         if (isAiProviderDropdownOpen()) {
@@ -3388,7 +3540,7 @@
     // Backspace/ArrowLeft when no modal is open → go up one level
     if ((e.key === "Backspace" || e.key === "ArrowLeft") &&
         linkModal.hidden && folderModal.hidden && deleteConfirmModal.hidden &&
-        iconCustomizeModal.hidden && routesModal.hidden && routeChoiceModal.hidden && powerSearchModal.hidden && savesModal.hidden && settingsModal.hidden &&
+        iconCustomizeModal.hidden && routesModal.hidden && routeChoiceModal.hidden && powerSearchModal.hidden && aiChatModal.hidden && savesModal.hidden && settingsModal.hidden &&
         document.activeElement === document.body) {
       goUpFolder();
     }
