@@ -56,7 +56,7 @@
   function defaultSettings() {
     return {
       aiProvider: "chatgpt",
-      aiSearchEnabled: true,
+      aiSearchEnabled: false,
       bookmarkSearchResultLimit: 8,
       saveArchiveAfterMs: DEFAULT_SAVE_ARCHIVE_AFTER_MS,
       wallpaper: "off",
@@ -181,9 +181,6 @@
       if (record.key === "aiProvider" && (record.value === "chatgpt" || record.value === "claude")) {
         settings.aiProvider = record.value;
       }
-      if (record.key === "aiSearchEnabled") {
-        settings.aiSearchEnabled = Boolean(record.value);
-      }
       if (record.key === "bookmarkSearchResultLimit") {
         const value = Number(record.value);
         if (Number.isInteger(value) && value >= 1 && value <= 8) {
@@ -198,6 +195,7 @@
       }
     }
     settings.wallpaper = "off";
+    settings.aiSearchEnabled = false;
     return settings;
   }
 
@@ -296,6 +294,7 @@
   }
 
   async function saveSettings(nextSettings) {
+    nextSettings.aiSearchEnabled = false;
     const db = await openDatabase();
     const tx = db.transaction(SETTINGS_STORE, "readwrite");
     const store = tx.objectStore(SETTINGS_STORE);
@@ -396,7 +395,7 @@
   }
 
   function getStoredAiSearchEnabled() {
-    return settings.aiSearchEnabled;
+    return false;
   }
 
   function getStoredBookmarkSearchResultLimit() {
@@ -413,9 +412,9 @@
       : DEFAULT_SAVE_ARCHIVE_AFTER_MS;
   }
 
-  async function setStoredAiSearchEnabled(on) {
-    settings.aiSearchEnabled = on;
-    await saveSetting("aiSearchEnabled", on);
+  async function setStoredAiSearchEnabled() {
+    settings.aiSearchEnabled = false;
+    await saveSetting("aiSearchEnabled", false);
   }
 
   async function setStoredBookmarkSearchResultLimit(limit) {
@@ -430,10 +429,16 @@
     if (!visible) closeAiProviderDropdown();
   }
 
-  function applyAiSearchBoxVisibility(enabled) {
-    aiSearchForm.hidden = !enabled;
-    if (aiSearchEnabledInput) aiSearchEnabledInput.checked = enabled;
-    setAiSearchProviderSettingRowVisible(enabled);
+  function applyAiSearchBoxVisibility() {
+    const forcedEnabled = false;
+    settings.aiSearchEnabled = forcedEnabled;
+    aiSearchForm.hidden = !forcedEnabled;
+    if (aiSearchEnabledInput) {
+      aiSearchEnabledInput.checked = forcedEnabled;
+      aiSearchEnabledInput.disabled = true;
+      aiSearchEnabledInput.setAttribute("aria-disabled", "true");
+    }
+    setAiSearchProviderSettingRowVisible(forcedEnabled);
   }
 
   function providerOrDefault(id) {
@@ -2616,9 +2621,8 @@
 
   if (aiSearchEnabledInput) {
     aiSearchEnabledInput.addEventListener("change", () => {
-      const on = aiSearchEnabledInput.checked;
-      void setStoredAiSearchEnabled(on).catch(reportStorageError);
-      applyAiSearchBoxVisibility(on);
+      void setStoredAiSearchEnabled().catch(reportStorageError);
+      applyAiSearchBoxVisibility();
     });
   }
 
@@ -3008,6 +3012,7 @@
     const persisted = await loadPersistedState();
     data = persisted.data;
     settings = persisted.settings;
+    await setStoredAiSearchEnabled();
     await archiveExpiredSaves();
     setInterval(() => {
       archiveExpiredSaves()

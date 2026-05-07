@@ -1357,6 +1357,11 @@ body {
   padding: 6px 8px;
 }
 
+.settings-row--disabled {
+  cursor: default;
+  opacity: 0.58;
+}
+
 .settings-toggle {
   position: relative;
   flex-shrink: 0;
@@ -1364,6 +1369,13 @@ body {
   height: 26px;
   display: inline-flex;
   align-items: center;
+}
+
+.settings-toggle-stack {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
 }
 
 .settings-toggle-input {
@@ -1374,6 +1386,10 @@ body {
   margin: 0;
   cursor: pointer;
   z-index: 1;
+}
+
+.settings-toggle-input:disabled {
+  cursor: default;
 }
 
 .settings-toggle-track {
@@ -1442,6 +1458,12 @@ body {
   font-size: 0.75rem;
   line-height: 1.35;
   color: var(--text-secondary);
+}
+
+.settings-help-text--toggle {
+  margin: 0;
+  max-width: 150px;
+  text-align: left;
 }
 
 .settings-number-input {

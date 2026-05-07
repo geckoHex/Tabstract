@@ -338,11 +338,14 @@
               <div class="settings-intro">
                 <h4 class="settings-section-title">Search Options</h4>
               </div>
-              <label class="settings-row settings-row--toggle">
+              <label class="settings-row settings-row--toggle settings-row--disabled">
                 <span class="settings-row-label">AI search box</span>
-                <span class="settings-toggle">
-                  <input type="checkbox" id="ai-search-enabled" class="settings-toggle-input" checked />
-                  <span class="settings-toggle-track" aria-hidden="true"></span>
+                <span class="settings-toggle-stack">
+                  <span class="settings-toggle">
+                    <input type="checkbox" id="ai-search-enabled" class="settings-toggle-input" disabled aria-disabled="true" />
+                    <span class="settings-toggle-track" aria-hidden="true"></span>
+                  </span>
+                  <span class="settings-help-text settings-help-text--toggle">This feature is currently unavailable.</span>
                 </span>
               </label>
               <div class="settings-row" id="ai-provider-settings-row">
