@@ -1,5 +1,4 @@
 (() => {
-  const SEARCH_URL = "https://www.google.com/search?q=";
   const DB_NAME = "TabstractDB";
   const DB_VERSION = 2;
   const ITEMS_STORE = "items";
@@ -332,37 +331,6 @@
       minute: "2-digit",
     });
   }
-
-  // ══════════════════════════════════════════════════════════════════════════
-  // SEARCH
-  // ══════════════════════════════════════════════════════════════════════════
-
-  const searchInput = document.getElementById("search-input");
-  const clearBtn    = document.getElementById("clear-btn");
-
-  clearBtn.addEventListener("click", () => {
-    searchInput.value = "";
-    clearBtn.classList.remove("visible");
-    searchInput.focus();
-  });
-
-  function navigate(query) {
-    if (!query.trim()) return;
-    if (/^(https?:\/\/|localhost)/i.test(query) || /^[\w-]+\.[a-z]{2,}(\/|$)/i.test(query)) {
-      window.location.href = /^https?:\/\//i.test(query) ? query : `https://${query}`;
-    } else {
-      window.location.href = SEARCH_URL + encodeURIComponent(query);
-    }
-  }
-
-  searchInput.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") searchInput.blur();
-    else if (e.key === "Enter") { e.preventDefault(); navigate(searchInput.value.trim()); }
-  });
-
-  searchInput.addEventListener("input", () => {
-    clearBtn.classList.toggle("visible", searchInput.value.length > 0);
-  });
 
   // ── AI prompt (left panel; provider from settings) ─────────────────────────
 
@@ -2871,7 +2839,9 @@
     await saveData();
     if (importedSettings) {
       await saveSettings(settings);
-      await initAiSearchProvider();
+      if (getStoredAiSearchEnabled()) {
+        await initAiSearchProvider();
+      }
       await applyWallpaper(getStoredWallpaper(), { persist: true });
       await applySaveArchiveAfter(getStoredSaveArchiveAfterMs(), { persist: false });
       applyAiSearchBoxVisibility(getStoredAiSearchEnabled());
@@ -3021,11 +2991,13 @@
         })
         .catch(reportStorageError);
     }, 60000);
-    await initAiSearchProvider();
+    if (getStoredAiSearchEnabled()) {
+      await initAiSearchProvider();
+    }
     await applyWallpaper(getStoredWallpaper(), { persist: true });
     await applySaveArchiveAfter(getStoredSaveArchiveAfterMs(), { persist: false });
     applyAiSearchBoxVisibility(getStoredAiSearchEnabled());
-    searchInput.focus();
+    bookmarkSearchInput.focus();
     render();
   }
 
