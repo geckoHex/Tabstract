@@ -1,10 +1,11 @@
 (() => {
   const DB_NAME = "TabstractDB";
-  const DB_VERSION = 2;
+  const DB_VERSION = 3;
   const ITEMS_STORE = "items";
   const FAVORITES_STORE = "favorites";
   const SETTINGS_STORE = "settings";
   const SAVES_STORE = "saves";
+  const FAVICONS_STORE = "favicons";
   const HOUR_MS = 60 * 60 * 1000;
   const SAVE_ARCHIVE_OPTIONS = {
     21600000: { value: 6 * HOUR_MS, label: "6 hours" },
@@ -96,6 +97,9 @@
         if (!db.objectStoreNames.contains(SAVES_STORE)) {
           const saves = db.createObjectStore(SAVES_STORE, { keyPath: "id" });
           saves.createIndex("savedAt", "savedAt", { unique: false });
+        }
+        if (!db.objectStoreNames.contains(FAVICONS_STORE)) {
+          db.createObjectStore(FAVICONS_STORE, { keyPath: "hostname" });
         }
       };
       request.onsuccess = () => resolve(request.result);
@@ -213,6 +217,25 @@
       .filter((record) => record.url);
   }
 
+  function hydrateFavicons(records) {
+    return records
+      .filter((record) => {
+        return (
+          record &&
+          typeof record.hostname === "string" &&
+          record.hostname &&
+          typeof record.dataUrl === "string" &&
+          record.dataUrl.startsWith("data:image/")
+        );
+      })
+      .map((record) => ({
+        hostname: record.hostname,
+        dataUrl: record.dataUrl,
+        sourceUrl: typeof record.sourceUrl === "string" ? record.sourceUrl : "",
+        updatedAt: typeof record.updatedAt === "string" ? record.updatedAt : "",
+      }));
+  }
+
   function saveExpiryTime(save) {
     const savedAt = Date.parse(save.savedAt || "");
     const archiveAfterMs = SAVE_ARCHIVE_OPTIONS[settings.saveArchiveAfterMs]
@@ -239,16 +262,18 @@
 
   async function loadPersistedState() {
     const db = await openDatabase();
-    const tx = db.transaction([ITEMS_STORE, FAVORITES_STORE, SETTINGS_STORE, SAVES_STORE], "readonly");
+    const tx = db.transaction([ITEMS_STORE, FAVORITES_STORE, SETTINGS_STORE, SAVES_STORE, FAVICONS_STORE], "readonly");
     const itemsRequest = tx.objectStore(ITEMS_STORE).getAll();
     const favoritesRequest = tx.objectStore(FAVORITES_STORE).getAll();
     const settingsRequest = tx.objectStore(SETTINGS_STORE).getAll();
     const savesRequest = tx.objectStore(SAVES_STORE).getAll();
-    const [itemRecords, favoriteRecords, settingRecords, saveRecords] = await Promise.all([
+    const faviconsRequest = tx.objectStore(FAVICONS_STORE).getAll();
+    const [itemRecords, favoriteRecords, settingRecords, saveRecords, faviconRecords] = await Promise.all([
       requestToPromise(itemsRequest),
       requestToPromise(favoritesRequest),
       requestToPromise(settingsRequest),
       requestToPromise(savesRequest),
+      requestToPromise(faviconsRequest),
       transactionToPromise(tx),
     ]);
     return {
@@ -258,6 +283,7 @@
         saves: hydrateSaves(saveRecords),
       },
       settings: hydrateSettings(settingRecords),
+      favicons: hydrateFavicons(faviconRecords),
     };
   }
 
@@ -309,6 +335,113 @@
 
   let data = defaultData();
   let settings = defaultSettings();
+  let faviconCache = new Map();
+  const faviconFetches = new Map();
+  let faviconRenderTimer = 0;
+  let faviconRefreshInProgress = false;
+
+  function faviconHostname(url) {
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return "";
+      return parsed.hostname.toLowerCase();
+    } catch {
+      return "";
+    }
+  }
+
+  function faviconApiSrc(url) {
+    const host = faviconHostname(url);
+    return host ? `https://www.google.com/s2/favicons?domain=${host}&sz=64` : "";
+  }
+
+  function blobToDataUrl(blob) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ""));
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  async function saveFaviconRecord(record) {
+    const db = await openDatabase();
+    const tx = db.transaction(FAVICONS_STORE, "readwrite");
+    tx.objectStore(FAVICONS_STORE).put(record);
+    await transactionToPromise(tx);
+  }
+
+  async function replaceFaviconStore(records) {
+    const db = await openDatabase();
+    const tx = db.transaction(FAVICONS_STORE, "readwrite");
+    const store = tx.objectStore(FAVICONS_STORE);
+    store.clear();
+    for (const record of records) {
+      store.put(record);
+    }
+    await transactionToPromise(tx);
+  }
+
+  async function clearFaviconStore() {
+    const db = await openDatabase();
+    const tx = db.transaction(FAVICONS_STORE, "readwrite");
+    tx.objectStore(FAVICONS_STORE).clear();
+    await transactionToPromise(tx);
+  }
+
+  function scheduleRenderAfterFaviconUpdate() {
+    if (faviconRenderTimer) return;
+    faviconRenderTimer = window.setTimeout(() => {
+      faviconRenderTimer = 0;
+      render();
+      if (!savesModal.hidden) renderSavesList();
+    }, 100);
+  }
+
+  async function fetchAndCacheFavicon(url, { force = false, rerender = true } = {}) {
+    const host = faviconHostname(url);
+    if (!host) return null;
+    if (!force && faviconCache.has(host)) return faviconCache.get(host);
+    const inFlightKey = `${host}:${force ? "force" : "cache"}`;
+    if (faviconFetches.has(inFlightKey)) return faviconFetches.get(inFlightKey);
+
+    const task = (async () => {
+      const sourceUrl = faviconApiSrc(url);
+      const response = await fetch(sourceUrl, {
+        credentials: "omit",
+        cache: force ? "reload" : "default",
+      });
+      if (!response.ok) throw new Error(`Favicon fetch failed for ${host}`);
+      const blob = await response.blob();
+      if (!blob.type.startsWith("image/")) throw new Error(`Favicon response was not an image for ${host}`);
+      const dataUrl = await blobToDataUrl(blob);
+      if (!dataUrl.startsWith("data:image/")) throw new Error(`Favicon response could not be cached for ${host}`);
+      const record = {
+        hostname: host,
+        dataUrl,
+        sourceUrl,
+        updatedAt: new Date().toISOString(),
+      };
+      faviconCache.set(host, record);
+      await saveFaviconRecord(record);
+      if (rerender) scheduleRenderAfterFaviconUpdate();
+      return record;
+    })();
+
+    faviconFetches.set(inFlightKey, task);
+    task.finally(() => faviconFetches.delete(inFlightKey)).catch(() => {});
+    return task;
+  }
+
+  function cachedFaviconSrc(url) {
+    const record = faviconCache.get(faviconHostname(url));
+    return record?.dataUrl || "";
+  }
+
+  function queueFaviconCache(url) {
+    if (faviconRefreshInProgress || !faviconHostname(url) || cachedFaviconSrc(url)) return;
+    void fetchAndCacheFavicon(url).catch(reportStorageError);
+  }
 
   // ── Navigation state: array of folder IDs from root to current ────────────
 
@@ -715,6 +848,43 @@
     return out;
   }
 
+  function collectBookmarkFaviconUrls(items = data.items, urls = new Map()) {
+    for (const item of items) {
+      if (item.type === "folder") {
+        collectBookmarkFaviconUrls(item.children || [], urls);
+      } else if (item.type === "link" && !linkHasCustomIcon(item)) {
+        const host = faviconHostname(item.url);
+        if (host) urls.set(host, item.url);
+      }
+    }
+    return urls;
+  }
+
+  function collectFaviconUrls() {
+    const urls = new Map();
+    collectBookmarkFaviconUrls(data.items, urls);
+    for (const save of data.saves || []) {
+      const host = faviconHostname(save.url);
+      if (host) urls.set(host, save.url);
+    }
+    return [...urls.values()];
+  }
+
+  async function warmMissingFaviconCache() {
+    if (faviconRefreshInProgress) return;
+    const urls = collectFaviconUrls().filter((url) => !cachedFaviconSrc(url));
+    if (urls.length === 0) return;
+    for (const url of urls) {
+      if (faviconRefreshInProgress) return;
+      try {
+        await fetchAndCacheFavicon(url, { rerender: false });
+      } catch (error) {
+        console.warn("Could not cache favicon", url, error);
+      }
+    }
+    scheduleRenderAfterFaviconUpdate();
+  }
+
   /**
    * Returns a similarity score (higher is better), or -1 if the query does not
    * fuzzy-match as a subsequence (case-insensitive).
@@ -824,6 +994,7 @@
         });
         btn.appendChild(img);
       } else {
+        queueFaviconCache(link.url);
         btn.appendChild(makeBookmarkSearchFallback(link));
       }
 
@@ -943,9 +1114,7 @@
   }
 
   function faviconSrc(url) {
-    try {
-      return `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=64`;
-    } catch { return null; }
+    return cachedFaviconSrc(url) || null;
   }
 
   function linkIconSrc(link) {
@@ -954,7 +1123,7 @@
   }
 
   function savedLinkFaviconSrc(url) {
-    return faviconSrc(url) || "";
+    return cachedFaviconSrc(url) || "";
   }
 
   function titleFromHtml(html) {
@@ -977,7 +1146,7 @@
     }
     return {
       title: title || hostname(url),
-      faviconUrl: savedLinkFaviconSrc(url),
+      faviconUrl: "",
     };
   }
 
@@ -1978,6 +2147,7 @@
       });
       wrap.appendChild(img);
     } else {
+      queueFaviconCache(link.url);
       wrap.appendChild(makeFallbackLetter(link));
     }
 
@@ -2266,10 +2436,16 @@
 
       const favicon = document.createElement("img");
       favicon.className = "saves-item-favicon";
-      favicon.src = save.faviconUrl || savedLinkFaviconSrc(save.url);
+      const storedSaveFavicon = String(save.faviconUrl || "").startsWith("data:image/") ? save.faviconUrl : "";
+      const saveFaviconSrc = savedLinkFaviconSrc(save.url) || storedSaveFavicon;
+      favicon.src = saveFaviconSrc;
       favicon.alt = "";
       favicon.width = 28;
       favicon.height = 28;
+      if (!saveFaviconSrc) {
+        favicon.hidden = true;
+        queueFaviconCache(save.url);
+      }
       favicon.addEventListener("error", () => {
         favicon.hidden = true;
       });
@@ -2370,6 +2546,7 @@
         });
       }
       await saveData();
+      queueFaviconCache(url);
       savesUrlInput.value = "";
       viewingSavesArchive = false;
       setSavesStatus("");
@@ -2514,6 +2691,7 @@
       currentItems().push({ type: "link", id: uid(), title, url });
     }
     await saveData();
+    queueFaviconCache(url);
     render();
     closeLinkModal();
   }
@@ -2912,10 +3090,11 @@
 
   function exportData() {
     const payload = {
-      version: 3,
+      version: 4,
       exportedAt: new Date().toISOString(),
       bookmarks: data,
       settings,
+      favicons: [...faviconCache.values()],
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -2928,11 +3107,14 @@
     URL.revokeObjectURL(url);
   }
 
-  async function applyImport(imported, importedSettings = null) {
+  async function applyImport(imported, importedSettings = null, importedFavicons = null) {
     data = imported;
     if (importedSettings) {
       settings = importedSettings;
     }
+    const nextFavicons = importedFavicons || [];
+    faviconCache = new Map(nextFavicons.map((record) => [record.hostname, record]));
+    await replaceFaviconStore(nextFavicons);
     await archiveExpiredSaves({ persist: false });
     await saveData();
     if (importedSettings) {
@@ -2947,6 +3129,7 @@
     }
     resetFolderNavigation();
     render();
+    void warmMissingFaviconCache().catch(reportStorageError);
   }
 
   function sanitizeImportedSettings(importedSettings) {
@@ -2961,6 +3144,7 @@
     reader.onload = (e) => {
       let parsed;
       let parsedSettings = null;
+      let parsedFavicons = null;
       try {
         const raw = JSON.parse(e.target.result);
         if (raw && raw.version === 1 && raw.bookmarks) {
@@ -2971,6 +3155,10 @@
         } else if (raw && raw.version === 3 && raw.bookmarks) {
           parsed = raw.bookmarks;
           parsedSettings = sanitizeImportedSettings(raw.settings);
+        } else if (raw && raw.version === 4 && raw.bookmarks) {
+          parsed = raw.bookmarks;
+          parsedSettings = sanitizeImportedSettings(raw.settings);
+          parsedFavicons = hydrateFavicons(Array.isArray(raw.favicons) ? raw.favicons : []);
         } else if (raw && Array.isArray(raw.items)) {
           parsed = raw;
         } else {
@@ -2986,12 +3174,13 @@
       }
       const importedData = parsed;
       const importedSettings = parsedSettings;
+      const importedFavicons = parsedFavicons;
       openDestructiveConfirm({
         title: "Replace all data?",
-        message: "This will permanently replace all your current bookmarks, favorites, saves, and any exported settings with the imported file. This cannot be undone.",
+        message: "This will permanently replace all your current bookmarks, favorites, saves, cached favicons, and any exported settings with the imported file. This cannot be undone.",
         confirmLabel: "Replace",
         action: async () => {
-          await applyImport(importedData, importedSettings);
+          await applyImport(importedData, importedSettings, importedFavicons);
           closeSettingsModal();
         },
       });
@@ -3007,11 +3196,48 @@
       action: async () => {
         data = defaultData();
         await saveData();
+        faviconCache = new Map();
+        await clearFaviconStore();
         resetFolderNavigation();
         render();
         closeSettingsModal();
       },
     });
+  }
+
+  function setFaviconRefreshStatus(message) {
+    const status = document.getElementById("favicon-refresh-status");
+    if (status) status.textContent = message;
+  }
+
+  async function refreshAllFavicons() {
+    const refreshBtn = document.getElementById("refresh-favicons-btn");
+    const urls = collectFaviconUrls();
+    refreshBtn.disabled = true;
+    setFaviconRefreshStatus(urls.length ? `Refreshing 0 of ${urls.length}...` : "No favicons to refresh.");
+    try {
+      faviconRefreshInProgress = true;
+      faviconCache = new Map();
+      await clearFaviconStore();
+      let complete = 0;
+      let refreshed = 0;
+      for (const url of urls) {
+        try {
+          await fetchAndCacheFavicon(url, { force: true, rerender: false });
+          refreshed += 1;
+        } catch (error) {
+          console.warn("Could not refresh favicon", url, error);
+        }
+        complete += 1;
+        setFaviconRefreshStatus(`Refreshing ${complete} of ${urls.length}...`);
+      }
+      render();
+      if (!savesModal.hidden) renderSavesList();
+      setFaviconRefreshStatus(urls.length ? `Refreshed ${refreshed} of ${urls.length} favicons.` : "No favicons to refresh.");
+    } finally {
+      faviconRefreshInProgress = false;
+      refreshBtn.disabled = false;
+    }
   }
 
   document.getElementById("export-data-btn").addEventListener("click", exportData);
@@ -3026,6 +3252,14 @@
   });
 
   document.getElementById("delete-all-data-btn").addEventListener("click", deleteAllData);
+  document.getElementById("refresh-favicons-btn").addEventListener("click", () => {
+    void refreshAllFavicons().catch((error) => {
+      setFaviconRefreshStatus("Refresh failed.");
+      reportStorageError(error);
+      const refreshBtn = document.getElementById("refresh-favicons-btn");
+      if (refreshBtn) refreshBtn.disabled = false;
+    });
+  });
 
   // ── Global keyboard ────────────────────────────────────────────────────────
 
@@ -3081,6 +3315,7 @@
     const persisted = await loadPersistedState();
     data = persisted.data;
     settings = persisted.settings;
+    faviconCache = new Map(persisted.favicons.map((record) => [record.hostname, record]));
     await setStoredAiSearchEnabled();
     await archiveExpiredSaves();
     setInterval(() => {
@@ -3098,6 +3333,7 @@
     applyAiSearchBoxVisibility(getStoredAiSearchEnabled());
     bookmarkSearchInput.focus();
     render();
+    void warmMissingFaviconCache().catch(reportStorageError);
   }
 
   init().catch(reportStorageError);
