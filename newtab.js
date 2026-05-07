@@ -15,7 +15,7 @@
   };
   const DEFAULT_SAVE_ARCHIVE_AFTER_MS = 12 * HOUR_MS;
   const RECENT_FOLDER_RESTORE_MS = 10 * 1000;
-  const OPENAI_CHAT_MODEL = "gpt-4o";
+  const OPENAI_CHAT_MODEL = "gpt-5.5";
   const OPENAI_CHAT_ENDPOINT = "https://api.openai.com/v1/chat/completions";
 
   const AI_PROVIDERS = {
