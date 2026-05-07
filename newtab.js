@@ -6,7 +6,14 @@
   const FAVORITES_STORE = "favorites";
   const SETTINGS_STORE = "settings";
   const SAVES_STORE = "saves";
-  const SAVE_ARCHIVE_AFTER_MS = 24 * 60 * 60 * 1000;
+  const HOUR_MS = 60 * 60 * 1000;
+  const SAVE_ARCHIVE_OPTIONS = {
+    21600000: { value: 6 * HOUR_MS, label: "6 hours" },
+    43200000: { value: 12 * HOUR_MS, label: "12 hours" },
+    86400000: { value: 24 * HOUR_MS, label: "24 hours" },
+    604800000: { value: 7 * 24 * HOUR_MS, label: "1 week" },
+  };
+  const DEFAULT_SAVE_ARCHIVE_AFTER_MS = 12 * HOUR_MS;
 
   const AI_PROVIDERS = {
     chatgpt: {
@@ -51,6 +58,7 @@
       aiProvider: "chatgpt",
       aiSearchEnabled: true,
       bookmarkSearchResultLimit: 8,
+      saveArchiveAfterMs: DEFAULT_SAVE_ARCHIVE_AFTER_MS,
       wallpaper: "off",
     };
   }
@@ -182,6 +190,12 @@
           settings.bookmarkSearchResultLimit = value;
         }
       }
+      if (record.key === "saveArchiveAfterMs") {
+        const value = Number(record.value);
+        if (SAVE_ARCHIVE_OPTIONS[value]) {
+          settings.saveArchiveAfterMs = value;
+        }
+      }
     }
     settings.wallpaper = "off";
     return settings;
@@ -204,7 +218,10 @@
 
   function saveExpiryTime(save) {
     const savedAt = Date.parse(save.savedAt || "");
-    return Number.isFinite(savedAt) ? savedAt + SAVE_ARCHIVE_AFTER_MS : Date.now() + SAVE_ARCHIVE_AFTER_MS;
+    const archiveAfterMs = SAVE_ARCHIVE_OPTIONS[settings.saveArchiveAfterMs]
+      ? settings.saveArchiveAfterMs
+      : DEFAULT_SAVE_ARCHIVE_AFTER_MS;
+    return Number.isFinite(savedAt) ? savedAt + archiveAfterMs : Date.now() + archiveAfterMs;
   }
 
   function isSaveArchived(save) {
@@ -365,9 +382,14 @@
   const wallpaperTrigger = document.getElementById("wallpaper-trigger");
   const wallpaperTriggerText = document.getElementById("wallpaper-trigger-text");
   const wallpaperList = document.getElementById("wallpaper-list");
+  const saveArchiveAfterCustom = document.getElementById("save-archive-after-custom-select");
+  const saveArchiveAfterTrigger = document.getElementById("save-archive-after-trigger");
+  const saveArchiveAfterTriggerText = document.getElementById("save-archive-after-trigger-text");
+  const saveArchiveAfterList = document.getElementById("save-archive-after-list");
 
   let aiProviderId = "chatgpt";
   let wallpaperId = "off";
+  let saveArchiveAfterMs = DEFAULT_SAVE_ARCHIVE_AFTER_MS;
 
   function getStoredAiProvider() {
     return settings.aiProvider;
@@ -383,6 +405,12 @@
 
   function getStoredWallpaper() {
     return "off";
+  }
+
+  function getStoredSaveArchiveAfterMs() {
+    return SAVE_ARCHIVE_OPTIONS[settings.saveArchiveAfterMs]
+      ? settings.saveArchiveAfterMs
+      : DEFAULT_SAVE_ARCHIVE_AFTER_MS;
   }
 
   async function setStoredAiSearchEnabled(on) {
@@ -452,13 +480,27 @@
     });
   }
 
+  function syncSaveArchiveAfterCustomSelect() {
+    if (!saveArchiveAfterTriggerText || !saveArchiveAfterList) return;
+    const option = SAVE_ARCHIVE_OPTIONS[saveArchiveAfterMs] || SAVE_ARCHIVE_OPTIONS[DEFAULT_SAVE_ARCHIVE_AFTER_MS];
+    saveArchiveAfterTriggerText.textContent = option.label;
+    saveArchiveAfterList.querySelectorAll("[role='option']").forEach((opt) => {
+      const on = Number(opt.getAttribute("data-value")) === option.value;
+      opt.setAttribute("aria-selected", on ? "true" : "false");
+      opt.classList.toggle("is-selected", on);
+    });
+  }
+
   function isAiProviderDropdownOpen() {
     return aiProviderTrigger && aiProviderTrigger.getAttribute("aria-expanded") === "true";
   }
 
   function setAiProviderDropdownOpen(open) {
     if (!aiProviderTrigger || !aiProviderList) return;
-    if (open) closeWallpaperDropdown();
+    if (open) {
+      closeWallpaperDropdown();
+      closeSaveArchiveAfterDropdown();
+    }
     aiProviderList.hidden = !open;
     aiProviderTrigger.setAttribute("aria-expanded", open ? "true" : "false");
   }
@@ -478,7 +520,10 @@
   function setWallpaperDropdownOpen(open) {
     if (!wallpaperTrigger || !wallpaperList) return;
     if (open && wallpaperTrigger.disabled) return;
-    if (open) closeAiProviderDropdown();
+    if (open) {
+      closeAiProviderDropdown();
+      closeSaveArchiveAfterDropdown();
+    }
     wallpaperList.hidden = !open;
     wallpaperTrigger.setAttribute("aria-expanded", open ? "true" : "false");
   }
@@ -489,6 +534,28 @@
 
   function openWallpaperDropdown() {
     setWallpaperDropdownOpen(true);
+  }
+
+  function isSaveArchiveAfterDropdownOpen() {
+    return saveArchiveAfterTrigger && saveArchiveAfterTrigger.getAttribute("aria-expanded") === "true";
+  }
+
+  function setSaveArchiveAfterDropdownOpen(open) {
+    if (!saveArchiveAfterTrigger || !saveArchiveAfterList) return;
+    if (open) {
+      closeAiProviderDropdown();
+      closeWallpaperDropdown();
+    }
+    saveArchiveAfterList.hidden = !open;
+    saveArchiveAfterTrigger.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+
+  function closeSaveArchiveAfterDropdown() {
+    setSaveArchiveAfterDropdownOpen(false);
+  }
+
+  function openSaveArchiveAfterDropdown() {
+    setSaveArchiveAfterDropdownOpen(true);
   }
 
   function focusWallpaperOption(dir) {
@@ -506,6 +573,19 @@
 
   function focusAiProviderOption(dir) {
     const opts = [...aiProviderList.querySelectorAll("[role='option']")];
+    if (!opts.length) return;
+    const ix = opts.findIndex((o) => o === document.activeElement);
+    const next =
+      ix < 0
+        ? dir === 1
+          ? 0
+          : opts.length - 1
+        : Math.min(Math.max(ix + dir, 0), opts.length - 1);
+    opts[next].focus();
+  }
+
+  function focusSaveArchiveAfterOption(dir) {
+    const opts = [...saveArchiveAfterList.querySelectorAll("[role='option']")];
     if (!opts.length) return;
     const ix = opts.findIndex((o) => o === document.activeElement);
     const next =
@@ -550,6 +630,19 @@
       await saveSetting("wallpaper", wallpaperId);
     }
     syncWallpaperCustomSelect();
+  }
+
+  async function applySaveArchiveAfter(value, { persist } = {}) {
+    const normalized = Number(value);
+    if (!SAVE_ARCHIVE_OPTIONS[normalized]) return;
+    saveArchiveAfterMs = normalized;
+    settings.saveArchiveAfterMs = normalized;
+    if (persist) {
+      await saveSetting("saveArchiveAfterMs", normalized);
+      const changed = await archiveExpiredSaves();
+      if (changed && !savesModal.hidden) renderSavesList();
+    }
+    syncSaveArchiveAfterCustomSelect();
   }
 
   async function initAiSearchProvider() {
@@ -2451,6 +2544,7 @@
     if (!sectionId) return;
     closeAiProviderDropdown();
     closeWallpaperDropdown();
+    closeSaveArchiveAfterDropdown();
 
     settingsTabs.forEach((tab) => {
       const active = tab.dataset.settingsTab === sectionId;
@@ -2492,16 +2586,19 @@
     applyAiSearchBoxVisibility(getStoredAiSearchEnabled());
     syncAiProviderCustomSelect();
     syncWallpaperCustomSelect();
+    void applySaveArchiveAfter(getStoredSaveArchiveAfterMs(), { persist: false });
     syncBookmarkSearchLimitInput();
     activateSettingsTab("theme");
     closeAiProviderDropdown();
     closeWallpaperDropdown();
+    closeSaveArchiveAfterDropdown();
     settingsModal.hidden = false;
   }
 
   function closeSettingsModal() {
     closeAiProviderDropdown();
     closeWallpaperDropdown();
+    closeSaveArchiveAfterDropdown();
     settingsModal.hidden = true;
   }
 
@@ -2661,6 +2758,73 @@
     });
   }
 
+  if (saveArchiveAfterTrigger && saveArchiveAfterList) {
+    saveArchiveAfterTrigger.addEventListener("click", (e) => {
+      e.stopPropagation();
+      setSaveArchiveAfterDropdownOpen(!isSaveArchiveAfterDropdownOpen());
+    });
+    saveArchiveAfterTrigger.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        if (!isSaveArchiveAfterDropdownOpen()) openSaveArchiveAfterDropdown();
+        focusSaveArchiveAfterOption(1);
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        if (!isSaveArchiveAfterDropdownOpen()) openSaveArchiveAfterDropdown();
+        focusSaveArchiveAfterOption(-1);
+      } else if (e.key === "Escape" && isSaveArchiveAfterDropdownOpen()) {
+        e.preventDefault();
+        e.stopPropagation();
+        closeSaveArchiveAfterDropdown();
+      }
+    });
+    saveArchiveAfterList.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        closeSaveArchiveAfterDropdown();
+        saveArchiveAfterTrigger.focus();
+      } else if (e.key === "ArrowDown") {
+        e.preventDefault();
+        focusSaveArchiveAfterOption(1);
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        focusSaveArchiveAfterOption(-1);
+      } else if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        const v = document.activeElement.getAttribute("data-value");
+        if (v) {
+          void applySaveArchiveAfter(v, { persist: true })
+            .then(() => {
+              closeSaveArchiveAfterDropdown();
+              saveArchiveAfterTrigger.focus();
+            })
+            .catch(reportStorageError);
+        }
+      }
+    });
+    saveArchiveAfterList.querySelectorAll("[role='option']").forEach((opt) => {
+      opt.addEventListener("click", () => {
+        const v = opt.getAttribute("data-value");
+        if (v) {
+          void applySaveArchiveAfter(v, { persist: true })
+            .then(() => {
+              closeSaveArchiveAfterDropdown();
+              saveArchiveAfterTrigger.focus();
+            })
+            .catch(reportStorageError);
+          return;
+        }
+        closeSaveArchiveAfterDropdown();
+        saveArchiveAfterTrigger.focus();
+      });
+    });
+    document.addEventListener("click", (e) => {
+      if (!isSaveArchiveAfterDropdownOpen() || !saveArchiveAfterCustom) return;
+      if (!saveArchiveAfterCustom.contains(e.target)) closeSaveArchiveAfterDropdown();
+    });
+  }
+
   if (bookmarkSearchLimitInput) {
     const persistBookmarkSearchLimitInput = () => {
       const raw = Number(bookmarkSearchLimitInput.value);
@@ -2696,13 +2860,16 @@
 
   async function applyImport(imported, importedSettings = null) {
     data = imported;
+    if (importedSettings) {
+      settings = importedSettings;
+    }
     await archiveExpiredSaves({ persist: false });
     await saveData();
     if (importedSettings) {
-      settings = importedSettings;
       await saveSettings(settings);
       await initAiSearchProvider();
       await applyWallpaper(getStoredWallpaper(), { persist: true });
+      await applySaveArchiveAfter(getStoredSaveArchiveAfterMs(), { persist: false });
       applyAiSearchBoxVisibility(getStoredAiSearchEnabled());
       syncBookmarkSearchLimitInput();
     }
@@ -2807,6 +2974,10 @@
           closeWallpaperDropdown();
           return;
         }
+        if (isSaveArchiveAfterDropdownOpen()) {
+          closeSaveArchiveAfterDropdown();
+          return;
+        }
         closeSettingsModal();
         return;
       }
@@ -2847,6 +3018,7 @@
     }, 60000);
     await initAiSearchProvider();
     await applyWallpaper(getStoredWallpaper(), { persist: true });
+    await applySaveArchiveAfter(getStoredSaveArchiveAfterMs(), { persist: false });
     applyAiSearchBoxVisibility(getStoredAiSearchEnabled());
     searchInput.focus();
     render();

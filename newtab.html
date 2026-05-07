@@ -293,6 +293,7 @@
           <div class="settings-sidebar" role="tablist" aria-label="Settings sections" aria-orientation="vertical">
             <button type="button" class="settings-tab is-active" id="settings-tab-theme" role="tab" aria-selected="true" aria-controls="settings-panel-theme" data-settings-tab="theme">Theme</button>
             <button type="button" class="settings-tab" id="settings-tab-search" role="tab" aria-selected="false" aria-controls="settings-panel-search" data-settings-tab="search" tabindex="-1">Search</button>
+            <button type="button" class="settings-tab" id="settings-tab-automation" role="tab" aria-selected="false" aria-controls="settings-panel-automation" data-settings-tab="automation" tabindex="-1">Automation</button>
             <button type="button" class="settings-tab" id="settings-tab-data" role="tab" aria-selected="false" aria-controls="settings-panel-data" data-settings-tab="data" tabindex="-1">Data</button>
           </div>
 
@@ -382,6 +383,39 @@
                   value="8"
                   aria-labelledby="bookmark-search-limit-label"
                 />
+              </div>
+            </section>
+
+            <section class="settings-panel" id="settings-panel-automation" role="tabpanel" aria-labelledby="settings-tab-automation" data-settings-panel="automation" hidden>
+              <div class="settings-intro">
+                <h4 class="settings-section-title">Automation</h4>
+              </div>
+              <div class="settings-row" id="save-archive-after-settings-row">
+                <label class="settings-row-label" for="save-archive-after-trigger" id="save-archive-after-label">Link auto archive time</label>
+                <div class="custom-select custom-select--settings" id="save-archive-after-custom-select">
+                  <button
+                    type="button"
+                    class="custom-select-trigger"
+                    id="save-archive-after-trigger"
+                    aria-haspopup="listbox"
+                    aria-expanded="false"
+                    aria-controls="save-archive-after-list"
+                    aria-labelledby="save-archive-after-label save-archive-after-trigger-text"
+                  >
+                    <span class="custom-select-value" id="save-archive-after-trigger-text">12 hours</span>
+                    <span class="custom-select-chevron" aria-hidden="true">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                      </svg>
+                    </span>
+                  </button>
+                  <ul class="custom-select-menu" id="save-archive-after-list" role="listbox" aria-labelledby="save-archive-after-label" hidden>
+                    <li class="custom-select-option" role="option" tabindex="-1" data-value="21600000">6 hours</li>
+                    <li class="custom-select-option" role="option" tabindex="-1" data-value="43200000">12 hours</li>
+                    <li class="custom-select-option" role="option" tabindex="-1" data-value="86400000">24 hours</li>
+                    <li class="custom-select-option" role="option" tabindex="-1" data-value="604800000">1 week</li>
+                  </ul>
+                </div>
               </div>
             </section>
 
