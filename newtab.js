@@ -14,6 +14,7 @@
     604800000: { value: 7 * 24 * HOUR_MS, label: "1 week" },
   };
   const DEFAULT_SAVE_ARCHIVE_AFTER_MS = 12 * HOUR_MS;
+  const RECENT_FOLDER_RESTORE_MS = 10 * 1000;
 
   const AI_PROVIDERS = {
     chatgpt: {
@@ -58,6 +59,7 @@
       aiProvider: "chatgpt",
       aiSearchEnabled: false,
       bookmarkSearchResultLimit: 8,
+      lastFolderVisit: null,
       saveArchiveAfterMs: DEFAULT_SAVE_ARCHIVE_AFTER_MS,
       wallpaper: "off",
     };
@@ -194,6 +196,22 @@
         const value = Number(record.value);
         if (SAVE_ARCHIVE_OPTIONS[value]) {
           settings.saveArchiveAfterMs = value;
+        }
+      }
+      if (record.key === "lastFolderVisit") {
+        const value = record.value;
+        if (
+          value &&
+          typeof value === "object" &&
+          Array.isArray(value.path) &&
+          value.path.every((id) => typeof id === "string") &&
+          typeof value.visitedAt === "string" &&
+          Number.isFinite(Date.parse(value.visitedAt))
+        ) {
+          settings.lastFolderVisit = {
+            path: [...value.path],
+            visitedAt: value.visitedAt,
+          };
         }
       }
     }
@@ -1200,10 +1218,40 @@
     folderForwardHistory = folderForwardHistory.filter(pathExists);
   }
 
+  function lastFolderVisitIsRecent(visit, now = Date.now()) {
+    const visitedAt = Date.parse(visit?.visitedAt || "");
+    return (
+      Array.isArray(visit?.path) &&
+      Number.isFinite(visitedAt) &&
+      now - visitedAt >= 0 &&
+      now - visitedAt < RECENT_FOLDER_RESTORE_MS
+    );
+  }
+
+  async function rememberCurrentFolderPath() {
+    settings.lastFolderVisit = {
+      path: [...currentPath],
+      visitedAt: new Date().toISOString(),
+    };
+    await saveSetting("lastFolderVisit", settings.lastFolderVisit);
+  }
+
+  async function clearLastFolderVisit() {
+    settings.lastFolderVisit = null;
+    await saveSetting("lastFolderVisit", null);
+  }
+
+  function restoreRecentFolderPath() {
+    const visit = settings.lastFolderVisit;
+    if (!lastFolderVisitIsRecent(visit) || !pathExists(visit.path)) return;
+    currentPath = [...visit.path];
+  }
+
   function setCurrentPath(nextPath) {
     if (!Array.isArray(nextPath) || !pathExists(nextPath) || pathsEqual(currentPath, nextPath)) return;
     currentPath = [...nextPath];
     folderForwardHistory = [];
+    void rememberCurrentFolderPath().catch(reportStorageError);
     render();
   }
 
@@ -1211,6 +1259,7 @@
     if (currentPath.length === 0) return;
     folderForwardHistory.unshift([...currentPath]);
     currentPath = currentPath.slice(0, -1);
+    void rememberCurrentFolderPath().catch(reportStorageError);
     render();
   }
 
@@ -1222,6 +1271,7 @@
       return;
     }
     currentPath = [...nextPath];
+    void rememberCurrentFolderPath().catch(reportStorageError);
     render();
   }
 
@@ -3128,6 +3178,7 @@
       syncBookmarkSearchLimitInput();
     }
     resetFolderNavigation();
+    await clearLastFolderVisit();
     render();
     void warmMissingFaviconCache().catch(reportStorageError);
   }
@@ -3199,6 +3250,7 @@
         faviconCache = new Map();
         await clearFaviconStore();
         resetFolderNavigation();
+        await clearLastFolderVisit();
         render();
         closeSettingsModal();
       },
@@ -3316,6 +3368,7 @@
     data = persisted.data;
     settings = persisted.settings;
     faviconCache = new Map(persisted.favicons.map((record) => [record.hostname, record]));
+    restoreRecentFolderPath();
     await setStoredAiSearchEnabled();
     await archiveExpiredSaves();
     setInterval(() => {
