@@ -517,6 +517,18 @@ body {
   background: var(--surface-hover);
 }
 
+.action-btn:disabled {
+  cursor: default;
+}
+
+.action-btn:disabled:hover {
+  background: transparent;
+}
+
+.action-btn:disabled .toolbar-icon {
+  opacity: 0.22;
+}
+
 .saves-toolbar-btn {
   display: inline-flex;
   align-items: center;

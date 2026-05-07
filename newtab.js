@@ -313,6 +313,7 @@
   // ── Navigation state: array of folder IDs from root to current ────────────
 
   let currentPath = []; // e.g. ['folderId1', 'folderId2']
+  let folderForwardHistory = [];
 
   // ── Drag state ─────────────────────────────────────────────────────────────
 
@@ -970,6 +971,54 @@
     return null;
   }
 
+  function pathsEqual(a, b) {
+    return a.length === b.length && a.every((id, index) => id === b[index]);
+  }
+
+  function pathExists(path) {
+    let arr = data.items;
+    for (const id of path) {
+      const folder = arr.find((item) => item.type === "folder" && item.id === id);
+      if (!folder) return false;
+      arr = folder.children;
+    }
+    return true;
+  }
+
+  function pruneFolderHistory() {
+    folderForwardHistory = folderForwardHistory.filter(pathExists);
+  }
+
+  function setCurrentPath(nextPath) {
+    if (!Array.isArray(nextPath) || !pathExists(nextPath) || pathsEqual(currentPath, nextPath)) return;
+    currentPath = [...nextPath];
+    folderForwardHistory = [];
+    render();
+  }
+
+  function goUpFolder() {
+    if (currentPath.length === 0) return;
+    folderForwardHistory.unshift([...currentPath]);
+    currentPath = currentPath.slice(0, -1);
+    render();
+  }
+
+  function goForwardFolder() {
+    pruneFolderHistory();
+    const nextPath = folderForwardHistory.shift();
+    if (!nextPath) {
+      renderFolderNavigation();
+      return;
+    }
+    currentPath = [...nextPath];
+    render();
+  }
+
+  function resetFolderNavigation() {
+    currentPath = [];
+    folderForwardHistory = [];
+  }
+
   function pruneStaleFavorites() {
     const next = data.favorites.filter((id) => findItem(data.items, id));
     if (next.length !== data.favorites.length) {
@@ -1027,12 +1076,13 @@
   function renderPathBar() {
     const bar = document.getElementById("path-bar");
     bar.innerHTML = "";
+    renderFolderNavigation();
 
     // Root segment
     const rootBtn = document.createElement("button");
     rootBtn.className = "path-segment" + (currentPath.length === 0 ? " current" : "");
     rootBtn.innerHTML = `<span class="path-root-label">Bookmarks</span>`;
-    rootBtn.addEventListener("click", () => { currentPath = []; render(); });
+    rootBtn.addEventListener("click", () => setCurrentPath([]));
     bar.appendChild(rootBtn);
 
     // Folder segments
@@ -1052,15 +1102,21 @@
       btn.className = "path-segment" + (isCurrent ? " current" : "");
       btn.textContent = folder.name;
       if (!isCurrent) {
-        btn.addEventListener("click", () => {
-          currentPath = currentPath.slice(0, i + 1);
-          render();
-        });
+        btn.addEventListener("click", () => setCurrentPath(currentPath.slice(0, i + 1)));
       }
       bar.appendChild(btn);
 
       arr = folder.children;
     }
+  }
+
+  function renderFolderNavigation() {
+    const upBtn = document.getElementById("folder-up-btn");
+    const forwardBtn = document.getElementById("folder-forward-btn");
+    if (!upBtn || !forwardBtn) return;
+    pruneFolderHistory();
+    upBtn.disabled = currentPath.length === 0;
+    forwardBtn.disabled = folderForwardHistory.length === 0;
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -1744,6 +1800,9 @@
     openFolderModal();
   });
 
+  document.getElementById("folder-up-btn").addEventListener("click", goUpFolder);
+  document.getElementById("folder-forward-btn").addEventListener("click", goForwardFolder);
+
   function render() {
     renderPathBar();
     grid.innerHTML = "";
@@ -1829,11 +1888,10 @@
     el.addEventListener("click", () => {
       if (navigateFromRoot) {
         const p = pathIdsToFolder(folder.id);
-        if (p) currentPath = p;
+        if (p) setCurrentPath(p);
       } else {
-        currentPath = [...currentPath, folder.id];
+        setCurrentPath([...currentPath, folder.id]);
       }
-      render();
     });
 
     // Drag & drop (as drag source)
@@ -2418,7 +2476,6 @@
     closeLinkModal();
   }
 
-  document.getElementById("add-link-btn").addEventListener("click", openLinkModal);
   document.getElementById("link-modal-close").addEventListener("click", closeLinkModal);
   document.getElementById("link-cancel").addEventListener("click", closeLinkModal);
   document.getElementById("link-save").addEventListener("click", () => {
@@ -2494,7 +2551,6 @@
     closeFolderModal();
   }
 
-  document.getElementById("add-folder-btn").addEventListener("click", openFolderModal);
   document.getElementById("folder-modal-close").addEventListener("click", closeFolderModal);
   document.getElementById("folder-cancel").addEventListener("click", closeFolderModal);
   document.getElementById("folder-save").addEventListener("click", () => {
@@ -2847,7 +2903,7 @@
       applyAiSearchBoxVisibility(getStoredAiSearchEnabled());
       syncBookmarkSearchLimitInput();
     }
-    currentPath = [];
+    resetFolderNavigation();
     render();
   }
 
@@ -2909,7 +2965,7 @@
       action: async () => {
         data = defaultData();
         await saveData();
-        currentPath = [];
+        resetFolderNavigation();
         render();
         closeSettingsModal();
       },
@@ -2963,7 +3019,7 @@
         linkModal.hidden && folderModal.hidden && deleteConfirmModal.hidden &&
         iconCustomizeModal.hidden && routesModal.hidden && routeChoiceModal.hidden && savesModal.hidden && settingsModal.hidden &&
         document.activeElement === document.body) {
-      if (currentPath.length > 0) { currentPath.pop(); render(); }
+      goUpFolder();
     }
   });
 
