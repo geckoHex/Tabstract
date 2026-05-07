@@ -657,6 +657,7 @@
   const bookmarkClearBtn = document.getElementById("bookmark-clear-btn");
   const bookmarkSearchResults = document.getElementById("bookmark-search-results");
   const bookmarkSearchBox = document.querySelector(".bookmark-search-box");
+  const toolsSection = document.getElementById("tools-section");
   const favoritesSection = document.getElementById("favorites-section");
 
   function collectAllLinks(items, folderNames, out = []) {
@@ -725,6 +726,7 @@
   function updateBookmarkSearchResults() {
     const q = bookmarkSearchInput.value.trim();
     bookmarkClearBtn.classList.toggle("visible", q.length > 0);
+    toolsSection.hidden = q.length > 0;
     favoritesSection.hidden = q.length > 0;
 
     const setResultsVisible = (visible) => {
