@@ -137,6 +137,34 @@
             aria-label="Search Google"
           />
         </div>
+        <div class="power-search-modes" aria-label="Search mode">
+          <fieldset class="power-search-mode-group">
+            <legend>Image Search</legend>
+            <label class="power-search-mode-option">
+              <input type="checkbox" name="power-search-mode" value="transparent-images" />
+              <span>Transparent images</span>
+            </label>
+            <label class="power-search-mode-option">
+              <input type="checkbox" name="power-search-mode" value="large-images" />
+              <span>Large images</span>
+            </label>
+          </fieldset>
+          <fieldset class="power-search-mode-group">
+            <legend>Web Results</legend>
+            <label class="power-search-mode-option">
+              <input type="checkbox" name="power-search-mode" value="recent" />
+              <span>Recent</span>
+            </label>
+            <label class="power-search-mode-option">
+              <input type="checkbox" name="power-search-mode" value="web-only" />
+              <span>Web results only</span>
+            </label>
+            <label class="power-search-mode-option">
+              <input type="checkbox" name="power-search-mode" value="pdf-only" />
+              <span>PDFs only</span>
+            </label>
+          </fieldset>
+        </div>
         <div class="modal-footer">
           <button class="btn-secondary" id="power-search-cancel" type="button">Cancel</button>
           <button class="btn-primary" type="submit">Search</button>

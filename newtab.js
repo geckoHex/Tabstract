@@ -808,9 +808,13 @@
   const powerSearchModal = document.getElementById("power-search-modal");
   const powerSearchForm = document.getElementById("power-search-form");
   const powerSearchInput = document.getElementById("power-search-input");
+  const powerSearchModeInputs = Array.from(document.querySelectorAll('input[name="power-search-mode"]'));
 
   function openPowerSearchModal() {
     powerSearchInput.value = "";
+    powerSearchModeInputs.forEach((input) => {
+      input.checked = false;
+    });
     powerSearchModal.hidden = false;
     setTimeout(() => powerSearchInput.focus(), 0);
   }
@@ -818,6 +822,34 @@
   function closePowerSearchModal() {
     powerSearchModal.hidden = true;
     powerSearchInput.value = "";
+    powerSearchModeInputs.forEach((input) => {
+      input.checked = false;
+    });
+  }
+
+  function getPowerSearchUrl(query, mode) {
+    const encodedQuery = encodeURIComponent(query);
+    const imageParams = new URLSearchParams({
+      tbm: "isch",
+      q: query,
+    });
+
+    switch (mode) {
+      case "transparent-images":
+        imageParams.set("tbs", "ic:trans");
+        return `https://www.google.com/search?${imageParams.toString()}`;
+      case "large-images":
+        imageParams.set("tbs", "isz:l");
+        return `https://www.google.com/search?${imageParams.toString()}`;
+      case "recent":
+        return `https://www.google.com/search?q=${encodedQuery}&tbs=qdr:d`;
+      case "web-only":
+        return `https://www.google.com/search?q=${encodedQuery}&udm=14`;
+      case "pdf-only":
+        return `https://www.google.com/search?q=${encodeURIComponent(`${query} filetype:pdf`)}`;
+      default:
+        return `https://www.google.com/search?q=${encodedQuery}`;
+    }
   }
 
   function submitPowerSearch() {
@@ -826,8 +858,18 @@
       powerSearchInput.focus();
       return;
     }
-    window.location.href = `https://www.google.com/search?q=${encodeURIComponent(q)}`;
+    const selectedMode = powerSearchModeInputs.find((input) => input.checked)?.value;
+    window.location.href = getPowerSearchUrl(q, selectedMode);
   }
+
+  powerSearchModeInputs.forEach((input) => {
+    input.addEventListener("change", () => {
+      if (!input.checked) return;
+      powerSearchModeInputs.forEach((otherInput) => {
+        if (otherInput !== input) otherInput.checked = false;
+      });
+    });
+  });
 
   powerSearchTool.addEventListener("click", openPowerSearchModal);
   document.getElementById("power-search-modal-close").addEventListener("click", closePowerSearchModal);
