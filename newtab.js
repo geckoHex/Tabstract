@@ -1114,6 +1114,179 @@
   });
 
   // ══════════════════════════════════════════════════════════════════════════
+  // CALCULATOR
+  // ══════════════════════════════════════════════════════════════════════════
+
+  const calculatorTool = document.getElementById("calculator-tool");
+  const calculatorModal = document.getElementById("calculator-modal");
+  const calculatorDisplay = document.getElementById("calculator-display");
+  const calculatorKeys = document.getElementById("calculator-keys");
+
+  let calcCurrent = "0";
+  let calcPrevious = "";
+  let calcOperator = null;
+  let calcResetNext = false;
+
+  function updateCalculatorDisplay() {
+    if (calculatorDisplay) calculatorDisplay.textContent = calcCurrent;
+  }
+
+  function clearCalculator() {
+    calcCurrent = "0";
+    calcPrevious = "";
+    calcOperator = null;
+    calcResetNext = false;
+    updateCalculatorDisplay();
+  }
+
+  function deleteCalculatorDigit() {
+    if (calcResetNext) {
+      calcCurrent = "0";
+      calcResetNext = false;
+    } else if (calcCurrent.length > 1) {
+      calcCurrent = calcCurrent.slice(0, -1);
+    } else {
+      calcCurrent = "0";
+    }
+    updateCalculatorDisplay();
+  }
+
+  function appendCalculatorDigit(digit) {
+    if (calcResetNext) {
+      calcCurrent = "";
+      calcResetNext = false;
+    }
+    if (calcCurrent === "0" && digit !== ".") {
+      calcCurrent = digit;
+    } else if (digit === ".") {
+      if (!calcCurrent.includes(".")) calcCurrent += ".";
+    } else {
+      calcCurrent += digit;
+    }
+    updateCalculatorDisplay();
+  }
+
+  function setCalculatorOperator(op) {
+    if (calcOperator && !calcResetNext) {
+      calculateCalculatorResult();
+    }
+    calcPrevious = calcCurrent;
+    calcOperator = op;
+    calcResetNext = true;
+  }
+
+  function calculateCalculatorResult() {
+    if (!calcOperator || !calcPrevious) return;
+    const prev = parseFloat(calcPrevious);
+    const curr = parseFloat(calcCurrent);
+    if (Number.isNaN(prev) || Number.isNaN(curr)) return;
+
+    let result = 0;
+    switch (calcOperator) {
+      case "+":
+        result = prev + curr;
+        break;
+      case "-":
+        result = prev - curr;
+        break;
+      case "*":
+        result = prev * curr;
+        break;
+      case "/":
+        result = curr === 0 ? NaN : prev / curr;
+        break;
+    }
+
+    if (Number.isNaN(result) || !Number.isFinite(result)) {
+      calcCurrent = "Error";
+    } else {
+      const str = String(result);
+      calcCurrent = str.length > 14 ? String(parseFloat(result.toPrecision(12))) : str;
+    }
+    calcOperator = null;
+    calcPrevious = "";
+    calcResetNext = true;
+    updateCalculatorDisplay();
+  }
+
+  function openCalculatorModal() {
+    if (calculatorModal) calculatorModal.hidden = false;
+  }
+
+  function closeCalculatorModal() {
+    if (calculatorModal) calculatorModal.hidden = true;
+  }
+
+  calculatorTool.addEventListener("click", openCalculatorModal);
+  document.getElementById("calculator-modal-close").addEventListener("click", closeCalculatorModal);
+  calculatorModal.addEventListener("click", (e) => {
+    if (e.target === calculatorModal) closeCalculatorModal();
+  });
+
+  calculatorKeys.addEventListener("click", (e) => {
+    const key = e.target.closest(".calculator-key");
+    if (!key) return;
+    const action = key.dataset.action;
+    switch (action) {
+      case "number":
+        appendCalculatorDigit(key.dataset.value);
+        break;
+      case "decimal":
+        appendCalculatorDigit(".");
+        break;
+      case "operator":
+        setCalculatorOperator(key.dataset.value);
+        break;
+      case "calculate":
+        calculateCalculatorResult();
+        break;
+      case "clear":
+        clearCalculator();
+        break;
+      case "delete":
+        deleteCalculatorDigit();
+        break;
+    }
+  });
+
+  calculatorModal.addEventListener("keydown", (e) => {
+    if (!calculatorModal.hidden && e.key === "Escape") {
+      closeCalculatorModal();
+      return;
+    }
+    if (calculatorModal.hidden) return;
+    const key = e.key;
+    if (/^[0-9]$/.test(key)) {
+      e.preventDefault();
+      appendCalculatorDigit(key);
+    } else if (key === ".") {
+      e.preventDefault();
+      appendCalculatorDigit(".");
+    } else if (key === "+") {
+      e.preventDefault();
+      setCalculatorOperator("+");
+    } else if (key === "-") {
+      e.preventDefault();
+      setCalculatorOperator("-");
+    } else if (key === "*") {
+      e.preventDefault();
+      setCalculatorOperator("*");
+    } else if (key === "/") {
+      e.preventDefault();
+      setCalculatorOperator("/");
+    } else if (key === "Enter" || key === "=") {
+      e.preventDefault();
+      calculateCalculatorResult();
+    } else if (key === "Backspace") {
+      e.preventDefault();
+      deleteCalculatorDigit();
+    } else if (key === "Escape" || key === "c" || key === "C") {
+      e.preventDefault();
+      clearCalculator();
+    }
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
   // BOOKMARK SEARCH (fuzzy, all folders)
   // ══════════════════════════════════════════════════════════════════════════
 
@@ -3681,6 +3854,7 @@
       if (!iconCustomizeModal.hidden) { closeIconCustomizeModal(); return; }
       if (!powerSearchModal.hidden) { closePowerSearchModal(); return; }
       if (!aiChatModal.hidden) { closeAiChatModal(); return; }
+      if (!calculatorModal.hidden) { closeCalculatorModal(); return; }
       if (!savesModal.hidden) { closeSavesModal(); return; }
       if (!settingsModal.hidden) {
         if (isAiProviderDropdownOpen()) {

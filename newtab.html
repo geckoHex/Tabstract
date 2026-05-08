@@ -75,6 +75,12 @@
               </span>
               <span class="icon-label">AI Chat</span>
             </button>
+            <button type="button" class="icon-item tool-item" id="calculator-tool" aria-label="Calculator">
+              <span class="tool-icon-wrap">
+                <img class="tool-icon" src="icons/calculator-fill.svg" alt="" width="36" height="36" />
+              </span>
+              <span class="icon-label">Calculator</span>
+            </button>
           </div>
         </section>
 
@@ -205,6 +211,44 @@
           ></textarea>
           <button class="btn-primary ai-chat-send" id="ai-chat-send" type="submit">Send</button>
         </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Modal: Calculator ─────────────────────────────────────────── -->
+  <div class="modal-overlay modal-overlay--calculator" id="calculator-modal" hidden>
+    <div class="modal modal--calculator">
+      <div class="modal-header">
+        <h3>Calculator</h3>
+        <button class="modal-close" id="calculator-modal-close" aria-label="Close">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body modal-body--calculator">
+        <div class="calculator-display" id="calculator-display">0</div>
+        <div class="calculator-keys" id="calculator-keys">
+          <button type="button" class="calculator-key calculator-key--clear" data-action="clear">AC</button>
+          <button type="button" class="calculator-key calculator-key--delete" data-action="delete">⌫</button>
+          <button type="button" class="calculator-key calculator-key--operator" data-action="operator" data-value="/">÷</button>
+          <button type="button" class="calculator-key calculator-key--operator" data-action="operator" data-value="*">×</button>
+          <button type="button" class="calculator-key" data-action="number" data-value="7">7</button>
+          <button type="button" class="calculator-key" data-action="number" data-value="8">8</button>
+          <button type="button" class="calculator-key" data-action="number" data-value="9">9</button>
+          <button type="button" class="calculator-key calculator-key--operator" data-action="operator" data-value="-">−</button>
+          <button type="button" class="calculator-key" data-action="number" data-value="4">4</button>
+          <button type="button" class="calculator-key" data-action="number" data-value="5">5</button>
+          <button type="button" class="calculator-key" data-action="number" data-value="6">6</button>
+          <button type="button" class="calculator-key calculator-key--operator" data-action="operator" data-value="+">+</button>
+          <button type="button" class="calculator-key" data-action="number" data-value="1">1</button>
+          <button type="button" class="calculator-key" data-action="number" data-value="2">2</button>
+          <button type="button" class="calculator-key" data-action="number" data-value="3">3</button>
+          <button type="button" class="calculator-key calculator-key--equals" data-action="calculate">=</button>
+          <button type="button" class="calculator-key calculator-key--zero" data-action="number" data-value="0">0</button>
+          <button type="button" class="calculator-key" data-action="decimal">.</button>
+        </div>
       </div>
     </div>
   </div>

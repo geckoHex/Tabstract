@@ -1131,6 +1131,132 @@ body {
   gap: 12px;
 }
 
+.modal-overlay--calculator {
+  box-sizing: border-box;
+  padding: 10vh 10vw;
+  align-items: stretch;
+}
+
+.modal--calculator {
+  width: 100%;
+  max-width: 360px;
+  height: auto;
+  min-height: 0;
+  flex: 0 0 auto;
+  padding: 26px 28px 28px;
+  gap: 18px;
+  overflow: hidden;
+  align-self: center;
+}
+
+.modal-body--calculator {
+  gap: 14px;
+  align-items: stretch;
+}
+
+.calculator-display {
+  width: 100%;
+  min-height: 56px;
+  padding: 12px 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-size: 1.75rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+  text-align: right;
+  word-break: break-all;
+  line-height: 1.2;
+  user-select: text;
+}
+
+.calculator-keys {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.calculator-key {
+  height: 52px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 1.0625rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition), transform 80ms ease;
+}
+
+.calculator-key:hover {
+  background: var(--surface-hover);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.calculator-key:active {
+  transform: scale(0.96);
+  background: var(--surface-active);
+}
+
+.calculator-key:focus-visible {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 0 2px var(--accent-glow);
+}
+
+.calculator-key--operator {
+  background: rgba(255, 255, 255, 0.09);
+  font-size: 1.25rem;
+}
+
+.calculator-key--operator:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.calculator-key--equals {
+  grid-row: span 2;
+  height: auto;
+  background: rgba(255, 255, 255, 0.85);
+  color: #2a2a2e;
+  font-size: 1.25rem;
+}
+
+.calculator-key--equals:hover {
+  background: #fff;
+}
+
+.calculator-key--clear {
+  background: rgba(220, 53, 69, 0.12);
+  color: #ff6b7a;
+  border-color: rgba(220, 53, 69, 0.28);
+  font-size: 0.9375rem;
+}
+
+.calculator-key--clear:hover {
+  background: rgba(220, 53, 69, 0.22);
+  border-color: rgba(220, 53, 69, 0.5);
+}
+
+.calculator-key--delete {
+  font-size: 1rem;
+}
+
+.calculator-key--zero {
+  grid-column: span 2;
+}
+
+@media (max-width: 720px) {
+  .modal-overlay--calculator {
+    padding: 8vh 6vw;
+  }
+
+  .modal--calculator {
+    padding: 22px;
+  }
+}
+
 .ai-chat-messages {
   flex: 1 1 auto;
   min-height: 0;
