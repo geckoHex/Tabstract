@@ -1791,6 +1791,7 @@
 
   let customizingLinkId = null;
   let removeCustomIconOnSave = false;
+  let iconUploadDragDepth = 0;
   const iconCropState = {
     image: null,
     imageSrc: "",
@@ -1816,6 +1817,11 @@
     iconZoomInput.value = "1";
     drawIconCropPreview();
     syncIconCustomizeControls();
+  }
+
+  function resetIconUploadDragState() {
+    iconUploadDragDepth = 0;
+    iconCropStage.classList.remove("is-drag-over");
   }
 
   function getIconCropMetrics(outputSize = iconCropCanvas.width) {
@@ -1908,6 +1914,7 @@
     iconCustomizeModal.hidden = true;
     customizingLinkId = null;
     removeCustomIconOnSave = false;
+    resetIconUploadDragState();
     resetIconCropState();
   }
 
@@ -1952,21 +1959,87 @@
     openIconCustomizeModal(r.item);
   });
 
-  iconUploadBtn.addEventListener("click", () => {
+  function openIconUploadPicker() {
     iconUploadInput.value = "";
     iconUploadInput.click();
-  });
+  }
+
+  function readIconUploadFile(file) {
+    return new Promise((resolve, reject) => {
+      if (!file.type.startsWith("image/")) {
+        reject(new Error("Selected file is not an image."));
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(new Error("Could not read image file."));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function handleIconUploadFile(file) {
+    if (!file) return;
+    const src = await readIconUploadFile(file);
+    await setIconCropImage(src);
+  }
+
+  function iconUploadFileFromDragEvent(e) {
+    return [...(e.dataTransfer?.files || [])].find((file) => file.type.startsWith("image/")) || null;
+  }
+
+  function eventHasFileDrag(e) {
+    return [...(e.dataTransfer?.types || [])].includes("Files");
+  }
+
+  iconUploadBtn.addEventListener("click", openIconUploadPicker);
 
   iconUploadInput.addEventListener("change", () => {
     const file = iconUploadInput.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      void setIconCropImage(String(reader.result)).catch(() => {
+    void handleIconUploadFile(file)
+      .catch(() => {
         alert("Could not read that image. Try a different file.");
+      })
+      .finally(() => {
+        iconUploadInput.value = "";
       });
-    };
-    reader.readAsDataURL(file);
+  });
+
+  iconCropStage.addEventListener("dragenter", (e) => {
+    if (!eventHasFileDrag(e)) return;
+    e.preventDefault();
+    iconUploadDragDepth += 1;
+    iconCropStage.classList.add("is-drag-over");
+  });
+
+  iconCropStage.addEventListener("dragover", (e) => {
+    if (!eventHasFileDrag(e)) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "copy";
+    iconCropStage.classList.add("is-drag-over");
+  });
+
+  iconCropStage.addEventListener("dragleave", (e) => {
+    if (!eventHasFileDrag(e)) return;
+    e.preventDefault();
+    iconUploadDragDepth = Math.max(0, iconUploadDragDepth - 1);
+    if (iconUploadDragDepth === 0) {
+      iconCropStage.classList.remove("is-drag-over");
+    }
+  });
+
+  iconCropStage.addEventListener("drop", (e) => {
+    if (!eventHasFileDrag(e)) return;
+    e.preventDefault();
+    resetIconUploadDragState();
+    const file = iconUploadFileFromDragEvent(e);
+    if (!file) {
+      alert("Drop an image file to customize this icon.");
+      return;
+    }
+    void handleIconUploadFile(file).catch(() => {
+      alert("Could not read that image. Try a different file.");
+    });
   });
 
   iconRemoveBtn.addEventListener("click", () => {

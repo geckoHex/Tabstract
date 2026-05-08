@@ -2188,6 +2188,12 @@ body {
   cursor: default;
 }
 
+.icon-crop-stage.is-drag-over {
+  border-color: rgba(255, 255, 255, 0.36);
+  background: rgba(255, 255, 255, 0.04);
+  cursor: copy;
+}
+
 .icon-upload-dropzone {
   position: absolute;
   inset: 0;
