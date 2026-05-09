@@ -237,6 +237,7 @@
         faviconUrl: String(record.faviconUrl || "").trim(),
         savedAt: String(record.savedAt || new Date().toISOString()),
         archivedAt: typeof record.archivedAt === "string" && record.archivedAt ? record.archivedAt : null,
+        locked: Boolean(record.locked),
       }))
       .filter((record) => record.url);
   }
@@ -276,7 +277,7 @@
     const now = Date.now();
     let changed = false;
     data.saves = (data.saves || []).map((save) => {
-      if (isSaveArchived(save) || saveExpiryTime(save) > now) return save;
+      if (isSaveArchived(save) || saveExpiryTime(save) > now || save.locked) return save;
       changed = true;
       return { ...save, archivedAt: new Date(now).toISOString() };
     });
@@ -3069,12 +3070,29 @@
       if (viewingSavesArchive) {
         item.append(favicon, link);
       } else {
+        const actions = document.createElement("div");
+        actions.className = "saves-item-actions";
+
+        const lockBtn = document.createElement("button");
+        lockBtn.type = "button";
+        lockBtn.className = "saves-item-lock";
+        lockBtn.setAttribute("aria-label", save.locked ? "Unlock link" : "Lock link");
+        const lockIcon = document.createElement("img");
+        lockIcon.src = iconSrc(save.locked ? "locked.svg" : "unlocked.svg");
+        lockIcon.alt = "";
+        lockIcon.width = 15;
+        lockIcon.height = 15;
+        lockBtn.appendChild(lockIcon);
+        lockBtn.addEventListener("click", () => {
+          void toggleSaveLocked(save.id).catch(reportStorageError);
+        });
+
         const archiveBtn = document.createElement("button");
         archiveBtn.type = "button";
         archiveBtn.className = "saves-item-archive";
         archiveBtn.setAttribute("aria-label", `Archive ${save.title || hostname(save.url)}`);
         const archiveIcon = document.createElement("img");
-        archiveIcon.src = iconSrc("check.svg");
+        archiveIcon.src = iconSrc("archive.svg");
         archiveIcon.alt = "";
         archiveIcon.width = 15;
         archiveIcon.height = 15;
@@ -3083,7 +3101,8 @@
           void archiveSave(save.id).catch(reportStorageError);
         });
 
-        item.append(favicon, link, archiveBtn);
+        actions.append(lockBtn, archiveBtn);
+        item.append(favicon, link, actions);
       }
       savesList.appendChild(item);
     }
@@ -3144,6 +3163,7 @@
           faviconUrl: metadata.faviconUrl,
           savedAt: new Date().toISOString(),
           archivedAt: null,
+          locked: false,
         });
       }
       await saveData();
@@ -3162,6 +3182,18 @@
     const save = (data.saves || []).find((item) => item.id === id);
     if (!save || isSaveArchived(save)) return;
     save.archivedAt = new Date().toISOString();
+    await saveData();
+    renderSavesList();
+  }
+
+  async function toggleSaveLocked(id) {
+    const save = (data.saves || []).find((item) => item.id === id);
+    if (!save || isSaveArchived(save)) return;
+    const nextLocked = !save.locked;
+    save.locked = nextLocked;
+    if (!nextLocked && saveExpiryTime(save) <= Date.now()) {
+      save.archivedAt = new Date().toISOString();
+    }
     await saveData();
     renderSavesList();
   }

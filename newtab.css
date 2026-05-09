@@ -1490,7 +1490,7 @@ body {
 
 .saves-item {
   display: grid;
-  grid-template-columns: 36px minmax(0, 1fr) 34px;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
   min-height: 58px;
@@ -1556,6 +1556,19 @@ body {
   opacity: 0.55;
 }
 
+.saves-item-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+
+.saves-item:hover .saves-item-actions {
+  opacity: 1;
+}
+
+.saves-item-lock,
 .saves-item-archive {
   width: 32px;
   height: 32px;
@@ -1570,10 +1583,13 @@ body {
   transition: background var(--transition), opacity var(--transition);
 }
 
+.saves-item-lock img,
 .saves-item-archive img {
   filter: invert(1);
 }
 
+.saves-item-lock:hover,
+.saves-item-lock:focus-visible,
 .saves-item-archive:hover,
 .saves-item-archive:focus-visible {
   background: var(--surface-hover);
