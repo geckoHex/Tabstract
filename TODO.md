@@ -1,3 +1,2 @@
-- [ ] Add renaming to saved for later links
 - [ ] Fix custom backgrounds
 - [ ] Do a design cleanup and audit

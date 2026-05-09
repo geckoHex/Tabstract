@@ -1537,6 +1537,37 @@ body {
   font-size: 0.9375rem;
   font-weight: 500;
   color: var(--text-primary);
+  cursor: text;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 2px;
+  transition: text-decoration-color var(--transition);
+}
+
+.saves-item-link:hover .saves-item-title {
+  text-decoration-color: rgba(255, 255, 255, 0.25);
+}
+
+.saves-item-title-input {
+  user-select: text;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2px 6px;
+  margin: -3px -7px;
+  outline: none;
+  width: 100%;
+  min-width: 0;
+  font-family: inherit;
+  caret-color: var(--accent);
+}
+
+.saves-item-title-input:focus {
+  border-color: var(--accent);
+  background: rgba(0, 0, 0, 0.16);
 }
 
 .saves-item-meta {

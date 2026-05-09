@@ -2999,6 +2999,46 @@
       .some((value) => value.toLowerCase().includes(query));
   }
 
+  function startEditingSaveTitle(save, titleEl) {
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = "saves-item-title-input";
+    input.value = save.title || hostname(save.url);
+    input.setAttribute("aria-label", "Edit link title");
+
+    let finished = false;
+    const finish = async (shouldSave) => {
+      if (finished) return;
+      finished = true;
+      const newTitle = input.value.trim();
+      if (shouldSave && newTitle !== (save.title || hostname(save.url))) {
+        save.title = newTitle;
+        await saveData();
+      }
+      renderSavesList();
+    };
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        finish(true);
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        finish(false);
+      }
+    });
+
+    input.addEventListener("blur", () => {
+      setTimeout(() => finish(true), 0);
+    });
+
+    input.addEventListener("click", (e) => e.stopPropagation());
+
+    titleEl.replaceWith(input);
+    input.focus();
+    input.select();
+  }
+
   function renderSavesList() {
     const archiveQuery = savesArchiveSearchQuery.trim().toLowerCase();
     const saves = (data.saves || [])
@@ -3049,6 +3089,11 @@
       const title = document.createElement("span");
       title.className = "saves-item-title";
       title.textContent = save.title || hostname(save.url);
+      title.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        startEditingSaveTitle(save, title);
+      });
 
       const meta = document.createElement("div");
       meta.className = "saves-item-meta";
