@@ -1527,7 +1527,7 @@ body {
 }
 
 .saves-item-title,
-.saves-item-url {
+.saves-item-meta {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1539,9 +1539,21 @@ body {
   color: var(--text-primary);
 }
 
-.saves-item-url {
+.saves-item-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   font-size: 0.8125rem;
   color: var(--text-secondary);
+}
+
+.saves-item-meta img {
+  width: 12px;
+  height: 12px;
+  object-fit: contain;
+  display: block;
+  filter: invert(1);
+  opacity: 0.55;
 }
 
 .saves-item-archive {

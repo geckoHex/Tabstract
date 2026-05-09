@@ -1590,6 +1590,27 @@
     return cachedFaviconSrc(url) || "";
   }
 
+  function formatTimeAgo(savedAt) {
+    const saved = Date.parse(savedAt);
+    if (!Number.isFinite(saved)) return "";
+    const diffMs = Date.now() - saved;
+    if (diffMs < 15000) return "Just now";
+    const seconds = Math.floor(diffMs / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+    const weeks = Math.floor(days / 7);
+    const months = Math.floor(days / 30);
+    const years = Math.floor(days / 365);
+    if (years > 0) return `${years} year${years === 1 ? "" : "s"} ago`;
+    if (months > 0) return `${months} month${months === 1 ? "" : "s"} ago`;
+    if (weeks > 0) return `${weeks} week${weeks === 1 ? "" : "s"} ago`;
+    if (days > 0) return `${days} day${days === 1 ? "" : "s"} ago`;
+    if (hours > 0) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+    if (minutes > 0) return `${minutes} minute${minutes === 1 ? "" : "s"} ago`;
+    return `${seconds} second${seconds === 1 ? "" : "s"} ago`;
+  }
+
   function titleFromHtml(html) {
     const doc = new DOMParser().parseFromString(html, "text/html");
     return doc.querySelector("title")?.textContent?.replace(/\s+/g, " ").trim() || "";
@@ -3028,11 +3049,22 @@
       title.className = "saves-item-title";
       title.textContent = save.title || hostname(save.url);
 
-      const url = document.createElement("span");
-      url.className = "saves-item-url";
-      url.textContent = save.url;
+      const meta = document.createElement("div");
+      meta.className = "saves-item-meta";
 
-      link.append(title, url);
+      const clockIcon = document.createElement("img");
+      clockIcon.className = "saves-item-clock";
+      clockIcon.src = iconSrc("clock.svg");
+      clockIcon.alt = "";
+      clockIcon.width = 12;
+      clockIcon.height = 12;
+
+      const timeAgo = document.createElement("span");
+      timeAgo.className = "saves-item-time";
+      timeAgo.textContent = formatTimeAgo(save.savedAt);
+
+      meta.append(clockIcon, timeAgo);
+      link.append(title, meta);
 
       if (viewingSavesArchive) {
         item.append(favicon, link);
