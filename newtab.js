@@ -220,8 +220,10 @@
           };
         }
       }
+      if (record.key === "wallpaper" && WALLPAPERS[record.value]) {
+        settings.wallpaper = record.value;
+      }
     }
-    settings.wallpaper = "off";
     settings.aiSearchEnabled = false;
     return settings;
   }
@@ -535,7 +537,7 @@
   }
 
   function getStoredWallpaper() {
-    return "off";
+    return settings.wallpaper;
   }
 
   function getStoredSaveArchiveAfterMs() {
@@ -661,7 +663,6 @@
 
   function setWallpaperDropdownOpen(open) {
     if (!wallpaperTrigger || !wallpaperList) return;
-    if (open && wallpaperTrigger.disabled) return;
     if (open) {
       closeAiProviderDropdown();
       closeSaveArchiveAfterDropdown();
@@ -762,7 +763,7 @@
   }
 
   async function applyWallpaper(id, { persist } = {}) {
-    const wallpaper = wallpaperOrDefault("off");
+    const wallpaper = wallpaperOrDefault(id);
     wallpaperId = wallpaper.id;
     settings.wallpaper = wallpaperId;
     if (gridScroll) {
@@ -3619,11 +3620,9 @@
   if (wallpaperTrigger && wallpaperList) {
     wallpaperTrigger.addEventListener("click", (e) => {
       e.stopPropagation();
-      if (wallpaperTrigger.disabled) return;
       setWallpaperDropdownOpen(!isWallpaperDropdownOpen());
     });
     wallpaperTrigger.addEventListener("keydown", (e) => {
-      if (wallpaperTrigger.disabled) return;
       if (e.key === "ArrowDown") {
         e.preventDefault();
         if (!isWallpaperDropdownOpen()) openWallpaperDropdown();
@@ -3810,7 +3809,7 @@
       if (getStoredAiSearchEnabled()) {
         await initAiSearchProvider();
       }
-      await applyWallpaper(getStoredWallpaper(), { persist: true });
+      await applyWallpaper(getStoredWallpaper(), { persist: false });
       await applySaveArchiveAfter(getStoredSaveArchiveAfterMs(), { persist: false });
       applyAiSearchBoxVisibility(getStoredAiSearchEnabled());
       syncBookmarkSearchLimitInput();
@@ -4022,7 +4021,7 @@
     if (getStoredAiSearchEnabled()) {
       await initAiSearchProvider();
     }
-    await applyWallpaper(getStoredWallpaper(), { persist: true });
+    await applyWallpaper(getStoredWallpaper(), { persist: false });
     await applySaveArchiveAfter(getStoredSaveArchiveAfterMs(), { persist: false });
     applyAiSearchBoxVisibility(getStoredAiSearchEnabled());
     bookmarkSearchInput.focus();
