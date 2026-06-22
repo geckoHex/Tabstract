@@ -1,5 +1,1 @@
-- [ ] Fix custom backgrounds
 - [ ] Do a design cleanup and audit
-- [ ] Refactor codebase into smaller files (use src/ dir)
-
-<!-- This is a test comment (with the fixed email) -->
