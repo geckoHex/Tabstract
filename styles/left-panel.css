@@ -1,0 +1,324 @@
+/* ══════════════════════════════════════════════════════════════════════
+   LEFT PANEL
+   ══════════════════════════════════════════════════════════════════════ */
+
+.left-panel {
+  /* Horizontal inset to settings control; bottom can differ for vertical nudge. */
+  --settings-inset: 16px;
+  --settings-inset-bottom: 10px;
+  --settings-btn-pad: 6px;
+  width: 380px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  padding: 32px 40px var(--settings-inset-bottom);
+  border-right: 1px solid var(--border);
+  min-height: 0;
+}
+
+.left-inner {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 28px;
+  min-width: 0;
+}
+
+.left-panel-footer {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding-top: 8px;
+  /* Panel left padding is 40px; align button box so its outer edge sits --settings-inset from panel edge. */
+  margin-left: calc(var(--settings-inset) - 40px - var(--settings-btn-pad));
+}
+
+.settings-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--settings-btn-pad);
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  transition: background var(--transition), opacity var(--transition);
+}
+
+.settings-btn:hover {
+  background: var(--surface-hover);
+}
+
+.settings-btn:focus-visible {
+  outline: none;
+  background: var(--surface-hover);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.12);
+}
+
+.settings-btn-icon {
+  display: block;
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  filter: invert(1);
+  opacity: 0.42;
+  transition: opacity var(--transition);
+}
+
+.settings-btn:hover .settings-btn-icon,
+.settings-btn:focus-visible .settings-btn-icon {
+  opacity: 0.92;
+}
+
+.left-search-stack {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Clock */
+.clock {
+  font-size: 2.25rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+  text-align: center;
+  min-height: 2.75rem;
+}
+
+/* Search */
+.search-form {
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.search-wrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 16px;
+  width: 17px;
+  height: 17px;
+  pointer-events: none;
+  object-fit: contain;
+  display: block;
+  filter: invert(1);
+  opacity: 0.42;
+  transition: opacity var(--transition), filter var(--transition);
+}
+
+.search-input {
+  user-select: text;
+  width: 100%;
+  height: 52px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0 44px 0 46px;
+  font-size: 0.9375rem;
+  font-family: inherit;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color var(--transition), background var(--transition);
+  caret-color: var(--accent);
+}
+
+.search-input::placeholder {
+  color: var(--text-secondary);
+}
+
+.search-input:focus {
+  border-color: var(--accent);
+  background: var(--surface-hover);
+}
+
+.search-wrapper:focus-within .search-icon {
+  opacity: 1;
+  filter: invert(1);
+}
+
+.clear-btn {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition), color var(--transition), background var(--transition);
+}
+
+.clear-btn svg {
+  width: 15px;
+  height: 15px;
+}
+
+.clear-btn:hover {
+  color: var(--text-primary);
+  background: var(--surface-hover);
+}
+
+.clear-btn.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Bookmark search (left panel) */
+.bookmark-search-box {
+  position: relative;
+  width: 100%;
+  z-index: 2;
+  flex-shrink: 0;
+}
+
+.bookmark-search-form {
+  width: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+.bookmark-search-results {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% - 1px);
+  margin-top: 0;
+  z-index: 2;
+  list-style: none;
+  width: 100%;
+  margin-bottom: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 0;
+  border-radius: 0 0 14px 14px;
+  overflow: hidden;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
+  pointer-events: auto;
+}
+
+.bookmark-search-results[hidden] {
+  display: none;
+}
+
+.bookmark-search-results li {
+  position: relative;
+}
+
+.bookmark-search-results li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 0;
+  height: 1px;
+  background: var(--border);
+  pointer-events: none;
+}
+
+.bookmark-search-hit {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 0;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  transition: background var(--transition);
+}
+
+.bookmark-search-hit:hover,
+.bookmark-search-hit:focus-visible {
+  background: var(--surface-hover);
+  outline: none;
+}
+
+.bookmark-search-hit-favicon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  object-fit: contain;
+  border-radius: 4px;
+  margin-top: 2px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.bookmark-search-hit-fallback {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  border-radius: 4px;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.bookmark-search-hit-text {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bookmark-search-hit-title {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.bookmark-search-hit-path {
+  font-size: 0.6875rem;
+  font-weight: 300;
+  color: var(--text-tertiary);
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.bookmark-search-box.has-results .search-input {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.bookmark-search-box.has-results:focus-within .search-input,
+.bookmark-search-box.has-results:focus-within .bookmark-search-results {
+  border-color: var(--accent);
+}
+

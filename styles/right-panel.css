@@ -1,0 +1,195 @@
+/* ══════════════════════════════════════════════════════════════════════
+   RIGHT PANEL
+   ══════════════════════════════════════════════════════════════════════ */
+
+.right-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* ── Toolbar ──────────────────────────────────────────────────────────── */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 24px;
+  height: 56px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+/* ── Path Bar ─────────────────────────────────────────────────────────── */
+
+.path-bar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.path-segment {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-family: inherit;
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+
+.path-segment:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+}
+
+.path-segment.current {
+  color: var(--text-primary);
+  font-weight: 500;
+  cursor: default;
+  pointer-events: none;
+}
+
+.path-segment.current:hover {
+  background: none;
+}
+
+.path-root-label {
+  line-height: 1;
+}
+
+.path-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  object-fit: contain;
+  display: block;
+  filter: invert(1);
+  opacity: 0.42;
+  transition: opacity var(--transition);
+}
+
+.path-segment:hover .path-icon {
+  opacity: 0.92;
+}
+
+.path-segment.current .path-icon {
+  opacity: 0.92;
+}
+
+.path-sep {
+  color: var(--text-tertiary);
+  font-size: 0.75rem;
+  line-height: 1;
+  flex-shrink: 0;
+  padding: 0 1px;
+}
+
+/* ── Toolbar Actions ──────────────────────────────────────────────────── */
+
+.toolbar-actions {
+  display: flex;
+  align-items: stretch;
+  flex-shrink: 0;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  min-height: 32px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  font-family: inherit;
+  padding: 0;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.action-btn + .action-btn {
+  border-left: 1px solid var(--border);
+}
+
+.toolbar-icon {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  object-fit: contain;
+  display: block;
+}
+
+.action-btn .toolbar-icon {
+  filter: invert(1);
+  opacity: 0.78;
+  transition: opacity var(--transition), filter var(--transition);
+}
+
+.action-btn:hover .toolbar-icon {
+  opacity: 1;
+}
+
+.action-btn:hover {
+  background: var(--surface-hover);
+}
+
+.action-btn:disabled {
+  cursor: default;
+}
+
+.action-btn:disabled:hover {
+  background: transparent;
+}
+
+.action-btn:disabled .toolbar-icon {
+  opacity: 0.22;
+}
+
+.saves-toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 0 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.saves-toolbar-btn:hover,
+.saves-toolbar-btn:focus-visible {
+  background: var(--surface-hover);
+  border-color: rgba(255, 255, 255, 0.16);
+  outline: none;
+}
+
+.saves-toolbar-icon {
+  filter: invert(1);
+  opacity: 0.82;
+}
+

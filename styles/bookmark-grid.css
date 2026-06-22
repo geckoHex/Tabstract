@@ -1,0 +1,72 @@
+/* ══════════════════════════════════════════════════════════════════════
+   ICON GRID
+   ══════════════════════════════════════════════════════════════════════ */
+
+.grid-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--bg);
+}
+
+.grid-scroll--wallpaper-city {
+  background:
+    linear-gradient(rgba(44, 44, 48, 0.28), rgba(44, 44, 48, 0.52)),
+    url("../backgrounds/City.png") center / cover no-repeat;
+}
+
+.grid-scroll--wallpaper-farm {
+  background:
+    linear-gradient(rgba(44, 44, 48, 0.28), rgba(44, 44, 48, 0.52)),
+    url("../backgrounds/Farm.png") center / cover no-repeat;
+}
+
+.grid-scroll--wallpaper-mountains {
+  background:
+    linear-gradient(rgba(44, 44, 48, 0.28), rgba(44, 44, 48, 0.52)),
+    url("../backgrounds/Mountains.png") center / cover no-repeat;
+}
+
+.grid-scroll--wallpaper-ponds {
+  background:
+    linear-gradient(rgba(44, 44, 48, 0.28), rgba(44, 44, 48, 0.52)),
+    url("../backgrounds/Ponds.png") center / cover no-repeat;
+}
+
+.grid-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.grid-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.grid-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.07);
+  border-radius: 2px;
+}
+
+.grid-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.12);
+}
+
+.icon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 4px;
+  padding: 20px 20px 40px;
+  align-content: start;
+}
+
+/* Single empty state: fill scroll area and center icon + copy vertically */
+.icon-grid:has(> .grid-empty:only-child) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  padding: 20px;
+  gap: 0;
+}
+
