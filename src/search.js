@@ -155,6 +155,9 @@ export function initBookmarkSearch(ctx) {
   bookmarkSearchInput.addEventListener("input", updateBookmarkSearchResults);
   bookmarkSearchInput.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
+      bookmarkSearchInput.value = "";
+      bookmarkClearBtn.classList.remove("visible");
+      updateBookmarkSearchResults();
       bookmarkSearchInput.blur();
       return;
     }
