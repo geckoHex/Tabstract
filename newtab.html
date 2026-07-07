@@ -440,32 +440,29 @@
               <div class="settings-intro">
                 <h4 class="settings-section-title">Theme</h4>
               </div>
-              <div class="settings-row" id="wallpaper-settings-row">
-                <label class="settings-row-label" for="wallpaper-trigger" id="wallpaper-label">Wallpaper</label>
-                <div class="custom-select custom-select--settings" id="wallpaper-custom-select">
-                  <button
-                    type="button"
-                    class="custom-select-trigger"
-                    id="wallpaper-trigger"
-                    aria-haspopup="listbox"
-                    aria-expanded="false"
-                    aria-controls="wallpaper-list"
-                    aria-labelledby="wallpaper-label wallpaper-trigger-text"
-                  >
-                    <span class="custom-select-value" id="wallpaper-trigger-text">Off</span>
-                    <span class="custom-select-chevron" aria-hidden="true">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="6 9 12 15 18 9"></polyline>
-                      </svg>
-                    </span>
+              <div class="settings-row settings-row--wallpaper" id="wallpaper-settings-row">
+                <span class="settings-row-label" id="wallpaper-label">Wallpaper</span>
+                <div class="wallpaper-picker" id="wallpaper-picker" role="radiogroup" aria-labelledby="wallpaper-label">
+                  <button type="button" class="wallpaper-option" role="radio" aria-checked="true" data-value="off">
+                    <span class="wallpaper-option-preview wallpaper-option-preview--off" aria-hidden="true"></span>
+                    <span class="wallpaper-option-label">Off</span>
                   </button>
-                  <ul class="custom-select-menu" id="wallpaper-list" role="listbox" aria-labelledby="wallpaper-label" hidden>
-                    <li class="custom-select-option" role="option" tabindex="-1" data-value="off">Off</li>
-                    <li class="custom-select-option" role="option" tabindex="-1" data-value="city">City</li>
-                    <li class="custom-select-option" role="option" tabindex="-1" data-value="farm">Farm</li>
-                    <li class="custom-select-option" role="option" tabindex="-1" data-value="mountains">Mountains</li>
-                    <li class="custom-select-option" role="option" tabindex="-1" data-value="ponds">Ponds</li>
-                  </ul>
+                  <button type="button" class="wallpaper-option" role="radio" aria-checked="false" data-value="city">
+                    <span class="wallpaper-option-preview wallpaper-option-preview--city" aria-hidden="true"></span>
+                    <span class="wallpaper-option-label">City</span>
+                  </button>
+                  <button type="button" class="wallpaper-option" role="radio" aria-checked="false" data-value="farm">
+                    <span class="wallpaper-option-preview wallpaper-option-preview--farm" aria-hidden="true"></span>
+                    <span class="wallpaper-option-label">Farm</span>
+                  </button>
+                  <button type="button" class="wallpaper-option" role="radio" aria-checked="false" data-value="mountains">
+                    <span class="wallpaper-option-preview wallpaper-option-preview--mountains" aria-hidden="true"></span>
+                    <span class="wallpaper-option-label">Mountains</span>
+                  </button>
+                  <button type="button" class="wallpaper-option" role="radio" aria-checked="false" data-value="ponds">
+                    <span class="wallpaper-option-preview wallpaper-option-preview--ponds" aria-hidden="true"></span>
+                    <span class="wallpaper-option-label">Ponds</span>
+                  </button>
                 </div>
               </div>
             </section>

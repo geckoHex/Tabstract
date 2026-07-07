@@ -42,10 +42,10 @@ export const AI_PROVIDERS = {
 
 export const WALLPAPERS = {
   off: { id: "off", label: "Off" },
-  city: { id: "city", label: "City" },
-  farm: { id: "farm", label: "Farm" },
-  mountains: { id: "mountains", label: "Mountains" },
-  ponds: { id: "ponds", label: "Ponds" },
+  city: { id: "city", label: "City", image: "backgrounds/City.png" },
+  farm: { id: "farm", label: "Farm", image: "backgrounds/Farm.png" },
+  mountains: { id: "mountains", label: "Mountains", image: "backgrounds/Mountains.png" },
+  ponds: { id: "ponds", label: "Ponds", image: "backgrounds/Ponds.png" },
 };
 
 export const iconSrc = (file) => chrome.runtime.getURL(`icons/${file}`);

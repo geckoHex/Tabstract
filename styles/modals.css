@@ -743,6 +743,100 @@
   min-width: 0;
 }
 
+.settings-row--wallpaper {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+}
+
+.wallpaper-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
+  gap: 10px;
+}
+
+.wallpaper-option {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  color: var(--text-secondary);
+  text-align: left;
+  border-radius: 10px;
+}
+
+.wallpaper-option:hover .wallpaper-option-preview,
+.wallpaper-option:focus-visible .wallpaper-option-preview {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.wallpaper-option:focus-visible {
+  outline: none;
+}
+
+.wallpaper-option:focus-visible .wallpaper-option-preview {
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px rgba(255, 255, 255, 0.35);
+}
+
+.wallpaper-option.is-selected .wallpaper-option-preview {
+  border-color: rgba(255, 255, 255, 0.55);
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px rgba(255, 255, 255, 0.45);
+}
+
+.wallpaper-option-preview {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  background: var(--bg) center / cover no-repeat;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.wallpaper-option-preview--off {
+  background: var(--bg);
+}
+
+.wallpaper-option-preview--city {
+  background-image:
+    linear-gradient(rgba(44, 44, 48, 0.28), rgba(44, 44, 48, 0.52)),
+    url("../backgrounds/City.png");
+}
+
+.wallpaper-option-preview--farm {
+  background-image:
+    linear-gradient(rgba(44, 44, 48, 0.28), rgba(44, 44, 48, 0.52)),
+    url("../backgrounds/Farm.png");
+}
+
+.wallpaper-option-preview--mountains {
+  background-image:
+    linear-gradient(rgba(44, 44, 48, 0.28), rgba(44, 44, 48, 0.52)),
+    url("../backgrounds/Mountains.png");
+}
+
+.wallpaper-option-preview--ponds {
+  background-image:
+    linear-gradient(rgba(44, 44, 48, 0.28), rgba(44, 44, 48, 0.52)),
+    url("../backgrounds/Ponds.png");
+}
+
+.wallpaper-option-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  padding: 0 2px;
+}
+
+.wallpaper-option.is-selected .wallpaper-option-label {
+  color: var(--text-primary);
+}
+
 /* When "AI search box" is off, hide provider row (JS toggles class + hidden). */
 #ai-provider-settings-row.settings-ai-provider-row--collapsed {
   display: none !important;

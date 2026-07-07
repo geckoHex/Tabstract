@@ -42,10 +42,6 @@ export function initKeyboard(ctx) {
           ctx.closeAiProviderDropdown();
           return;
         }
-        if (ctx.isWallpaperDropdownOpen()) {
-          ctx.closeWallpaperDropdown();
-          return;
-        }
         if (ctx.isSaveArchiveAfterDropdownOpen()) {
           ctx.closeSaveArchiveAfterDropdown();
           return;

@@ -15,10 +15,7 @@ export function initSettings(ctx) {
   const openaiApiKeyInput = document.getElementById("openai-api-key-input");
   const aiSearchEnabledInput = document.getElementById("ai-search-enabled");
   const aiProviderSettingsRow = document.getElementById("ai-provider-settings-row");
-  const wallpaperCustom = document.getElementById("wallpaper-custom-select");
-  const wallpaperTrigger = document.getElementById("wallpaper-trigger");
-  const wallpaperTriggerText = document.getElementById("wallpaper-trigger-text");
-  const wallpaperList = document.getElementById("wallpaper-list");
+  const wallpaperPicker = document.getElementById("wallpaper-picker");
   const saveArchiveAfterCustom = document.getElementById("save-archive-after-custom-select");
   const saveArchiveAfterTrigger = document.getElementById("save-archive-after-trigger");
   const saveArchiveAfterTriggerText = document.getElementById("save-archive-after-trigger-text");
@@ -61,10 +58,6 @@ export function initSettings(ctx) {
 
   function closeAiProviderDropdown() {
     setAiProviderDropdownOpen(false);
-  }
-
-  function closeWallpaperDropdown() {
-    setWallpaperDropdownOpen(false);
   }
 
   function closeSaveArchiveAfterDropdown() {
@@ -115,13 +108,11 @@ export function initSettings(ctx) {
     });
   }
 
-  function syncWallpaperCustomSelect() {
-    if (!wallpaperTriggerText || !wallpaperList) return;
-    const wallpaper = wallpaperOrDefault(state.wallpaperId);
-    wallpaperTriggerText.textContent = wallpaper.label;
-    wallpaperList.querySelectorAll("[role='option']").forEach((opt) => {
+  function syncWallpaperPicker() {
+    if (!wallpaperPicker) return;
+    wallpaperPicker.querySelectorAll("[role='radio']").forEach((opt) => {
       const on = opt.getAttribute("data-value") === state.wallpaperId;
-      opt.setAttribute("aria-selected", on ? "true" : "false");
+      opt.setAttribute("aria-checked", on ? "true" : "false");
       opt.classList.toggle("is-selected", on);
     });
   }
@@ -138,37 +129,20 @@ export function initSettings(ctx) {
   }
 
   const isAiProviderDropdownOpen = () => aiProviderTrigger && aiProviderTrigger.getAttribute("aria-expanded") === "true";
-  const isWallpaperDropdownOpen = () => wallpaperTrigger && wallpaperTrigger.getAttribute("aria-expanded") === "true";
   const isSaveArchiveAfterDropdownOpen = () => (
     saveArchiveAfterTrigger && saveArchiveAfterTrigger.getAttribute("aria-expanded") === "true"
   );
 
   function setAiProviderDropdownOpen(open) {
     if (!aiProviderTrigger || !aiProviderList) return;
-    if (open) {
-      closeWallpaperDropdown();
-      closeSaveArchiveAfterDropdown();
-    }
+    if (open) closeSaveArchiveAfterDropdown();
     aiProviderList.hidden = !open;
     aiProviderTrigger.setAttribute("aria-expanded", open ? "true" : "false");
   }
 
-  function setWallpaperDropdownOpen(open) {
-    if (!wallpaperTrigger || !wallpaperList) return;
-    if (open) {
-      closeAiProviderDropdown();
-      closeSaveArchiveAfterDropdown();
-    }
-    wallpaperList.hidden = !open;
-    wallpaperTrigger.setAttribute("aria-expanded", open ? "true" : "false");
-  }
-
   function setSaveArchiveAfterDropdownOpen(open) {
     if (!saveArchiveAfterTrigger || !saveArchiveAfterList) return;
-    if (open) {
-      closeAiProviderDropdown();
-      closeWallpaperDropdown();
-    }
+    if (open) closeAiProviderDropdown();
     saveArchiveAfterList.hidden = !open;
     saveArchiveAfterTrigger.setAttribute("aria-expanded", open ? "true" : "false");
   }
@@ -210,7 +184,7 @@ export function initSettings(ctx) {
       if (state.wallpaperId !== "off") gridScroll.classList.add(`grid-scroll--wallpaper-${state.wallpaperId}`);
     }
     if (persist) await saveSetting("wallpaper", state.wallpaperId);
-    syncWallpaperCustomSelect();
+    syncWallpaperPicker();
   }
 
   async function applySaveArchiveAfter(value, { persist } = {}) {
@@ -240,20 +214,18 @@ export function initSettings(ctx) {
   function openSettingsModal() {
     applyAiSearchBoxVisibility(getStoredAiSearchEnabled());
     syncAiProviderCustomSelect();
-    syncWallpaperCustomSelect();
+    syncWallpaperPicker();
     syncOpenaiApiKeyInput();
     void applySaveArchiveAfter(getStoredSaveArchiveAfterMs(), { persist: false });
     syncBookmarkSearchLimitInput();
     activateSettingsTab("theme");
     closeAiProviderDropdown();
-    closeWallpaperDropdown();
     closeSaveArchiveAfterDropdown();
     settingsModal.hidden = false;
   }
 
   function closeSettingsModal() {
     closeAiProviderDropdown();
-    closeWallpaperDropdown();
     closeSaveArchiveAfterDropdown();
     settingsModal.hidden = true;
   }
@@ -261,7 +233,6 @@ export function initSettings(ctx) {
   function activateSettingsTab(sectionId, focusTab = false) {
     if (!sectionId) return;
     closeAiProviderDropdown();
-    closeWallpaperDropdown();
     closeSaveArchiveAfterDropdown();
     settingsTabs.forEach((tab) => {
       const active = tab.dataset.settingsTab === sectionId;
@@ -370,12 +341,12 @@ export function initSettings(ctx) {
     open: () => setAiProviderDropdownOpen(true),
     close: closeAiProviderDropdown,
   }, (v) => applyAiSearchProvider(v, { persist: true }));
-  wireCustomSelect(wallpaperTrigger, wallpaperList, wallpaperCustom, {
-    isOpen: isWallpaperDropdownOpen,
-    setOpen: setWallpaperDropdownOpen,
-    open: () => setWallpaperDropdownOpen(true),
-    close: closeWallpaperDropdown,
-  }, (v) => applyWallpaper(v, { persist: true }));
+  wallpaperPicker?.querySelectorAll("[role='radio']").forEach((opt) => {
+    opt.addEventListener("click", () => {
+      const v = opt.getAttribute("data-value");
+      if (v) void applyWallpaper(v, { persist: true }).catch(ctx.reportStorageError);
+    });
+  });
   wireCustomSelect(saveArchiveAfterTrigger, saveArchiveAfterList, saveArchiveAfterCustom, {
     isOpen: isSaveArchiveAfterDropdownOpen,
     setOpen: setSaveArchiveAfterDropdownOpen,
@@ -404,7 +375,6 @@ export function initSettings(ctx) {
     closeAiProviderDropdown,
     closeSaveArchiveAfterDropdown,
     closeSettingsModal,
-    closeWallpaperDropdown,
     getStoredAiSearchEnabled,
     getStoredBookmarkSearchResultLimit,
     getStoredOpenaiApiKey,
@@ -414,7 +384,6 @@ export function initSettings(ctx) {
     isAiProviderDropdownOpen,
     isSaveArchiveAfterDropdownOpen,
     isSettingsModalOpen: () => !settingsModal.hidden,
-    isWallpaperDropdownOpen,
     setStoredAiSearchEnabled,
     syncBookmarkSearchLimitInput,
     syncOpenaiApiKeyInput,
