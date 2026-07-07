@@ -312,7 +312,12 @@ export function initBookmarks(ctx) {
     label.textContent = link.title || hostname(link.url);
     el.appendChild(label);
     el.addEventListener("contextmenu", (e) => showItemContextMenu(e, link.id, "link"));
-    el.addEventListener("click", () => {
+    el.addEventListener("click", (e) => {
+      if (e.shiftKey) {
+        ctx.closeRouteChoiceModal?.();
+        window.open(link.url, "_blank", "noopener");
+        return;
+      }
       if (ctx.linkRoutesEnabled(link)) ctx.openRoutePopup(link, el);
       else {
         ctx.closeRouteChoiceModal?.();
