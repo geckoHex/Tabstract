@@ -21,6 +21,7 @@ export function initBookmarks(ctx) {
   const favoritesScroll = document.getElementById("favorites-scroll");
   const itemContextMenu = document.getElementById("item-context-menu");
   const gridContextMenu = document.getElementById("grid-context-menu");
+  const ctxOpenNewTab = document.getElementById("ctx-open-new-tab");
   const ctxFavorite = document.getElementById("ctx-favorite");
   const ctxFavoriteIcon = document.getElementById("ctx-favorite-icon");
   const ctxFavoriteLabel = document.getElementById("ctx-favorite-label");
@@ -69,6 +70,7 @@ export function initBookmarks(ctx) {
     hideGridContextMenu();
     contextItemId = id;
     contextItemType = type;
+    ctxOpenNewTab.hidden = type !== "link";
     ctxCustomize.hidden = type !== "link";
     ctxRoutes.hidden = type !== "link";
     const already = state.data.favorites.includes(id);
@@ -360,6 +362,12 @@ export function initBookmarks(ctx) {
   });
   favoritesScroll.addEventListener("scroll", () => {
     if (!itemContextMenu.hidden || !gridContextMenu.hidden) hideAllContextMenus();
+  });
+  ctxOpenNewTab.addEventListener("click", () => {
+    if (!contextItemId || contextItemType !== "link") return;
+    const r = findItem(state.data.items, contextItemId);
+    hideItemContextMenu();
+    if (r?.item.type === "link") window.open(r.item.url, "_blank", "noopener");
   });
   ctxFavorite.addEventListener("click", () => {
     void (async () => {
