@@ -206,9 +206,6 @@ export function initBookmarks(ctx) {
     renderPathBar();
     grid.innerHTML = "";
     const items = currentItems();
-    const folder = findItem(state.data.items, state.currentPath.at(-1))?.item;
-    document.getElementById("collection-title").textContent = folder?.name || "Your bookmarks";
-    document.getElementById("collection-count").textContent = `${items.length} ${items.length === 1 ? "item" : "items"}`;
     if (items.length === 0) {
       const empty = document.createElement("div");
       empty.className = "grid-empty";
@@ -289,7 +286,7 @@ export function initBookmarks(ctx) {
     wrap.className = "folder-icon-wrap";
     const folderImg = document.createElement("img");
     folderImg.className = "folder-grid-icon";
-    folderImg.src = iconSrc("folder.svg");
+    folderImg.src = iconSrc("folder-outline.svg");
     folderImg.alt = "";
     folderImg.width = 60;
     folderImg.height = 60;
