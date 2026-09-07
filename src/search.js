@@ -8,6 +8,20 @@ export function initBookmarkSearch(ctx) {
   const bookmarkClearBtn = document.getElementById("bookmark-clear-btn");
   const bookmarkSearchResults = document.getElementById("bookmark-search-results");
   const bookmarkSearchBox = document.querySelector(".bookmark-search-box");
+  const searchStatus = document.getElementById("bookmark-search-status");
+  let activeIndex = -1;
+
+  function selectResult(index) {
+    const options = [...bookmarkSearchResults.querySelectorAll(".bookmark-search-hit")];
+    activeIndex = options.length ? (index + options.length) % options.length : -1;
+    options.forEach((option, i) => option.setAttribute("aria-selected", String(i === activeIndex)));
+    const active = options[activeIndex];
+    if (active) {
+      bookmarkSearchInput.setAttribute("aria-activedescendant", active.id);
+      active.scrollIntoView({ block: "nearest" });
+    } else bookmarkSearchInput.removeAttribute("aria-activedescendant");
+  }
+
   const toolsSection = document.getElementById("tools-section");
   const favoritesSection = document.getElementById("favorites-section");
 
@@ -74,12 +88,16 @@ export function initBookmarkSearch(ctx) {
 
   function updateBookmarkSearchResults() {
     const q = bookmarkSearchInput.value.trim();
+    activeIndex = -1;
+    bookmarkSearchInput.removeAttribute("aria-activedescendant");
+    searchStatus.hidden = true;
     bookmarkClearBtn.classList.toggle("visible", q.length > 0);
     toolsSection.hidden = q.length > 0;
     favoritesSection.hidden = q.length > 0;
 
     const setResultsVisible = (visible) => {
       bookmarkSearchResults.hidden = !visible;
+      bookmarkSearchInput.setAttribute("aria-expanded", String(visible));
       bookmarkSearchBox.classList.toggle("has-results", visible);
     };
     if (!q) {
@@ -98,6 +116,8 @@ export function initBookmarkSearch(ctx) {
 
     bookmarkSearchResults.innerHTML = "";
     if (top.length === 0) {
+      searchStatus.textContent = "No bookmarks found. Try a title, website, or folder name.";
+      searchStatus.hidden = false;
       setResultsVisible(false);
       return;
     }
@@ -110,6 +130,9 @@ export function initBookmarkSearch(ctx) {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "bookmark-search-hit";
+      btn.id = `bookmark-result-${bookmarkSearchResults.children.length}`;
+      btn.setAttribute("role", "option");
+      btn.setAttribute("aria-selected", "false");
       btn.addEventListener("click", () => {
         if (linkRoutesEnabled(link)) ctx.openRoutePopup(link, btn);
         else {
@@ -146,6 +169,8 @@ export function initBookmarkSearch(ctx) {
     setResultsVisible(true);
   }
 
+  document.getElementById("bookmark-search-form").addEventListener("submit", (e) => e.preventDefault());
+
   bookmarkClearBtn.addEventListener("click", () => {
     bookmarkSearchInput.value = "";
     bookmarkClearBtn.classList.remove("visible");
@@ -154,6 +179,11 @@ export function initBookmarkSearch(ctx) {
   });
   bookmarkSearchInput.addEventListener("input", updateBookmarkSearchResults);
   bookmarkSearchInput.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      selectResult(activeIndex < 0 ? (e.key === "ArrowDown" ? 0 : -1) : activeIndex + (e.key === "ArrowDown" ? 1 : -1));
+      return;
+    }
     if (e.key === "Escape") {
       bookmarkSearchInput.value = "";
       bookmarkClearBtn.classList.remove("visible");
@@ -162,7 +192,8 @@ export function initBookmarkSearch(ctx) {
       return;
     }
     if (e.key === "Enter") {
-      const first = bookmarkSearchResults.querySelector(".bookmark-search-hit");
+      e.preventDefault();
+      const first = bookmarkSearchResults.querySelectorAll(".bookmark-search-hit")[Math.max(0, activeIndex)];
       if (first) {
         e.preventDefault();
         first.click();

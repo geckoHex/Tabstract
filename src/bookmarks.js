@@ -33,9 +33,13 @@ export function initBookmarks(ctx) {
   const ctxGridNewFolder = document.getElementById("ctx-grid-new-folder");
   let contextItemId = null;
   let contextItemType = null;
+  let contextMenuTrigger = null;
 
   function hideItemContextMenu() {
+    const restoreFocus = itemContextMenu.contains(document.activeElement);
     itemContextMenu.hidden = true;
+    if (restoreFocus && contextMenuTrigger?.isConnected) contextMenuTrigger.focus();
+    contextMenuTrigger = null;
     contextItemId = null;
     contextItemType = null;
   }
@@ -185,6 +189,8 @@ export function initBookmarks(ctx) {
       bar.appendChild(btn);
       arr = folder.children;
     }
+    bar.querySelector(".current")?.setAttribute("aria-current", "page");
+    bar.scrollLeft = bar.scrollWidth;
   }
 
   function renderFolderNavigation() {
@@ -200,13 +206,16 @@ export function initBookmarks(ctx) {
     renderPathBar();
     grid.innerHTML = "";
     const items = currentItems();
+    const folder = findItem(state.data.items, state.currentPath.at(-1))?.item;
+    document.getElementById("collection-title").textContent = folder?.name || "Your bookmarks";
+    document.getElementById("collection-count").textContent = `${items.length} ${items.length === 1 ? "item" : "items"}`;
     if (items.length === 0) {
       const empty = document.createElement("div");
       empty.className = "grid-empty";
       const isRoot = state.currentPath.length === 0;
       empty.innerHTML = `
         <img class="empty-bookmark-icon" src="${iconSrc("bookmark-simple.svg")}" alt="" width="40" height="40" />
-        <p>${isRoot ? "No bookmarks yet.<br>Add links or folders above." : "This folder is empty.<br>Use Add Link to add one."}</p>`;
+        <p>${isRoot ? "A home for your favorite corners of the web.<br>Add a bookmark to get started." : "This folder is ready for your links.<br>Choose Add bookmark to add one."}</p>`;
       grid.appendChild(empty);
       ctx.updateBookmarkSearchResults?.();
       renderFavorites();
@@ -220,6 +229,12 @@ export function initBookmarks(ctx) {
   function renderFavorites() {
     pruneStaleFavorites();
     favoritesGrid.innerHTML = "";
+    if (state.data.favorites.length === 0) {
+      const hint = document.createElement("p");
+      hint.className = "favorites-hint";
+      hint.textContent = "Pin a bookmark from its menu to keep it close.";
+      favoritesGrid.appendChild(hint);
+    }
     for (const id of state.data.favorites) {
       const r = findItem(state.data.items, id);
       if (!r) continue;
@@ -242,11 +257,34 @@ export function initBookmarks(ctx) {
     }
   }
 
+  function prepareIcon(el, id, type, label) {
+    el.title = label;
+    const open = document.createElement("button");
+    open.type = "button";
+    open.className = "bookmark-open-btn";
+    open.setAttribute("aria-label", `${type === "folder" ? "Open folder" : "Open bookmark"}: ${label}`);
+    el.appendChild(open);
+    const menu = document.createElement("button");
+    menu.type = "button";
+    menu.className = "bookmark-menu-btn";
+    menu.textContent = "⋯";
+    menu.setAttribute("aria-label", `Actions for ${label}`);
+    menu.addEventListener("click", (e) => {
+      e.stopPropagation();
+      contextMenuTrigger = menu;
+      const rect = menu.getBoundingClientRect();
+      showItemContextMenu({ preventDefault() {}, clientX: rect.right, clientY: rect.bottom }, id, type);
+      itemContextMenu.querySelector("button:not([hidden]):not(:disabled)")?.focus();
+    });
+    el.appendChild(menu);
+  }
+
   function makeFolderIcon(folder, opts = {}) {
     const { draggable = true, navigateFromRoot = false } = opts;
     const el = document.createElement("div");
     el.className = "icon-item";
     el.dataset.id = folder.id;
+    prepareIcon(el, folder.id, "folder", folder.name);
     const wrap = document.createElement("div");
     wrap.className = "folder-icon-wrap";
     const folderImg = document.createElement("img");
@@ -289,6 +327,7 @@ export function initBookmarks(ctx) {
     const el = document.createElement("div");
     el.className = "icon-item";
     el.dataset.id = link.id;
+    prepareIcon(el, link.id, "link", link.title || hostname(link.url));
     const wrap = document.createElement("div");
     wrap.className = "link-icon-wrap";
     const favSrc = linkIconSrc(link);
@@ -430,6 +469,8 @@ export function initBookmarks(ctx) {
     hideGridContextMenu();
     ctx.openFolderModal();
   });
+  document.getElementById("add-bookmark-btn").addEventListener("click", () => ctx.openLinkModal());
+  document.getElementById("new-folder-btn").addEventListener("click", () => ctx.openFolderModal());
   document.getElementById("folder-up-btn").addEventListener("click", goUpFolder);
   document.getElementById("folder-forward-btn").addEventListener("click", goForwardFolder);
   initBookmarkDrag({

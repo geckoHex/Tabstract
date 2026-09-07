@@ -1,3 +1,4 @@
+import { initAccessibility } from "./accessibility.js";
 import { initBookmarks } from "./bookmarks.js";
 import { startClock } from "./clock.js";
 import { initConfirm } from "./confirm.js";
@@ -32,6 +33,7 @@ initSaves(ctx);
 initDataPortability(ctx);
 initTools(ctx);
 initKeyboard(ctx);
+initAccessibility(ctx);
 
 configureFavicons({
   render: () => ctx.render(),

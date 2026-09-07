@@ -1,6 +1,9 @@
 export function updateClock() {
   const el = document.getElementById("clock");
   const now = new Date();
+  document.getElementById("today-date").textContent = now.toLocaleDateString(undefined, {
+    weekday: "long", month: "long", day: "numeric",
+  });
   el.textContent = now.toLocaleTimeString(undefined, {
     hour: "numeric",
     minute: "2-digit",
