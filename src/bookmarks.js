@@ -212,7 +212,10 @@ export function initBookmarks(ctx) {
       const isRoot = state.currentPath.length === 0;
       empty.innerHTML = `
         <img class="empty-bookmark-icon" src="${iconSrc("bookmark-simple.svg")}" alt="" width="40" height="40" />
-        <p>${isRoot ? "A home for your favorite corners of the web.<br>Add a bookmark to get started." : "This folder is ready for your links.<br>Choose Add bookmark to add one."}</p>`;
+        <h2>${isRoot ? "Your bookmarks, together." : "This folder is empty"}</h2>
+        <p>${isRoot ? "Keep the sites you come back to in one place." : "Add a bookmark to keep it here."}</p>
+        <button type="button" class="btn-primary empty-add-bookmark">Add Bookmark</button>`;
+      empty.querySelector(".empty-add-bookmark").addEventListener("click", () => document.getElementById("add-bookmark-btn").click());
       grid.appendChild(empty);
       ctx.updateBookmarkSearchResults?.();
       renderFavorites();
