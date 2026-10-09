@@ -22,8 +22,12 @@ button { touch-action: manipulation; }
 body :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .left-panel {
   width: clamp(260px, 22vw, 288px);
+  margin: 16px;
   padding: 32px 20px 16px;
   background: #252527;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: 0 8px 24px #0003;
   overflow-y: auto;
 }
 .left-inner { flex: 1 0 auto; gap: 26px; }
@@ -125,7 +129,7 @@ body .search-input:focus-visible { outline: none; }
 
 @media (max-width: 680px) {
   body { display: block; height: auto; min-height: 100dvh; overflow: auto; }
-  .left-panel { width: 100%; padding: 20px; border-right: 0; border-bottom: 1px solid var(--border); overflow: visible; position: relative; }
+  .left-panel { width: calc(100% - 24px); margin: 12px; padding: 20px; overflow: visible; position: relative; }
   .left-inner { gap: 22px; }
   .day-header { padding-right: 92px; }
   .clock { text-align: left; font-size: 28px; }
