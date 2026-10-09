@@ -10,6 +10,8 @@ Complete all of the following before finishing:
    `git -c commit.gpgsign=false commit -m "<message> - By Codex"`
 4. Run `git push`
 
+**Never use computer use or the browser to test or preview changes.**
+
 ## Git Rules
 
 * Do not modify global, local, or project Git configuration.
