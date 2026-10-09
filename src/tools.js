@@ -141,7 +141,7 @@ function initAiChat(ctx) {
 
   function openAiChatModal() {
     renderAiChatMessages();
-    setAiChatStatus(ctx.getStoredOpenaiApiKey() ? "" : "Add an OpenAI API key in Settings > Configs.");
+    setAiChatStatus(ctx.getStoredOpenaiApiKey() ? "" : "Add an OpenAI API key in Settings > API key.");
     aiChatModal.hidden = false;
     setTimeout(() => aiChatInput.focus(), 0);
   }
@@ -167,7 +167,7 @@ function initAiChat(ctx) {
     }
     const apiKey = ctx.getStoredOpenaiApiKey().trim();
     if (!apiKey) {
-      setAiChatStatus("Add an OpenAI API key in Settings > Configs.");
+      setAiChatStatus("Add an OpenAI API key in Settings > API key.");
       aiChatInput.focus();
       return;
     }

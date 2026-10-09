@@ -23,6 +23,11 @@ export function initSettings(ctx) {
   const settingsModal = document.getElementById("settings-modal");
   const settingsTabs = Array.from(document.querySelectorAll("[data-settings-tab]"));
   const settingsPanels = Array.from(document.querySelectorAll("[data-settings-panel]"));
+  const settingsTabList = document.querySelector(".settings-sidebar");
+  const compactSettings = window.matchMedia("(max-width: 760px)");
+  const syncTabOrientation = () => settingsTabList.setAttribute("aria-orientation", compactSettings.matches ? "horizontal" : "vertical");
+  compactSettings.addEventListener("change", syncTabOrientation);
+  syncTabOrientation();
 
   const getStoredAiProvider = () => state.settings.aiProvider;
   const getStoredAiSearchEnabled = () => false;

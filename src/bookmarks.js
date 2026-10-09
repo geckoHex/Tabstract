@@ -18,7 +18,6 @@ export function initBookmarks(ctx) {
   const grid = document.getElementById("icon-grid");
   const gridScroll = document.getElementById("grid-scroll");
   const favoritesGrid = document.getElementById("favorites-grid");
-  const favoritesScroll = document.getElementById("favorites-scroll");
   const itemContextMenu = document.getElementById("item-context-menu");
   const gridContextMenu = document.getElementById("grid-context-menu");
   const ctxOpenNewTab = document.getElementById("ctx-open-new-tab");
@@ -185,6 +184,7 @@ export function initBookmarks(ctx) {
       const isCurrent = i === state.currentPath.length - 1;
       btn.className = `path-segment${isCurrent ? " current" : ""}`;
       btn.textContent = folder.name;
+      btn.title = folder.name;
       if (!isCurrent) btn.addEventListener("click", () => setCurrentPath(state.currentPath.slice(0, i + 1)));
       bar.appendChild(btn);
       arr = folder.children;
@@ -212,8 +212,8 @@ export function initBookmarks(ctx) {
       const isRoot = state.currentPath.length === 0;
       empty.innerHTML = `
         <img class="empty-bookmark-icon" src="${iconSrc("bookmark-simple.svg")}" alt="" width="40" height="40" />
-        <h2>${isRoot ? "Your bookmarks, together." : "This folder is empty"}</h2>
-        <p>${isRoot ? "Keep the sites you come back to in one place." : "Add a bookmark to keep it here."}</p>
+        <h2>${isRoot ? "No bookmarks yet" : "This folder is empty"}</h2>
+        <p>${isRoot ? "Add a bookmark or import your collection in Settings." : "Add a bookmark to keep it here."}</p>
         <button type="button" class="btn-primary empty-add-bookmark">Add Bookmark</button>`;
       empty.querySelector(".empty-add-bookmark").addEventListener("click", () => document.getElementById("add-bookmark-btn").click());
       grid.appendChild(empty);
@@ -232,7 +232,7 @@ export function initBookmarks(ctx) {
     if (state.data.favorites.length === 0) {
       const hint = document.createElement("p");
       hint.className = "favorites-hint";
-      hint.textContent = "Pin a bookmark from its menu to keep it close.";
+      hint.textContent = "Choose Pin from a bookmark's menu to add it here.";
       favoritesGrid.appendChild(hint);
     }
     for (const id of state.data.favorites) {
@@ -404,9 +404,9 @@ export function initBookmarks(ctx) {
   gridScroll.addEventListener("scroll", () => {
     if (!itemContextMenu.hidden || !gridContextMenu.hidden) hideAllContextMenus();
   });
-  favoritesScroll.addEventListener("scroll", () => {
-    if (!itemContextMenu.hidden || !gridContextMenu.hidden) hideAllContextMenus();
-  });
+  document.querySelector(".left-inner").addEventListener("scroll", hideAllContextMenus);
+  window.addEventListener("scroll", hideAllContextMenus);
+  window.addEventListener("resize", hideAllContextMenus);
   ctxOpenNewTab.addEventListener("click", () => {
     if (!contextItemId || contextItemType !== "link") return;
     const r = findItem(state.data.items, contextItemId);

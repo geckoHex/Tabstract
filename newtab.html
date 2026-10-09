@@ -16,7 +16,7 @@
 <body>
 
   <!-- ── Left Panel: Clock + Search ────────────────────────────────── -->
-  <div class="left-panel">
+  <aside class="left-panel" aria-label="Search, tools, and favorites">
     <div class="left-inner">
       <div class="day-header">
         <div class="clock" id="clock"></div>
@@ -110,10 +110,10 @@
         <span>Settings</span>
       </button>
     </div>
-  </div>
+  </aside>
 
   <!-- ── Right Panel: Bookmarks ─────────────────────────────────────── -->
-  <div class="right-panel">
+  <main class="right-panel" aria-label="Bookmarks">
 
     <!-- Toolbar: path bar + actions -->
     <div class="toolbar">
@@ -143,7 +143,7 @@
       <div class="icon-grid" id="icon-grid"></div>
     </div>
 
-  </div>
+  </main>
 
   <!-- ── Modal: Power Search ───────────────────────────────────────── -->
   <div class="modal-overlay modal-overlay--power-search" id="power-search-modal" hidden>
@@ -321,7 +321,7 @@
       <div class="modal-body">
         <div class="field">
           <label for="link-title">Title</label>
-          <input type="text" id="link-title" placeholder="My Site" autocomplete="off" />
+          <input type="text" id="link-title" placeholder="Bookmark title" autocomplete="off" />
         </div>
         <div class="field">
           <label for="link-url">URL</label>
@@ -350,7 +350,7 @@
       <div class="modal-body">
         <div class="field">
           <label for="folder-name">Name</label>
-          <input type="text" id="folder-name" placeholder="Work, Personal, Reading..." autocomplete="off" />
+          <input type="text" id="folder-name" placeholder="Folder name" autocomplete="off" />
         </div>
       </div>
       <div class="modal-footer">
@@ -442,18 +442,15 @@
       <div class="modal-body modal-body--settings">
         <div class="settings-shell">
           <div class="settings-sidebar" role="tablist" aria-label="Settings sections" aria-orientation="vertical">
-            <button type="button" class="settings-tab is-active" id="settings-tab-theme" role="tab" aria-selected="true" aria-controls="settings-panel-theme" data-settings-tab="theme">Theme</button>
+            <button type="button" class="settings-tab is-active" id="settings-tab-theme" role="tab" aria-selected="true" aria-controls="settings-panel-theme" data-settings-tab="theme">Appearance</button>
             <button type="button" class="settings-tab" id="settings-tab-search" role="tab" aria-selected="false" aria-controls="settings-panel-search" data-settings-tab="search" tabindex="-1">Search</button>
-            <button type="button" class="settings-tab" id="settings-tab-configs" role="tab" aria-selected="false" aria-controls="settings-panel-configs" data-settings-tab="configs" tabindex="-1">Configs</button>
-            <button type="button" class="settings-tab" id="settings-tab-automation" role="tab" aria-selected="false" aria-controls="settings-panel-automation" data-settings-tab="automation" tabindex="-1">Automation</button>
+            <button type="button" class="settings-tab" id="settings-tab-configs" role="tab" aria-selected="false" aria-controls="settings-panel-configs" data-settings-tab="configs" tabindex="-1">API key</button>
+            <button type="button" class="settings-tab" id="settings-tab-automation" role="tab" aria-selected="false" aria-controls="settings-panel-automation" data-settings-tab="automation" tabindex="-1">Saves</button>
             <button type="button" class="settings-tab" id="settings-tab-data" role="tab" aria-selected="false" aria-controls="settings-panel-data" data-settings-tab="data" tabindex="-1">Data</button>
           </div>
 
           <div class="settings-panels">
             <section class="settings-panel is-active" id="settings-panel-theme" role="tabpanel" aria-labelledby="settings-tab-theme" data-settings-panel="theme">
-              <div class="settings-intro">
-                <h4 class="settings-section-title">Theme</h4>
-              </div>
               <div class="settings-row settings-row--wallpaper" id="wallpaper-settings-row">
                 <span class="settings-row-label" id="wallpaper-label">Wallpaper</span>
                 <div class="wallpaper-picker" id="wallpaper-picker" role="radiogroup" aria-labelledby="wallpaper-label">
@@ -482,9 +479,6 @@
             </section>
 
             <section class="settings-panel" id="settings-panel-search" role="tabpanel" aria-labelledby="settings-tab-search" data-settings-panel="search" hidden>
-              <div class="settings-intro">
-                <h4 class="settings-section-title">Search Options</h4>
-              </div>
               <label class="settings-row settings-row--toggle settings-row--disabled">
                 <span class="settings-row-label">AI search box</span>
                 <span class="settings-toggle-stack">
@@ -521,7 +515,7 @@
                 </div>
               </div>
               <div class="settings-row" id="bookmark-search-limit-settings-row">
-                <label class="settings-row-label" for="bookmark-search-limit-input" id="bookmark-search-limit-label">Bookmark Search Results</label>
+                <label class="settings-row-label" for="bookmark-search-limit-input" id="bookmark-search-limit-label">Search result limit</label>
                 <input
                   type="number"
                   id="bookmark-search-limit-input"
@@ -537,9 +531,6 @@
             </section>
 
             <section class="settings-panel" id="settings-panel-configs" role="tabpanel" aria-labelledby="settings-tab-configs" data-settings-panel="configs" hidden>
-              <div class="settings-intro">
-                <h4 class="settings-section-title">Configs</h4>
-              </div>
               <div class="settings-row">
                 <label class="settings-row-label" for="openai-api-key-input" id="openai-api-key-label">OpenAI API Key</label>
                 <input
@@ -555,11 +546,8 @@
             </section>
 
             <section class="settings-panel" id="settings-panel-automation" role="tabpanel" aria-labelledby="settings-tab-automation" data-settings-panel="automation" hidden>
-              <div class="settings-intro">
-                <h4 class="settings-section-title">Automation</h4>
-              </div>
               <div class="settings-row" id="save-archive-after-settings-row">
-                <label class="settings-row-label" for="save-archive-after-trigger" id="save-archive-after-label">Link auto archive time</label>
+                <label class="settings-row-label" for="save-archive-after-trigger" id="save-archive-after-label">Archive saved links after</label>
                 <div class="custom-select custom-select--settings" id="save-archive-after-custom-select">
                   <button
                     type="button"
@@ -588,9 +576,6 @@
             </section>
 
             <section class="settings-panel" id="settings-panel-data" role="tabpanel" aria-labelledby="settings-tab-data" data-settings-panel="data" hidden>
-              <div class="settings-intro">
-                <h4 class="settings-section-title">Data</h4>
-              </div>
               <div class="settings-row">
                 <span class="settings-row-label">
                   Refresh cached favicons
