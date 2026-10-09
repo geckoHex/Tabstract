@@ -176,13 +176,10 @@ export function initSettings(ctx) {
     const wallpaper = wallpaperOrDefault(id);
     state.wallpaperId = wallpaper.id;
     state.settings.wallpaper = state.wallpaperId;
-    const gridScroll = document.getElementById("grid-scroll");
-    if (gridScroll) {
-      Object.keys(WALLPAPERS).forEach((key) => {
-        if (key !== "off") gridScroll.classList.remove(`grid-scroll--wallpaper-${key}`);
-      });
-      if (state.wallpaperId !== "off") gridScroll.classList.add(`grid-scroll--wallpaper-${state.wallpaperId}`);
-    }
+    Object.keys(WALLPAPERS).forEach((key) => {
+      if (key !== "off") document.body.classList.remove(`wallpaper-${key}`);
+    });
+    if (state.wallpaperId !== "off") document.body.classList.add(`wallpaper-${state.wallpaperId}`);
     if (persist) await saveSetting("wallpaper", state.wallpaperId);
     syncWallpaperPicker();
   }

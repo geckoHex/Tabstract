@@ -79,7 +79,7 @@ body :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .favorites-grid .link-icon-wrap img.favicon { border-radius: 9px; }
 .favorites-grid .icon-label { font-size: 11px; color: var(--text-secondary); }
 .icon-label { font-size: 12px; max-width: 100%; text-shadow: none; }
-.grid-scroll[class*="grid-scroll--wallpaper"] .icon-label { text-shadow: 0 1px 4px #000c; }
+body[class*="wallpaper-"] .icon-label { text-shadow: 0 1px 4px #000c; }
 .bookmark-menu-btn { position: absolute; top: 3px; right: 3px; width: 28px; height: 28px; background: transparent; color: var(--text-secondary); border: 0; border-radius: 7px; font-size: 20px; line-height: 1; cursor: pointer; opacity: 0; }
 .icon-item:hover .bookmark-menu-btn, .icon-item:focus-within .bookmark-menu-btn { opacity: 1; }
 .bookmark-menu-btn:hover { background: var(--surface-active); color: var(--text-primary); }
