@@ -53,7 +53,16 @@ body :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .favorites-section, .favorites-scroll { flex: 0 0 auto; overflow: visible; }
 .favorites-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px 2px; }
 .favorites-hint { grid-column: 1 / -1; color: var(--text-tertiary); font-size: 13px; line-height: 1.7; padding: 4px 0; }
-.toolbar { height: 56px; padding: 0 20px; gap: 6px; background: #252527; }
+.toolbar {
+  height: 56px;
+  margin: 16px 16px 0 0;
+  padding: 0 20px;
+  gap: 6px;
+  background: #252527;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: 0 8px 24px #0003;
+}
 .toolbar-actions { background: transparent; border: 0; gap: 2px; }
 .action-btn + .action-btn { border: 0; }
 .action-btn { width: 32px; min-height: 36px; border-radius: 8px; }
@@ -142,7 +151,7 @@ body .search-input:focus-visible { outline: none; }
   .tool-icon { width: 20px; height: 20px; }
   .favorites-grid { grid-template-columns: repeat(auto-fill, minmax(68px, 1fr)); }
   .right-panel { overflow: visible; min-height: 360px; }
-  .toolbar { position: sticky; top: 0; z-index: 5; height: 52px; padding: 0 8px; gap: 2px; }
+  .toolbar { position: sticky; top: 12px; z-index: 5; height: 52px; margin: 12px 12px 0; padding: 0 8px; gap: 2px; }
   .icon-grid { grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); padding: 16px 12px 24px; gap: 8px; }
   .icon-grid > .icon-item { min-height: 88px; }
   .grid-scroll { overflow: visible; flex: 1 0 auto; }
