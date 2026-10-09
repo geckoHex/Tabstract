@@ -81,13 +81,11 @@ body :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .icon-grid > .icon-item { background: transparent; border: 1px solid transparent; padding: 12px 4px 10px; min-height: 92px; gap: 8px; }
 .icon-grid > .icon-item:hover { background: #ffffff08; border-color: #ffffff0a; }
 .icon-grid > .icon-item.drop-target { background: #ffffff14; border-color: var(--accent); }
-.folder-icon-wrap, .folder-grid-icon { width: 44px; height: 44px; }
-.link-icon-wrap { width: 64px; height: 64px; }
+.folder-icon-wrap, .folder-grid-icon, .link-icon-wrap { width: 64px; height: 64px; }
 .link-icon-wrap .favicon-fallback { font-size: 2rem; }
 .folder-icon-wrap, .icon-item:hover .folder-icon-wrap { filter: none; }
 .folder-grid-icon { opacity: 1; filter: none; }
-.favorites-grid .folder-icon-wrap, .favorites-grid .folder-grid-icon { width: 34px; height: 34px; }
-.favorites-grid .link-icon-wrap { width: 44px; height: 44px; }
+.favorites-grid .folder-icon-wrap, .favorites-grid .folder-grid-icon, .favorites-grid .link-icon-wrap { width: 44px; height: 44px; }
 .favorites-grid .favicon-fallback { font-size: 1.5rem; }
 .favorites-grid .link-icon-wrap img.favicon { border-radius: 9px; }
 .favorites-grid .icon-label { font-size: 11px; color: var(--text-secondary); }
