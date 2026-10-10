@@ -246,6 +246,34 @@ body .search-input:focus-visible { outline: none; }
   .path-segment, .saves-toolbar-btn, .settings-btn, .settings-tab, .context-menu-item, .btn-primary, .btn-secondary, .btn-danger, .btn-blue { min-height: 44px; }
 }
 
+/* Brief entrances mark newly opened surfaces without delaying interaction. */
+@media (prefers-reduced-motion: no-preference) {
+  .modal-overlay:not([hidden]) { animation: surface-fade-in 140ms ease-out; }
+  .modal-overlay:not([hidden]) > .modal { animation: dialog-enter 160ms ease-out; }
+  .context-menu:not([hidden]),
+  .custom-select-menu:not([hidden]),
+  .settings-panel:not([hidden]) { animation: surface-fade-in 120ms ease-out; }
+
+  .toolbar-utility, .bookmark-menu-btn {
+    transition: background var(--transition), color var(--transition), opacity var(--transition);
+  }
+
+  @keyframes surface-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes dialog-enter {
+    from { transform: translateY(4px); }
+    to { transform: translateY(0); }
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
+  .icon-item:not(.dragging):hover .folder-icon-wrap,
+  .icon-item:not(.dragging):hover .link-icon-wrap { transform: translateY(-2px); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
 }
