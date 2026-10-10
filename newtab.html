@@ -451,12 +451,16 @@
 
           <div class="settings-panels">
             <section class="settings-panel is-active" id="settings-panel-theme" role="tabpanel" aria-labelledby="settings-tab-theme" data-settings-panel="theme">
+              <div class="settings-panel-heading">
+                <h4>Appearance</h4>
+                <p>Choose a background for new tabs.</p>
+              </div>
               <div class="settings-row settings-row--wallpaper" id="wallpaper-settings-row">
                 <span class="settings-row-label" id="wallpaper-label">Wallpaper</span>
                 <div class="wallpaper-picker" id="wallpaper-picker" role="radiogroup" aria-labelledby="wallpaper-label">
                   <button type="button" class="wallpaper-option" role="radio" aria-checked="true" data-value="off">
                     <span class="wallpaper-option-preview wallpaper-option-preview--off" aria-hidden="true"></span>
-                    <span class="wallpaper-option-label">Off</span>
+                    <span class="wallpaper-option-label">None</span>
                   </button>
                   <button type="button" class="wallpaper-option" role="radio" aria-checked="false" data-value="city">
                     <span class="wallpaper-option-preview wallpaper-option-preview--city" aria-hidden="true"></span>
@@ -479,14 +483,36 @@
             </section>
 
             <section class="settings-panel" id="settings-panel-search" role="tabpanel" aria-labelledby="settings-tab-search" data-settings-panel="search" hidden>
+              <div class="settings-panel-heading">
+                <h4>Search</h4>
+                <p>Adjust bookmark search in the sidebar.</p>
+              </div>
+              <div class="settings-row" id="bookmark-search-limit-settings-row">
+                <div class="settings-row-copy">
+                  <label class="settings-row-label" for="bookmark-search-limit-input" id="bookmark-search-limit-label">Search result limit</label>
+                  <p class="settings-help-text" id="bookmark-search-limit-help">Choose between 1 and 8 results.</p>
+                </div>
+                <input
+                  type="number"
+                  id="bookmark-search-limit-input"
+                  class="settings-number-input"
+                  min="1"
+                  max="8"
+                  step="1"
+                  inputmode="numeric"
+                  value="8"
+                  aria-labelledby="bookmark-search-limit-label"
+                  aria-describedby="bookmark-search-limit-help"
+                />
+              </div>
               <label class="settings-row settings-row--toggle settings-row--disabled">
-                <span class="settings-row-label">AI search box</span>
-                <span class="settings-toggle-stack">
-                  <span class="settings-toggle">
-                    <input type="checkbox" id="ai-search-enabled" class="settings-toggle-input" disabled aria-disabled="true" />
-                    <span class="settings-toggle-track" aria-hidden="true"></span>
-                  </span>
-                  <span class="settings-help-text settings-help-text--toggle">This feature is currently unavailable.</span>
+                <span class="settings-row-copy">
+                  <span class="settings-row-label">AI search box</span>
+                  <span class="settings-help-text">Currently unavailable.</span>
+                </span>
+                <span class="settings-toggle">
+                  <input type="checkbox" id="ai-search-enabled" class="settings-toggle-input" disabled aria-disabled="true" />
+                  <span class="settings-toggle-track" aria-hidden="true"></span>
                 </span>
               </label>
               <div class="settings-row" id="ai-provider-settings-row">
@@ -514,25 +540,15 @@
                   </ul>
                 </div>
               </div>
-              <div class="settings-row" id="bookmark-search-limit-settings-row">
-                <label class="settings-row-label" for="bookmark-search-limit-input" id="bookmark-search-limit-label">Search result limit</label>
-                <input
-                  type="number"
-                  id="bookmark-search-limit-input"
-                  class="settings-number-input"
-                  min="1"
-                  max="8"
-                  step="1"
-                  inputmode="numeric"
-                  value="8"
-                  aria-labelledby="bookmark-search-limit-label"
-                />
-              </div>
             </section>
 
             <section class="settings-panel" id="settings-panel-configs" role="tabpanel" aria-labelledby="settings-tab-configs" data-settings-panel="configs" hidden>
-              <div class="settings-row">
-                <label class="settings-row-label" for="openai-api-key-input" id="openai-api-key-label">OpenAI API Key</label>
+              <div class="settings-panel-heading">
+                <h4>API key</h4>
+                <p>Use your OpenAI API key for AI Chat.</p>
+              </div>
+              <div class="settings-row settings-row--stacked">
+                <label class="settings-row-label" for="openai-api-key-input" id="openai-api-key-label">OpenAI API key</label>
                 <input
                   type="password"
                   id="openai-api-key-input"
@@ -541,13 +557,22 @@
                   autocomplete="off"
                   spellcheck="false"
                   aria-labelledby="openai-api-key-label"
+                  aria-describedby="openai-api-key-help"
                 />
+                <p class="settings-help-text" id="openai-api-key-help">Stored in this browser and included in data exports.</p>
               </div>
             </section>
 
             <section class="settings-panel" id="settings-panel-automation" role="tabpanel" aria-labelledby="settings-tab-automation" data-settings-panel="automation" hidden>
+              <div class="settings-panel-heading">
+                <h4>Saves</h4>
+                <p>Choose when saved links move to the archive.</p>
+              </div>
               <div class="settings-row" id="save-archive-after-settings-row">
-                <label class="settings-row-label" for="save-archive-after-trigger" id="save-archive-after-label">Archive saved links after</label>
+                <div class="settings-row-copy">
+                  <label class="settings-row-label" for="save-archive-after-trigger" id="save-archive-after-label">Archive after</label>
+                  <p class="settings-help-text" id="save-archive-after-help">Locked links stay in Saves.</p>
+                </div>
                 <div class="custom-select custom-select--settings" id="save-archive-after-custom-select">
                   <button
                     type="button"
@@ -557,6 +582,7 @@
                     aria-expanded="false"
                     aria-controls="save-archive-after-list"
                     aria-labelledby="save-archive-after-label save-archive-after-trigger-text"
+                    aria-describedby="save-archive-after-help"
                   >
                     <span class="custom-select-value" id="save-archive-after-trigger-text">12 hours</span>
                     <span class="custom-select-chevron" aria-hidden="true">
@@ -576,31 +602,46 @@
             </section>
 
             <section class="settings-panel" id="settings-panel-data" role="tabpanel" aria-labelledby="settings-tab-data" data-settings-panel="data" hidden>
-              <div class="settings-row">
-                <span class="settings-row-label">
-                  Refresh cached favicons
-                  <span class="settings-row-status" id="favicon-refresh-status" aria-live="polite"></span>
-                </span>
-                <button type="button" class="btn-blue settings-data-btn" id="refresh-favicons-btn">Refresh</button>
+              <div class="settings-panel-heading">
+                <h4>Data</h4>
+                <p>Back up, restore, or clear your Tabstract data.</p>
               </div>
               <div class="settings-row">
-                <span class="settings-row-label">Export data</span>
+                <div class="settings-row-copy">
+                  <span class="settings-row-label">Export data</span>
+                  <p class="settings-help-text">Download bookmarks, favorites, saves, settings, and icons.</p>
+                </div>
                 <button type="button" class="btn-secondary settings-data-btn" id="export-data-btn">Export</button>
               </div>
               <div class="settings-row">
-                <span class="settings-row-label">Import data</span>
-                <button type="button" class="btn-secondary settings-data-btn" id="import-data-btn">Import</button>
+                <div class="settings-row-copy">
+                  <span class="settings-row-label">Import data</span>
+                  <p class="settings-help-text">Replace current data with a Tabstract backup.</p>
+                </div>
+                <button type="button" class="btn-secondary settings-data-btn" id="import-data-btn">Import…</button>
                 <input type="file" id="import-file-input" accept=".json" hidden />
               </div>
               <div class="settings-row">
-                <span class="settings-row-label">Delete all bookmarks, favorites, and saves</span>
-                <button type="button" class="btn-danger settings-data-btn" id="delete-all-data-btn">Delete All</button>
+                <div class="settings-row-copy">
+                  <span class="settings-row-label">Website icons</span>
+                  <p class="settings-help-text">Refresh cached icons for your links.</p>
+                  <span class="settings-row-status" id="favicon-refresh-status" aria-live="polite"></span>
+                </div>
+                <button type="button" class="btn-secondary settings-data-btn" id="refresh-favicons-btn">Refresh</button>
+              </div>
+              <div class="settings-row settings-row--destructive">
+                <div class="settings-row-copy">
+                  <span class="settings-row-label">Delete bookmarks and saves</span>
+                  <p class="settings-help-text">Permanently remove all bookmarks, favorites, and saves.</p>
+                </div>
+                <button type="button" class="btn-danger settings-data-btn" id="delete-all-data-btn">Delete all…</button>
               </div>
             </section>
           </div>
         </div>
       </div>
       <div class="modal-footer modal-footer--settings">
+        <p class="settings-footer-note">Changes apply automatically.</p>
         <button class="btn-primary" id="settings-modal-done" type="button">Done</button>
       </div>
     </div>
